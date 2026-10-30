@@ -15,7 +15,7 @@
     "WorkshopService"
   ],
   "sbcRequired": true,
-  "sbcDsfVersion": "3",
+  "sbcDsfVersion": "3.6",
   "sbcExecutable": "vision.py",
   "sbcExecutableArguments": "",
   "sbcAutoRestart": true,
@@ -34,5 +34,30 @@
   "sbcPluginDependencies": [
     "WorkshopService"
   ],
-  "data": {}
+  "data": {},
+  "sdFiles": [
+    "sys/workshop/macros/visionpose.g"
+  ],
+  "dsfFiles": [
+    "calibration_extra.py",
+    "direct_camera.py",
+    "dsf_io.py",
+    "fire_decision.py",
+    "fire_watch.py",
+    "i18n/en.json",
+    "i18n/es.json",
+    "image_compare.py",
+    "ipc_stats.py",
+    "laser_calibration.py",
+    "message_data.py",
+    "messages.py",
+    "net_guard.py",
+    "record_log.py",
+    "vision.py",
+    "vision_access.py"
+  ],
+  "dwcFiles": [
+    "js/WorkshopVision.583651df.js",
+    "js/WorkshopVision.583651df.js.gz"
+  ]
 }

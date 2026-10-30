@@ -124,8 +124,23 @@ def check_repo(pid, m, out):
         try:
             remote = json.loads(base64.b64decode(raw["content"]))
             out("plugin.json of the repository is the current version", remote.get("version") == m["version"], remote.get("version"))
+            zm_pub = zip_manifest(pid, m["version"])
+            same = all(remote.get(k) == zm_pub.get(k) for k in ("dwcVersion", "sbcDsfVersion", "sbcRequired", "dwcDependencies", "sbcExecutable")) if zm_pub else False
+            out("plugin.json of the repository says what the published 3.6 zip says (dwcVersion, sbc fields, dependencies)", same,
+                "repo dwc %s / zip dwc %s" % (remote.get("dwcVersion"), (zm_pub or {}).get("dwcVersion")))
         except Exception:  # noqa: BLE001
             out("plugin.json of the repository is readable", False, "")
+
+
+def zip_manifest(pid, version):
+    """The plugin.json inside the published DWC 3.6 zip (what the catalog must be told), or None."""
+    here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    folder = os.path.join(os.path.dirname(here), "WorkshopService", "dist", "release") if pid == "WorkshopService" else os.path.join(here, "dist", "release")
+    path = os.path.join(folder, "%s-%s-dwc3.6.zip" % (pid, version))
+    if not os.path.isfile(path):
+        return None
+    with zipfile.ZipFile(path) as z:
+        return json.loads(z.read("plugin.json"))
 
 
 def main():

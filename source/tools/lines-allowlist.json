@@ -1,0 +1,62 @@
+{
+  "_comment": "Intended differences between the DWC 3.7 and 3.6 sources of the Vue plugins, read by tools/lines-diff.js. Each entry lists what exists only on one side (only37 = vue/<Id>/dwc-src and vue/_shared, only36 = vue/<Id>/dwc36 and vue/_shared36); a trailing * is a prefix. The key * applies to every plugin. An entry of a plugin that matches nothing any more fails tests/lines-divergence.test.js (the lines converged: delete it). Anything not listed here is drift and fails the test. Porting the 3.7 fixes to 3.6 is an owner decision (docs/DWC-LINES.md, section Out of sync today).",
+  "*": {
+    "manifest": {
+      "only37": [
+        "dwcVersion=*"
+      ],
+      "only36": [
+        "dwcVersion=*"
+      ],
+      "reason": "each line zip names its own DWC line; the universal zip sets dwcVersion 3"
+    }
+  },
+  "WorkshopActivity": {
+    "i18n.en": {
+      "only37": [
+        "activity.filters_apply_to_whole_history"
+      ],
+      "only36": [
+        "activity.filters_by_date_and_type_directly"
+      ],
+      "reason": "3.7 fix-vue/QA changes that change behavior and markup of the Activity page (event kinds camera, maintenance, note, box_black, meter_alarm, health_disk with their readable fallback; description_en for non-Spanish locales; History columns hidden on narrow screens; filter hint text): not a text-only fix, so they are left for the owner to port with a visual check on a real DWC 3.6 (fix-vue-report.md section 4)"
+    },
+    "i18n.es": {
+      "only37": [
+        "activity.filters_apply_to_whole_history"
+      ],
+      "only36": [
+        "activity.filters_by_date_and_type_directly"
+      ],
+      "reason": "3.7 fix-vue/QA changes that change behavior and markup of the Activity page (event kinds camera, maintenance, note, box_black, meter_alarm, health_disk with their readable fallback; description_en for non-Spanish locales; History columns hidden on narrow screens; filter hint text): not a text-only fix, so they are left for the owner to port with a visual check on a real DWC 3.6 (fix-vue-report.md section 4)"
+    }
+  },
+  "_shared": {
+    "i18n.en": {
+      "only37": [
+        "shared.edit_dialog_cancel",
+        "shared.edit_dialog_save"
+      ],
+      "only36": [],
+      "reason": "texts of FileEditDialog (shared.edit_dialog_*): that dialog is a 3.7 piece used only by the stopped WorkshopConfig, so the Vue 2 shared pieces do not need it"
+    },
+    "i18n.es": {
+      "only37": [
+        "shared.edit_dialog_cancel",
+        "shared.edit_dialog_save"
+      ],
+      "only36": [],
+      "reason": "texts of FileEditDialog (shared.edit_dialog_*): that dialog is a 3.7 piece used only by the stopped WorkshopConfig, so the Vue 2 shared pieces do not need it"
+    },
+    "files": {
+      "only37": [
+        "FileEditDialog.vue",
+        "dwc-host.js",
+        "expand-transition.js",
+        "use-role.js"
+      ],
+      "only36": [],
+      "reason": "dwc-host.js is the DWC 3.7 adapter (the 3.6 pieces import DWC internals directly); use-role.js and expand-transition.js are Vue 3 composables and transitions, 3.6 uses role-mixin.js; FileEditDialog.vue is used only by the stopped WorkshopConfig"
+    }
+  }
+}

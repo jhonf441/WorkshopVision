@@ -1,0 +1,38 @@
+{
+  "id": "WorkshopVision",
+  "name": "Vision",
+  "author": "jhonf441",
+  "version": "2.7.2",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/jhonf441/WorkshopVision",
+  "tags": [
+    "camera",
+    "vision",
+    "opencv"
+  ],
+  "dwcVersion": "3.6",
+  "dwcDependencies": [
+    "WorkshopService"
+  ],
+  "sbcRequired": true,
+  "sbcDsfVersion": "3",
+  "sbcExecutable": "vision.py",
+  "sbcExecutableArguments": "",
+  "sbcAutoRestart": true,
+  "sbcOutputRedirected": false,
+  "sbcPermissions": [
+    "commandExecution",
+    "objectModelRead",
+    "networkAccess",
+    "fileSystemAccess"
+  ],
+  "sbcPythonDependencies": [
+    "opencv-python-headless>=4.10",
+    "numpy>=1.26",
+    "dsf-python==3.6.0"
+  ],
+  "sbcPluginDependencies": [
+    "WorkshopService"
+  ],
+  "data": {}
+}

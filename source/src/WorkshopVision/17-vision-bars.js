@@ -54,7 +54,7 @@
       function tvNoticeService(tv) {
         var c = tvCard(i18nT('vision.the_vision_service_doesn_t_respond'), "lan-disconnect");
         c.classList.add("tv-notice");
-        c.appendChild(tvEl("div", null, i18nT('vision.page_cannot_reach_the_service', { port: TV_PORT })));
+        c.appendChild(tvEl("div", null, i18nT('vision.page_cannot_reach_the_service', { port: WORKSHOP_VISION_PORT })));
         c.appendChild(tvEl("div", "tv-muted", i18nT(tvHasWorkbench(tv) ? 'vision.meanwhile_you_can_t_detect_or' : 'vision.meanwhile_you_can_t_detect_or_no_map')));
         return c;
       }

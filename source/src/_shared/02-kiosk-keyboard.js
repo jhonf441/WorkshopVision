@@ -28,37 +28,37 @@
         if (typeof window === "undefined" || typeof document === "undefined" || typeof document.addEventListener !== "function") return;
         var host = window.location && window.location.hostname;
         if (host !== "localhost" && host !== "127.0.0.1") return;
-        if (window.__workshopOsk) return;
-        window.__workshopOsk = 1;
-        // The keyboard comes out only when the person touches a field, never because code gave a field the focus (the PIN dialog
-        // focuses its first field when it opens: that must not raise the keyboard).
-        var touchedAt = 0;
-        ["pointerdown", "touchstart", "mousedown"].forEach(function (ev) {
-          document.addEventListener(
-            ev,
-            function () {
-              touchedAt = Date.now();
-            },
-            { capture: true, passive: true }
-          );
-        });
-        document.addEventListener(
-          "focusin",
-          function (e) {
+        // one set of listeners for all the plugins of the page; it goes when the last of them stops (workshopSharedUse, 30-lifecycle.js)
+        workshopSharedUse("kiosk-osk", function () {
+          // The keyboard comes out only when the person touches a field, never because code gave a field the focus (the PIN dialog
+          // focuses its first field when it opens: that must not raise the keyboard).
+          var touchedAt = 0;
+          var touchEvents = ["pointerdown", "touchstart", "mousedown"];
+          function touched() {
+            touchedAt = Date.now();
+          }
+          function onFocusIn(e) {
             if (workshopOskIsText(e.target) && Date.now() - touchedAt < 700) workshopOskAsk("show");
-          },
-          true
-        );
-        document.addEventListener(
-          "focusout",
-          function () {
+          }
+          function onFocusOut() {
             // the focus often goes to another field a moment later: hide only if it did not
             setTimeout(function () {
               if (!workshopOskIsText(document.activeElement)) workshopOskAsk("hide");
             }, 200);
-          },
-          true
-        );
+          }
+          touchEvents.forEach(function (ev) {
+            document.addEventListener(ev, touched, { capture: true, passive: true });
+          });
+          document.addEventListener("focusin", onFocusIn, true);
+          document.addEventListener("focusout", onFocusOut, true);
+          return function () {
+            touchEvents.forEach(function (ev) {
+              document.removeEventListener(ev, touched, { capture: true });
+            });
+            document.removeEventListener("focusin", onFocusIn, true);
+            document.removeEventListener("focusout", onFocusOut, true);
+          };
+        });
       })();
 
       // ---- No on-screen keyboard on a computer with a mouse (2026-10-29) ----

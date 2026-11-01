@@ -88,10 +88,12 @@ FACTS = {
         system=["phone notices use the free service ntfy.sh (or your own server); they need Internet access from the Pi"],
         notes=["The notice topic works like a password: whoever knows it can read your notices. Leave notices off if you do not want data to leave the machine."]),
     "WorkshopWorkbench": dict(
-        risk="Medium-high (moves the machine and runs laser jobs)",
-        writes=["work zones `0:/sys/workshop/zones/p<N>.g`, `cutarea.g`", "materials, designs and positions under `0:/sys/workshop/`", "helper jobs in `0:/sys/workshop/gcodes/`"],
+        risk="Medium-high (moves the machine and runs laser and CNC jobs)",
+        writes=["work zones `0:/sys/workshop/zones/p<N>.g`, `cutarea.g`", "materials, designs and positions under `0:/sys/workshop/`", "helper jobs in `0:/sys/workshop/gcodes/`",
+                "CNC designs `0:/sys/workshop/data/cnc-designs.json` and the files made by the CNC toolpaths in `0:/gcodes/` (they are only written; starting one asks the CNC safety list)"],
         system=[],
-        notes=["Laser jobs ask for confirmation, check the active zone and the cut area, and every `G1` it generates carries `S0` unless it must fire the laser."]),
+        notes=["Laser jobs ask for confirmation, check the active zone and the cut area, and every `G1` it generates carries `S0` unless it must fire the laser.",
+               "CNC files start with `sys/workshop/macros/cncguard.g`, which cancels the job unless the machine is in CNC mode, homed and with the Z zero set and the depth and safe Z fit in the Z travel; the page also asks the CNC safety list before Start."]),
     "WorkshopVision": dict(
         risk="High (own Python process; fire watch can pause a job or send an emergency stop)",
         writes=["its settings, bed photos and calibration under `0:/sys/workshop/`"],

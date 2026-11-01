@@ -3,20 +3,25 @@
       // under the finger. On the touch screen that is often the text field of a DWC page, which takes the focus and
       // brings up the on-screen keyboard. Calling this in the handler that hides the panel cancels the rest of that tap.
       var workshopTouchGhostUntil = 0;
+      var workshopTouchGhostFns = {};
       function workshopWithoutTouchGhost(ms) {
         workshopTouchGhostUntil = Date.now() + (ms || 600);
-        if (workshopWithoutTouchGhost.put) return;
+        if (workshopWithoutTouchGhost.put || pluginStopped) return; // a stopped plugin puts nothing that nobody would take away
         workshopWithoutTouchGhost.put = true;
         ["touchend", "mousedown", "mouseup", "click"].forEach(function (kind) {
-          window.addEventListener(
-            kind,
-            function (ev) {
-              if (Date.now() > workshopTouchGhostUntil) return;
-              if (ev.cancelable) ev.preventDefault();
-              ev.stopPropagation();
-              ev.stopImmediatePropagation();
-            },
-            { capture: true, passive: false }
-          );
+          workshopTouchGhostFns[kind] = function (ev) {
+            if (Date.now() > workshopTouchGhostUntil) return;
+            if (ev.cancelable) ev.preventDefault();
+            ev.stopPropagation();
+            ev.stopImmediatePropagation();
+          };
+          window.addEventListener(kind, workshopTouchGhostFns[kind], { capture: true, passive: false });
+        });
+        // every plugin puts its own: they go with their plugin
+        workshopOnStop(function () {
+          Object.keys(workshopTouchGhostFns).forEach(function (kind) {
+            window.removeEventListener(kind, workshopTouchGhostFns[kind], { capture: true });
+          });
+          workshopTouchGhostFns = {};
         });
       }

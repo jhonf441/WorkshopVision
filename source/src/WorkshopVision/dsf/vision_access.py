@@ -7,7 +7,7 @@ module asks the service who that is (`auth.resolve`, the local API on 127.0.0.1,
 Rules (the same ones the service applies to `vision.post`, plus the two answers of the fire watch):
   - machine WITHOUT users (the service says `configured: false` or `compat`): nothing changes, as before;
   - /photo, /detect, /record/search: operator; /fire/cancel, /fire/confirm: operator; /crosses/cancel: any caller (stopping is never blocked);
-  - everything else (/crosses/begin moves the machine and fires the laser, /config, /calibrate*, /lens*, /plan, /mosaic...): technician;
+  - everything else (/crosses/begin moves the machine and fires the laser, /calibrate*, /lens*, /plan, /mosaic...): technician;
     a path that is not in the table is the technician's too (a new path is closed until somebody classifies it);
   - GET (F3-D, same rule as the camera relay, camera_access.py of the service): every path of GET_RULES is a read of the camera or of what
     Vision sees: a viewer needs the camera (the flag `user.camera` that auth.resolve sends; a missing flag = no camera), operator and above

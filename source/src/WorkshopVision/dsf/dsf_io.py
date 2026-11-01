@@ -29,7 +29,7 @@ CHANNEL of the codes: SBC (CodeChannel.SBC, the Pi's channel).
   - What Vision asks of WorkshopService (photo lights, noting the
     fire in Activity, reserving the machine for a sequence) goes through the
     service's API (POST /machine/WorkshopService/api with the local key
-    0:/sys/workshop/data/.api-token, see service()), which does not go through any
+    /opt/dsf/conf/workshop-api-token, see service()), which does not go through any
     RRF channel.
   - M112 does not depend on the channel: DCS marks it as priority and passes it to a free
     channel (SimpleCode.cs, M108/M112/M122/M292/M999).
@@ -427,20 +427,15 @@ def channel_service(d):
 
 
 API_URL = "http://127.0.0.1/machine/WorkshopService/api"
-API_TOKEN_FILE = "/opt/dsf/conf/workshop-api-token"   # outside the SD (the service moves the key there)
-API_TOKEN_FILE_LEGACY = "/opt/dsf/sd/sys/workshop/data/.api-token"   # read only until the service has moved it
+API_TOKEN_FILE = "/opt/dsf/conf/workshop-api-token"   # outside the SD (the service keeps its local key there)
 
 
 def _api_token():
-    for path in (API_TOKEN_FILE, API_TOKEN_FILE_LEGACY):
-        try:
-            with open(path, encoding="utf-8") as f:
-                t = f.read().strip()
-            if t:
-                return t
-        except OSError:
-            continue
-    return ""
+    try:
+        with open(API_TOKEN_FILE, encoding="utf-8") as f:
+            return f.read().strip()
+    except OSError:
+        return ""
 
 
 def _api_http(op, args, timeout, confirm=False):

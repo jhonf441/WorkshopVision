@@ -25,7 +25,7 @@
         var state = tvEl("div", "tv-muted");
         state.style.marginTop = "6px";
         card.appendChild(state);
-        card.appendChild(tvEl("div", "tv-muted", i18nT('vision.camera_processing_help')));
+        card.appendChild(tvEl("div", "tv-muted", tvTx('vision.camera_processing_help', ['camera', 'workbench'])));
 
         function paint() {
           var m = tvCameraModule();

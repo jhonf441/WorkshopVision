@@ -69,18 +69,34 @@
       }
 
       (function workshopNoticeStart() {
-        if (typeof window === "undefined" || typeof document === "undefined" || window.__workshopNotice) return;
-        window.__workshopNotice = 1;
-        // the session changes without any event the page could hear (token cleared, tab restored): looking once a second is enough
-        setInterval(function () {
-          try {
-            workshopNoticeChipPaint();
-          } catch (e) {
-            /* only visual */
-          }
-        }, 1000);
-        // the Vue pages ask for the notice through the registry (10-registry.js builds window.__workshop)
-        setTimeout(function () {
-          if (window.__workshop && !window.__workshop.toast) window.__workshop.toast = workshopToast;
-        }, 0);
+        if (typeof window === "undefined" || typeof document === "undefined") return;
+        // one chip and one timer for all the plugins of the page; they go when the last of them stops (workshopSharedUse, 30-lifecycle.js)
+        workshopSharedUse("session-notice", function () {
+          // the session changes without any event the page could hear (token cleared, tab restored): looking once a second is enough
+          var timer = setInterval(function () {
+            try {
+              workshopNoticeChipPaint();
+            } catch (e) {
+              /* only visual */
+            }
+          }, 1000);
+          // the Vue pages ask for the notice through the registry (10-registry.js builds window.__workshop)
+          var offered = false;
+          var offer = setTimeout(function () {
+            if (window.__workshop && !window.__workshop.toast) {
+              window.__workshop.toast = workshopToast;
+              offered = true;
+            }
+          }, 0);
+          return function () {
+            clearInterval(timer);
+            clearTimeout(offer);
+            clearTimeout(workshopNoticeToastTimer);
+            if (offered && window.__workshop && window.__workshop.toast === workshopToast) delete window.__workshop.toast;
+            [WORKSHOP_NOTICE_CHIP_ID, WORKSHOP_NOTICE_TOAST_ID].forEach(function (id) {
+              var n = document.getElementById(id);
+              if (n && n.parentNode) n.parentNode.removeChild(n);
+            });
+          };
+        });
       })();

@@ -14,7 +14,7 @@
         if (window.__workshopCameraKey) return;
         var state = { token: "", requested: null, last: 0 };
         window.__workshopCameraKey = state;
-        var RE_RELAY = WORKSHOP_RELAY_URL; // :8090 relay; :8095 Vision service, which validates the same key (26-camera-cover.js)
+        var RE_RELAY = WORKSHOP_RELAY_URL; // the relay and the Vision service, which validate the same key (10-camera-ports.js)
 
         function request() {
           if (state.requested) return state.requested;

@@ -35,7 +35,7 @@
       function tvCalState(tv, cl) {
         cl.c1 = tvCard(i18nT('vision.calibration_status'), cl.ks.length && cl.alt ? "check-decagram-outline" : "alert-decagram-outline");
         tv.side.appendChild(cl.c1);
-        if (!cl.ks.length) cl.ind(tv.state && tv.state.source === "map" ? null : false, tv.state && tv.state.source === "map" ? i18nT('vision.uses_the_map_camera_s_calibration') : i18nT('vision.not_calibrated'), tv.state && tv.state.source === "map" ? i18nT('vision.it_is_fixed_it_does_not') : i18nT('vision.measurements_come_out_only_in_pixels'));
+        if (!cl.ks.length) cl.ind(false, i18nT('vision.not_calibrated'), i18nT('vision.measurements_come_out_only_in_pixels'));
         cl.ks.forEach(function (k) {
           var c = cl.calibs[k];
           var bueno = c.error_mm < 0.6;
@@ -115,7 +115,7 @@
         }
         if (tv.laserOn === false) {
           var noLaser = tvCard(i18nT('vision.automatic_with_laser_crosses'), "crosshairs-gps");
-          noLaser.appendChild(tvEl("div", "tv-muted", i18nT('vision.crosses_need_laser')));
+          noLaser.appendChild(tvEl("div", "tv-muted", tvTx('vision.crosses_need_laser', 'machine')));
           tv.side.appendChild(noLaser);
         } else {
           // metodos: uno abierto a la vez
@@ -131,7 +131,7 @@
         var aAr = tvAcc(tv, "cal-aruco", i18nT('vision.with_printed_aruco_markers'), "qrcode", i18nT('vision.print_4_markers_stick_them_and'), "cal", false);
         tv.side.appendChild(aAr.el);
         var c2 = aAr.body;
-        c2.appendChild(tvEl("div", "tv-muted", i18nT('vision.1_print_the_markers_and_stick')));
+        c2.appendChild(tvEl("div", "tv-muted", tvTx('vision.1_print_the_markers_and_stick', 'jog')));
         var r0 = tvEl("div", "tv-row");
         c2.appendChild(r0);
         r0.appendChild(tvEl("span", "tv-muted", i18nT('vision.side_mm')));
@@ -218,7 +218,7 @@
         var aPm = tvAcc(tv, "cal-points", i18nT('vision.with_points_by_hand'), "gesture-tap", i18nT('vision.4_or_more_points_tap_them'), "cal", false);
         tv.side.appendChild(aPm.el);
         var c3 = aPm.body;
-        c3.appendChild(tvEl("div", "tv-muted", i18nT('vision.without_printing_anything_4_or_more')));
+        c3.appendChild(tvEl("div", "tv-muted", tvTx('vision.without_printing_anything_4_or_more', 'jog')));
         tv.calPts.forEach(function (p, i) {
           var r = tvEl("div", "tv-row");
           c3.appendChild(r);

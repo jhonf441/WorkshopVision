@@ -167,8 +167,10 @@
         var st = workshopHostVuex();
         var ms = st && st.state && st.state.machine && st.state.machine.settings;
         if (!ms || !Array.isArray(ms.enabledPlugins)) return null;
-        var gs = st.state.settings; // DWC 3.6 keeps a second list in the global settings
-        return gs && Array.isArray(gs.enabledPlugins) ? ms.enabledPlugins.concat(gs.enabledPlugins) : ms.enabledPlugins;
+        // DWC 3.6 keeps a second list in the global settings (`main`), and loads the interface of the plugins of BOTH at start, but
+        // Stop / Start / Uninstall and the state of the plugins page read and write only the machine list. So the machine list is the
+        // one that says whether a plugin is on: an id left in `main` (a stop never removes it from there) must not keep a stopped plugin alive.
+        return ms.enabledPlugins;
       }
 
       function workshopHostSettings() {

@@ -1,6 +1,6 @@
       function tvRenderSheet(tv, c) {
         var p = (tv.prefs.sheet = tv.prefs.sheet || { kind: "a4", w: 210, h: 297 });
-        c.appendChild(tvEl("div", "tv-muted", i18nT('vision.1_put_a_white_sheet_whole')));
+        c.appendChild(tvEl("div", "tv-muted", tvTx('vision.1_put_a_white_sheet_whole', 'jog')));
         var g = tvEl("div", "tv-prm");
         c.appendChild(g);
         g.appendChild(tvEl("label", null, i18nT('vision.sheet')));

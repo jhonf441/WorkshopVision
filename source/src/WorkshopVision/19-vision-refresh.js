@@ -34,20 +34,20 @@
           if (!tv.state.ok) {
             // a missing session is not a service that is off (it answers 401): say so
             if (workshopSignedOut()) tv.chipSrv.set("warn", i18nT('vision.sign_in_needed'), i18nT('vision.sign_in_needed_text'));
-            else tv.chipSrv.set("err", i18nT('vision.service_off'), i18nT('vision.vision_service_not_answering_port', { port: TV_PORT, error: tv.state.error || "" }));
+            else tv.chipSrv.set("err", i18nT('vision.service_off'), i18nT('vision.vision_service_not_answering_port', { port: WORKSHOP_VISION_PORT, error: tv.state.error || "" }));
             tv.chipCamera.set("", i18nT('vision.camera'));
             tv.chipCal.set("", i18nT('vision.calibration'));
             return;
           }
-          tv.chipSrv.set("ok", "OpenCV " + tv.state.opencv, i18nT('vision.workshop_vision_service_port', { port: TV_PORT }));
+          tv.chipSrv.set("ok", "OpenCV " + tv.state.opencv, i18nT('vision.workshop_vision_service_port', { port: WORKSHOP_VISION_PORT }));
           var camera = tv.state.camera || {};
           var ctl = camera.control || {};
           if (ctl.notice) tv.chipCamera.set("warn", i18nT('vision.camera_check'), ctl.notice);
           else tv.chipCamera.set(camera.ok ? "ok" : camera.age_s === null ? "" : "warn", camera.ok ? tvFmt(camera.fps, 0) + " fps" : camera.age_s === null ? i18nT('vision.camera_on_standby') : i18nT('vision.camera_without_image'), camera.error || "");
           var ks = Object.keys(tv.state.calibs || {});
           tv.chipCal.set(
-            ks.length ? (tv.state.height ? "ok" : "warn") : tv.state.source === "map" ? "warn" : "err",
-            ks.length ? i18nT('vision.calibrated') + (tv.state.height ? " + " + i18nT('vision.height_lower') : i18nT('vision.without_height')) : tv.state.source === "map" ? i18nT('vision.map_calibration') : i18nT('vision.not_calibrated_lower'),
+            ks.length ? (tv.state.height ? "ok" : "warn") : "err",
+            ks.length ? i18nT('vision.calibrated') + (tv.state.height ? " + " + i18nT('vision.height_lower') : i18nT('vision.without_height')) : i18nT('vision.not_calibrated_lower'),
             ks.length ? i18nT('vision.calibrated_for_v', { v: ks.join(", ") }) : ""
           );
         });

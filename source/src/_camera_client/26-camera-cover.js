@@ -13,7 +13,6 @@
       //   - the timer only runs while there is a box (every 250 ms), and scrolling / resizing places the boxes at once;
       //   - a box is dropped when the image is gone or loaded, and hidden while it is not visible (display, visibility, opacity, any ancestor).
 
-      var WORKSHOP_RELAY_URL = /^https?:\/\/[^/]+:(8090|8095)\//;
       var WORKSHOP_COVER_MS = 250;
       // One state for every Taller plugin on the page (this file is in all of them): { list: [{el, box}], timer, installed }
       var workshopCoverShared = (window.__workshopCover = window.__workshopCover || { list: [], timer: null, installed: false });

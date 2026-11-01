@@ -191,7 +191,7 @@
           tvDraw(tv);
         });
         tv.img.addEventListener("error", function () {
-          tvSetEmpty(tv, i18nT('vision.no_image_from_the_vision_service_port', { port: TV_PORT }));
+          tvSetEmpty(tv, i18nT('vision.no_image_from_the_vision_service_port', { port: WORKSHOP_VISION_PORT }));
         });
         // ---- zoom and pan of the image (2026-10-10) ----
         // Mouse wheel or pinch = zoom where the pointer is; with View and

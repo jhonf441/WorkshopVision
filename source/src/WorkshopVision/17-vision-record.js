@@ -22,7 +22,7 @@
         tv.side.appendChild(acc.el);
         if (!acc.open) return;
         var card = acc.body;
-        card.appendChild(tvEl("div", "tv-muted", i18nT('vision.1_put_two_marks_circles_or')));
+        card.appendChild(tvEl("div", "tv-muted", tvTx('vision.1_put_two_marks_circles_or', 'workbench')));
         var r = tvRegDis(tv);
         var g = tvEl("div", "tv-prm");
         card.appendChild(g);

@@ -170,7 +170,7 @@
 
       function tvActionsIr(tv, ac, it) {
         // the saved positions are used by the jog and the Workbench: no button without either
-        if (tvHasWorkbench(tv) || workshopPluginLoaded("jog")) ac.acts.appendChild(
+        if (tvHasWorkbench(tv) || workshopPluginActive("jog")) ac.acts.appendChild(
           tvIBtn("bookmark-plus-outline", i18nT('vision.save_position'), "small", function () {
             tvMachine()
               .then(function (st) {
@@ -180,8 +180,8 @@
                   return list;
                 });
               })
-              .then(function () { tvFlash(tv, i18nT('vision.saved_in_the_jog_positions'), true); }, function (e) { tvFlash(tv, i18nT('vision.not_saved_v', { v: String(e.message) }), false); });
-          }, null, i18nT('vision.adds_the_center_to_the_jog'))
+              .then(function () { tvFlash(tv, tvTx('vision.saved_in_the_jog_positions', 'jog'), true); }, function (e) { tvFlash(tv, i18nT('vision.not_saved_v', { v: String(e.message) }), false); });
+          }, null, tvTx('vision.adds_the_center_to_the_jog', 'jog'))
         );
         if (tvHasWorkbench(tv) && (it.kind === "piece" || it.kind === "rect") && (ac.m.bbox || ac.m.corners)) {
           ac.acts.appendChild(

@@ -35,6 +35,7 @@
       workshop.versions[PLUGIN_ID] = { version: PLUGIN_VERSION, commit: PLUGIN_COMMIT };
       console.info("[" + PLUGIN_ID + "] v" + PLUGIN_VERSION + " (" + PLUGIN_COMMIT + ")");
       workshopNotify(); // the bar (if already loaded) updates its version list
+      setTimeout(function () { workshopReportPlugin(false); }, 0); // started: the service forgets that it was stopped (30-lifecycle.js), once the whole file has run
 
       function workshopNotify() {
         workshop.listeners.slice().forEach(function (fn) {
@@ -46,13 +47,29 @@
         });
       }
 
+      // A panel registered here is taken out of the registry when THIS plugin stops (workshopOnStop, 30-lifecycle.js): the plugin does not
+      // have to remember, and a stop that comes right after the registration still leaves nothing behind. One cleanup per plugin, it
+      // takes out only the panels this plugin put there (and only while they are still its own api).
+      var workshopPanelsOwned = {};
+      var workshopPanelsCleanup = false;
       function workshopRegisterPanel(id, api) {
         workshop.panels[id] = api;
+        workshopPanelsOwned[id] = api;
+        if (!workshopPanelsCleanup) {
+          workshopPanelsCleanup = true;
+          workshopOnStop(function () {
+            Object.keys(workshopPanelsOwned).forEach(function (pid) {
+              workshopUnregisterPanel(pid, workshopPanelsOwned[pid]);
+            });
+            workshopPanelsOwned = {};
+          });
+        }
         workshopNotify();
       }
 
-      function workshopUnregisterPanel(id) {
-        if (!workshop.panels[id]) return;
+      // api (optional): only take the panel out if it is still that api (another copy of the plugin may have registered the id since).
+      function workshopUnregisterPanel(id, api) {
+        if (!workshop.panels[id] || (api && workshop.panels[id] !== api)) return;
         delete workshop.panels[id];
         workshopNotify();
       }

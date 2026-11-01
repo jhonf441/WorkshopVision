@@ -1260,8 +1260,8 @@ def archive(plugin_id, version, zip_path, replace=False):
     shutil.copyfile(zip_path, dest)
     escribir_modo(plugin_id, version)
     if not LOCAL:
-        subprocess.run(["ssh", SSH_HOST, f"mkdir -p {rdir}"], check=True)
-        r = subprocess.run(["scp", "-q", dest, f"{SSH_HOST}:{rdir}/"], capture_output=True, text=True)
+        mk = subprocess.run(["ssh", SSH_HOST, f"mkdir -p {rdir}"], capture_output=True, text=True)
+        r = mk if mk.returncode != 0 else subprocess.run(["scp", "-q", dest, f"{SSH_HOST}:{rdir}/"], capture_output=True, text=True)
         if r.returncode != 0:
             print(f"  (aviso: no se pudo copiar el archivo a la Pi: {(r.stdout + r.stderr).strip()})")
     return dest

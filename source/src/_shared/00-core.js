@@ -62,8 +62,8 @@
       var WORKSHOP_RISKS = [
         { re: /workzeroaxis\.g"\s+A2/i, title: i18nT('core.lower_z_to_the_work_zero'), text: i18nT('core.the_tool_goes_down_to_the') },
         { re: workshopReJob(["frame-area-laser", "cuts", "laser-mark", "probe-offset", "big-part-marks", "big-part-piece"]), title: i18nT('core.job_with_the_laser_on'), text: i18nT('core.the_machine_turns_the_laser_on') },
-        { re: workshopReJob(["mesh-zone"]), title: i18nT('core.measure_the_bed_mesh'), text: i18nT('core.the_probe_bltouch_deploys_and_z') },
-        { re: workshopReMacro(["zprobepoint", "focushere", "laserfocus", "zcal-probe", "zcal-szp", "probedeploy", "homezhere"]), title: i18nT('core.measure_with_the_probe'), text: i18nT('core.the_probe_bltouch_deploys_and_z_2') },
+        { re: workshopReJob(["mesh-zone"]), title: i18nT('core.measure_the_bed_mesh'), text: i18nT('core.the_probe_deploys_and_z') },
+        { re: workshopReMacro(["zprobepoint", "zmeasure", "focushere", "laserfocus", "zcal-probe", "zcal-szp", "probedeploy", "homezhere"]), title: i18nT('core.measure_with_the_probe'), text: i18nT('core.the_probe_deploys_and_z_2') },
         { re: workshopReMacro(["handfree"]), level: 4, notices: [
             i18nT('core.x_and_y_are_left_without'),
             i18nT('core.move_the_head_by_hand_slowly'),
@@ -82,7 +82,7 @@
         { re: workshopReMacro(["step-ceiling"]), title: i18nT('core.motor_pulse_test'), text: i18nT('core.the_axis_moves_back_and_forth') },
         { re: workshopReMacro(["axis-test"]), title: i18nT('core.axis_test'), text: i18nT('core.the_axis_moves_by_itself_to') },
         { re: /^\s*M906\s+I100\b/i, title: i18nT('core.motor_at_full_current'), text: i18nT('core.the_motor_stays_at_full_current') },
-        { re: /\/macros\/laser\/(?!air)[^"]+\.g/i, title: i18nT('core.measure_and_focus'), text: i18nT('core.the_probe_bltouch_goes_down_until') },
+        { re: /\/macros\/laser\/(?!air)[^"]+\.g/i, title: i18nT('core.measure_and_focus'), text: i18nT('core.the_probe_goes_down_until') },
         { re: /^\s*M999\b/i, title: i18nT('core.restart_the_board'), text: i18nT('core.the_duet_restarts_whatever_it_is') },
       ];
 
@@ -178,6 +178,9 @@
         lights: ["WorkshopLights"],
         vision: ["WorkshopVision"],
         printing: ["WorkshopPrinting"],
+        workbench: ["WorkshopWorkbench"],
+        machine: ["WorkshopMachine"],
+        config: ["WorkshopConfig"],
       };
       var WORKSHOP_ID_KEY = {}; // Id -> key
       Object.keys(WORKSHOP_IDS).forEach(function (k) {

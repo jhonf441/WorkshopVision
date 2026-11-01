@@ -42,4 +42,8 @@
       }
 
       workshopLanguageSync();
-      setInterval(workshopLanguageSync, 1500);
+      // every plugin brings its own timer: it stops with its plugin
+      var workshopLanguageTimer = setInterval(workshopLanguageSync, 1500);
+      workshopOnStop(function () {
+        clearInterval(workshopLanguageTimer);
+      });

@@ -25,9 +25,9 @@
       var TV_FAIR_ERROR_MM = 1.0;
 
       function tvViewOf(identity) {
-        if (!identity || !identity.table || !identity.role || identity.compat || identity.configured === false) return "full";
-        if (identity.role === "viewer") return "viewer";
-        return identity.role === "operator" ? "operator" : "technician";
+        var role = workshopIdentityView(identity); // 01-identity-view.js
+        if (role === "full" || role === "viewer") return role;
+        return role === "operator" ? "operator" : "technician";
       }
 
       function tvPostRole(path) {

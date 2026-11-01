@@ -37,8 +37,7 @@
           return camera.age_s === null || camera.age_s === undefined ? "example" : "missing"; // standby / no image
         }
         if (id === "calibration") {
-          if (Object.keys(est.calibs || {}).length) return "configured";
-          return est.source === "map" ? "example" : "missing";
+          return Object.keys(est.calibs || {}).length ? "configured" : "missing";
         }
         if (id === "macro") {
           var m = data && data.macroText;
@@ -58,9 +57,15 @@
           camera.age_s === null || camera.age_s === undefined ? "n" : "e",
           camera.control && camera.control.notice ? 1 : 0,
           Object.keys((ok && state.calibs) || {}).length,
-          ok ? state.source || "" : "",
           Object.keys(cfg || {}).length ? 1 : 0,
         ].join("|");
+      }
+
+      // The keys `props` of a row (name -> i18n key) become the key itself while `plugin` is there and key + "_no_<plugin>" while it is not
+      function tvRowVariants(def, plugin, props) {
+        Object.keys(props).forEach(function (p) {
+          Object.defineProperty(def, p, { enumerable: true, configurable: true, get: function () { return workshopPluginActive(plugin) ? props[p] : props[p] + "_no_" + plugin; } });
+        });
       }
 
       // The card for the header of the page. getEstado() / getCfg() give what the page already has.
@@ -97,9 +102,12 @@
           row("config", { label: "startup_vision.config", what: "startup_vision.config_what", why: "startup_vision.config_for", ifMissing: "startup_vision.config_missing", help: "startup_vision.config_tip", texts: { example: "startup_vision.config_new", missing: "startup_vision.config_damaged" } }),
           row("backend", { label: "startup_vision.backend", what: "startup_vision.backend_what", why: "startup_vision.backend_for", ifMissing: "startup_vision.backend_missing", help: "startup_vision.backend_tip", texts: { missing: "startup_vision.backend_off" } }),
           row("camera", { label: "startup_vision.camera", what: "startup_vision.camera_what", why: "startup_vision.camera_for", ifMissing: "startup_vision.camera_missing", help: "startup_vision.camera_tip", texts: { example: "startup_vision.camera_wait", missing: "startup_vision.camera_none" } }),
-          row("calibration", { label: "startup_vision.calibration", what: "startup_vision.calibration_what", why: "startup_vision.calibration_for", ifMissing: "startup_vision.calibration_missing", help: "startup_vision.calibration_tip", texts: { example: "startup_vision.calibration_map", missing: "startup_vision.calibration_none" } }),
+          row("calibration", { label: "startup_vision.calibration", what: "startup_vision.calibration_what", why: "startup_vision.calibration_for", ifMissing: "startup_vision.calibration_missing", help: "startup_vision.calibration_tip", texts: { missing: "startup_vision.calibration_none" } }),
           row("macro", { label: "startup_vision.macro", what: "startup_vision.macro_what", why: "startup_vision.macro_for", ifMissing: "startup_vision.macro_missing", help: "startup_vision.macro_tip", texts: { missing: "startup_vision.macro_missing" } }),
         ];
+        // the camera is added and tested in the Camera plugin: without it (not installed or off) the row says the same without naming it.
+        // The keys are read when the card is drawn, so a plugin that starts or stops later changes them.
+        tvRowVariants(rows[2], "camera", { help: "startup_vision.camera_tip", ifMissing: "startup_vision.camera_missing" });
         var card = workshopStartupInput({ plugin: "WorkshopVision", rows: rows }); // the chip of the header (same as the other pages); the card is in the dialog
         var refrescar = card.refresh;
         card.refresh = function () {

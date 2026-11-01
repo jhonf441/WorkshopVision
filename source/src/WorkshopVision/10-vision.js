@@ -15,7 +15,6 @@
       // zones do NOT write zone files: they open WorkshopJog's editor with
       // the point loaded and the user saves.
 
-      var TV_PORT = 8095;
       var TV_CFG_FILE = "0:/sys/workshop/config/vision.json";
       var TV_OFFCUTS_FILE = "0:/sys/workshop/data/scraps.json";
       var TV_PIECES_FILE = "0:/sys/workshop/data/vision-parts.json"; // biblioteca de piezas (2026-10-10)
@@ -60,7 +59,7 @@
       ];
 
       function tvApi(path) {
-        return "http://" + location.hostname + ":" + TV_PORT + path;
+        return "http://" + location.hostname + ":" + WORKSHOP_VISION_PORT + path;
       }
       function tvJson(r) {
         return r.json().then(function (j) {
@@ -241,13 +240,14 @@
       // page header (DESIGN.md 3). A solid glyph like the other plugins' icons.
       var TV_ICON = "eye";
       var tvStyleDone = false;
+      var TV_STYLE_ID = "workshop-vision-style";
       function tvInjectStyle() {
         if (tvStyleDone) return;
         tvStyleDone = true;
         workshopInjectFamily(); // the design family (wf-* classes)
         var css = workshopCss(TV_CSS);
         var st = document.createElement("style");
-        st.id = "workshop-vision-style";
+        st.id = TV_STYLE_ID;
         st.textContent = css;
         document.head.appendChild(st);
       }
@@ -289,19 +289,6 @@
         return s;
       }
 
-      // Publishes the detections (in mm) for the "Vision" layer of the Zones
-      // map (WorkshopJog draws it if installed).
-      function tvPublish(res) {
-        var t = (window.__workshop = window.__workshop || {});
-        var items = ((res && res.items) || []).filter(function (it) { return it.mm && it.mm.c; });
-        t.vision = { ts: Date.now(), items: items };
-        try {
-          window.dispatchEvent(new CustomEvent("workshop-vision"));
-        } catch (e) {
-          /* navegador viejo */
-        }
-      }
-
       // Sections of the page (side bar): [id, name, icon, help]
       var TV_SECTIONS = [
         { group: i18nT('vision.measure'), items: [
@@ -319,7 +306,7 @@
           ["settings", i18nT('vision.settings'), "tune-variant", i18nT('vision.fire_and_smoke_where_the_camera')],
         ] },
       ];
-      var TV_WITHOUT_WORKBENCH = i18nT('vision.this_needs_the_workbench_page');
+      var TV_WITHOUT_WORKBENCH = i18nT('vision.not_available_here'); // never names the plugin that is not there
       var TV_SECTION_IDS = [];
       TV_SECTIONS.forEach(function (g) { g.items.forEach(function (i) { TV_SECTION_IDS.push(i[0]); }); });
 

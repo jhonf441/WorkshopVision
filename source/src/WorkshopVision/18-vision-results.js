@@ -176,7 +176,7 @@
         var card = tvCard(i18nT('vision.detections'), "shape-outline", tv.res ? i18nT('vision.n_found', { n: items.length }) : null);
         tv.side.appendChild(card);
         if (!tv.res) {
-          card.appendChild(tvEl("div", "tv-muted", i18nT('vision.choose_what_to_look_for_under')));
+          card.appendChild(tvEl("div", "tv-muted", tvTx('vision.choose_what_to_look_for_under', 'workbench')));
           return;
         }
         if (!tv.res.H) card.appendChild(tvMsg("info", i18nT('vision.the_camera_is_not_calibrated_detections')));
@@ -233,12 +233,7 @@
             tvDraw(tv);
           }, null, i18nT('vision.draws_on_the_image_the_length')));
           rc.appendChild(tvIBtn("file-table-outline", i18nT('vision.dimensions_report'), "small", function () {
-            var csv = czI.rows.map(function (f) { return f.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(";"); }).join("\r\n");
-            var a = document.createElement("a");
-            a.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv" }));
-            a.download = "cotas-" + new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-") + ".csv";
-            a.click();
-            setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+            if (!tvSaveDimensions(czI.table)) return tvFlash(tv, i18nT('exchange.export_failed'), false);
             tvFlash(tv, i18nT('vision.report_downloaded_part_holes', { l: tvFmt(czI.L, 1), a: tvFmt(czI.A, 1), n: czI.holes }), true);
           }, null, i18nT('vision.downloads_a_table_csv_opens_in')));
           card.appendChild(rc);
@@ -265,12 +260,12 @@
           if (tv.sel === it.id && it.mm) row.appendChild(tvItemActions(tv, it));
           list.appendChild(row);
         });
-        card.appendChild(tvEl("div", "tv-muted", i18nT('vision.tap_a_detection_here_or_on')));
+        card.appendChild(tvEl("div", "tv-muted", tvTx('vision.tap_a_detection_here_or_on', 'workbench')));
       }
 
       function tvPhotoMode(tv, ft) {
         if (ft.mode === "video") {
-          ft.card.appendChild(tvEl("div", "tv-muted", i18nT('vision.fast_to_look_and_aim_res', { res: (tv.state && tv.state.photo && tv.state.photo.video_fs) === 10 ? "640×480" : "800×600" })));
+          ft.card.appendChild(tvEl("div", "tv-muted", i18nT('vision.fast_to_look_and_aim')));
           return true;
         }
         if (tv.photoAct) {
@@ -290,7 +285,7 @@
               tvFlash(tv, i18nT('vision.map_background_photo_removed'), true);
             }, function (e) { tvFlash(tv, e.message, false); });
           }, i18nT('vision.confirm_remove'), i18nT('vision.deletes_the_map_background_photo_asks')));
-          if (tvIsTech()) ft.card.appendChild(rf); // saving the bed photo as the map background is the technician's (/bed_background)
+          if (tvIsTech() && tvHasWorkbench(tv)) ft.card.appendChild(rf); // saving the bed photo as the map background is the technician's (/bed_background) and it is for the Workbench map: nothing of it without that plugin
         }
         if (tv.photoBusy) {
           ft.card.appendChild(tvMsg("info", tv.photoBusy));

@@ -111,15 +111,7 @@
           cv.toBlob(
             function (b) {
               if (!b) return tvFlash(tv, i18nT('vision.could_not_build_the_image'), false);
-              var d = new Date();
-              var p2 = function (v) { return (v < 10 ? "0" : "") + v; };
-              var a = document.createElement("a");
-              a.href = URL.createObjectURL(b);
-              a.download = "vision-" + d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate()) + "-" + p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds()) + ".jpg";
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-              setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+              if (!tvSaveJpeg(b)) tvFlash(tv, i18nT('exchange.export_failed'), false);
             },
             "image/jpeg",
             0.92

@@ -17,4 +17,9 @@
         console.error("[WorkshopVision] could not register the Vision page:", e);
       }
 
+      // When Vision stops, what it published for the Workbench goes with it (10-vision-published.js), and so does its own <style>
+      workshopOnStop(tvClearPublished);
+      var VISION_OWN_STYLES = [TV_STYLE_ID];
+      workshopOwnStyles(VISION_OWN_STYLES);
+
       workshopWatchEnabled();

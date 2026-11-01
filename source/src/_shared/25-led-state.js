@@ -352,10 +352,23 @@
             });
           }
 
-          setInterval(read, 150);
+          var readTimer = setInterval(read, 150);
 
           return {
             fx: fxAnimate,
+            // Takes it all out: the reader, the effect timer, the observers and what it painted (the elements go back to how they were).
+            // Called when the last JS plugin that uses it stops (workshopSharedUse, below).
+            destroy: function () {
+              clearInterval(readTimer);
+              clearTimeout(fxTimer);
+              fxTimer = 0;
+              fxReg = [];
+              painted.slice().forEach(function (p) {
+                this.unpaint(p.el);
+              }, this);
+              painted = [];
+              subs = [];
+            },
             get: function () {
               return current;
             },
@@ -403,6 +416,10 @@
               pintar(p);
               current.active = a;
               current.indicator = ind;
+              if (p.ro) {
+                p.ro.disconnect();
+                p.ro = null;
+              }
               painted = painted.filter(function (x) {
                 return x !== p;
               });
@@ -420,3 +437,10 @@
             stripStyle: tiraEstilo,
           };
         })());
+      // One reader for the whole page: the plugins that use it are counted, and it goes with the last one (workshopSharedUse, 30-lifecycle.js)
+      workshopSharedUse("led-state", function () {
+        return function () {
+          if (typeof ledState.destroy === "function") ledState.destroy();
+          if (workshop.ledState === ledState) delete workshop.ledState;
+        };
+      });

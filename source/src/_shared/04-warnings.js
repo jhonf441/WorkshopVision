@@ -136,41 +136,45 @@
         t.confirmLevel4 = workshopConfirmLevel4;
         t.confirmRisk = workshopConfirmRisk; // level 3 (00-core.js), for the Vue pages
         t.annotate = workshopNote;
-        if (t.riskBar) return;
-        t.riskBar = true;
-        var bar = null, key = "";
-        function datos() {
-          try {
-            var p = workshopPluginOf(workshopHostPluginsModel(), "service");
-            var dr = workshopPluginData(p);
-            var r = dr && dr.riskActive;
-            return Array.isArray(r) ? r : [];
-          } catch (e) {
-            return [];
+        // one bar and one timer for all the plugins of the page; they go when the last JS plugin stops (workshopSharedUse, 30-lifecycle.js).
+        // The exports above stay (plain functions, no timer or node): the Vue pages call them.
+        workshopSharedUse("risk-bar", function () {
+          var bar = null;
+          function datos() {
+            try {
+              var p = workshopPluginOf(workshopHostPluginsModel(), "service");
+              var dr = workshopPluginData(p);
+              var r = dr && dr.riskActive;
+              return Array.isArray(r) ? r : [];
+            } catch (e) {
+              return [];
+            }
           }
-        }
-        function dur(ms) {
-          var s = Math.max(0, Math.round((Date.now() - ms) / 1000));
-          return (s >= 60 ? Math.floor(s / 60) + " min " : "") + (s % 60) + " s";
-        }
-        setInterval(function () {
-          var r = datos();
-          var k = JSON.stringify(r.map(function (e) { return e.id + JSON.stringify(e.text); }));
-          if (!r.length) {
-            if (bar) { bar.remove(); bar = null; }
-            key = "";
-            return;
+          function dur(ms) {
+            var s = Math.max(0, Math.round((Date.now() - ms) / 1000));
+            return (s >= 60 ? Math.floor(s / 60) + " min " : "") + (s % 60) + " s";
           }
-          if (!bar) {
-            bar = document.createElement("div");
-            bar.setAttribute("role", "alert");
-            bar.style.cssText = "position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:2147483646;background:#c62828;color:#fff;font:600 12px Roboto,sans-serif;padding:4px 14px;border-radius:0 0 8px 8px;box-shadow:0 2px 10px rgba(0,0,0,0.5);max-width:90vw;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:18px;pointer-events:none;";
-          }
-          // in full screen (Workbench map, jog) only what is inside the
-          // full-screen element is seen: the bar goes with the
-          var root = document.fullscreenElement || document.body;
-          if (bar.parentNode !== root) root.appendChild(bar);
-          bar.textContent = i18nT('advertencias.active_risk_2', { list: r.map(function (e) { return workshopRiskText(e) + " (" + dur(e.since) + ")"; }).join("  |  ") });
-          key = k;
-        }, 1000);
+          var timer = setInterval(function () {
+            var r = datos();
+            if (!r.length) {
+              if (bar) { bar.remove(); bar = null; }
+              return;
+            }
+            if (!bar) {
+              bar = document.createElement("div");
+              bar.setAttribute("role", "alert");
+              bar.style.cssText = "position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:2147483646;background:#c62828;color:#fff;font:600 12px Roboto,sans-serif;padding:4px 14px;border-radius:0 0 8px 8px;box-shadow:0 2px 10px rgba(0,0,0,0.5);max-width:90vw;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:18px;pointer-events:none;";
+            }
+            // in full screen (Workbench map, jog) only what is inside the
+            // full-screen element is seen: the bar goes with the
+            var root = document.fullscreenElement || document.body;
+            if (bar.parentNode !== root) root.appendChild(bar);
+            bar.textContent = i18nT('advertencias.active_risk_2', { list: r.map(function (e) { return workshopRiskText(e) + " (" + dur(e.since) + ")"; }).join("  |  ") });
+          }, 1000);
+          return function () {
+            clearInterval(timer);
+            if (bar) bar.remove();
+            bar = null;
+          };
+        });
       }, 0);

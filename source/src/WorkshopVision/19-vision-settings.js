@@ -87,7 +87,7 @@
             ? tvIBtn("stop", i18nT('vision.stop_the_test'), "warn", function () { tvPost("/fire/test", { sec: 0 }).then(function () { fu.testView = -1; fu.paintTest(0); }); })
             : tvIBtn("fire-alert", i18nT('vision.live_test_2_min'), null, function () {
                 tvPost("/fire/test", { sec: 120 }).then(function () { fu.testView = -1; fu.paintTest(120); }, function (er) { fu.resF.innerHTML = ""; fu.resF.appendChild(tvEl("div", "tv-msg err", i18nT('vision.could_not_start_the_test', { v: er.message }))); }); // without flash(): the notice above the panel pushed the card down; what to do is already said by the card next to the camera
-              }, null, i18nT('vision.watches_for_2_minutes_without_a')));
+              }, null, tvTx('vision.watches_for_2_minutes_without_a', 'activity')));
         };
         tvFireEnable(tv, fu, aj);
         tvFireOptions(tv, fu, aj);
@@ -181,7 +181,6 @@
           r7.appendChild(s);
         }
         selFs("fs", i18nT('vision.measuring_photo'), [[19, i18nT('vision.2048_1536_the_maximum')], [15, "1600×1200"], [14, "1280×1024"], [12, "1024×768"], [11, "800×600"]]);
-        selFs("video_fs", i18nT('vision.video_monitoring'), [[11, "800×600"], [10, "640×480"], [12, i18nT('vision.res_1024_768_slow')], [0, i18nT('vision.do_not_touch')]]);
         [["zmin", i18nT('vision.minimum_z_for_photos_mm')], ["overlap", i18nT('vision.mosaic_overlap_0_0_5')], ["edge", i18nT('vision.unused_border_0_0_2')]].forEach(function (f) {
           r7.appendChild(tvEl("label", null, f[1]));
           var inp = tvEl("input", "tv-in");
@@ -275,6 +274,8 @@
 
       function tvAjLight(tv, aj) {
         // ---- light for the photo (LuzFoto in vision.py) ----
+        // the lights are the Lights plugin's (lights.get): without it (not installed or off) this card does not exist
+        if (!workshopPluginActive("lights")) return;
         var cl = tvCard(i18nT('vision.light_for_the_photo'), "lightbulb-on-outline");
         tv.side.appendChild(cl);
         var zonesSel = (aj.fc.light_zones || []).slice();
@@ -330,29 +331,57 @@
         cl.appendChild(tvEl("div", "tv-muted", i18nT('vision.only_what_was_off_is_turned')));
       }
 
+      // Pure: the [id, name] pairs of the cameras the relay serves (`via_relay`) in the text of the answer of camera.status, which may carry a line
+      // before the JSON; null when it is not an answer with a list (the service did not reply). The list is the service's (cameras.json).
+      function tvRelayCameras(text) {
+        var t = String(text || "");
+        var k = t.indexOf("{");
+        var d = null;
+        try { d = k < 0 ? null : JSON.parse(t.slice(k)); } catch (e) { d = null; }
+        if (!d || !Array.isArray(d.cameras)) return null;
+        return d.cameras
+          .filter(function (c) { return c && c.id && c.via_relay; })
+          .map(function (c) { return [String(c.id), String(c.name || c.id)]; });
+      }
+
+      // The camera Vision looks at is an id of the list of cameras (vision.json `camera`, "main" when it has none): the card offers the cameras
+      // the relay serves and keeps the saved one in the list even when the service does not say it.
       function tvAjCamera(tv, aj) {
-        // URL
         var c5 = tvCard(i18nT('vision.camera_group'), "cctv");
         tv.side.appendChild(c5);
         var r5 = tvEl("div", "tv-row");
         c5.appendChild(r5);
-        var inU = tvEl("input", "tv-in");
-        inU.style.width = "100%";
-        inU.value = tv.cfg.url || "http://127.0.0.1:8090/stream";
-        r5.appendChild(inU);
+        var current = tv.cfg.camera || "main";
+        var sel = tvEl("select", "tv-sel");
+        sel.style.width = "100%";
+        r5.appendChild(sel);
+        function fill(cams) {
+          var want = sel.value || current;
+          var opts = (cams || []).slice();
+          if (!opts.some(function (o) { return o[0] === want; })) opts.unshift([want, want]);
+          sel.innerHTML = "";
+          opts.forEach(function (o) {
+            var op = tvEl("option", null, o[1]);
+            op.value = o[0];
+            op.selected = o[0] === want;
+            sel.appendChild(op);
+          });
+        }
+        fill(null);
+        workshopApiText("camera.status").then(function (t) { fill(tvRelayCameras(t)); }).catch(function () { /* the card keeps the saved camera */ });
         r5.appendChild(tvBtn(i18nT('vision.save'), "small", function () {
-          var v = inU.value.trim();
-          if (!/^https?:\/\//i.test(v)) return tvFlash(tv, i18nT('vision.it_must_start_with_http'), false);
-          tvCfgSave(tv, function (o) { o.url = v; return o; }).then(function () { tvFlash(tv, i18nT('vision.saved_if_it_is_another_camera'), true); });
+          tvCfgSave(tv, function (o) { o.camera = sel.value; return o; }).then(
+            function () { tvFlash(tv, i18nT('vision.saved_if_it_is_another_camera'), true); },
+            function (e) { tvFlash(tv, e.message, false); }
+          );
         }));
         c5.appendChild(tvEl("div", "tv-muted", i18nT('vision.camera_source_help')));
       }
 
       function tvAjZones(tv, aj) {
         // Work zones: the only place where the camera is enabled for the
-        // map (request 2026-10-10). WorkshopJog reads mapa.use / mapa.opacity
-        // from this same file and uses this address and this calibration; in
-        // the map only the Camera layer remains to show or hide it.
+        // map (request 2026-10-10). The Workbench reads map.use from this same file (through the settings store) and uses this address
+        // and this calibration; in the map only the Camera layer remains to show or hide it, and its opacity is chosen there (per screen).
         // this card is only about the Workbench map: nothing of it without that plugin (last card of the page)
         if (!tvHasWorkbench(tv)) return true;
         var mp = tv.cfg.map || {};
@@ -363,21 +392,6 @@
         zt.appendChild(tvEl("span", null, mp.use ? i18nT('vision.the_video_shows_under_the_map') : i18nT('vision.not_used_on_the_map')));
         zt.addEventListener("click", function () { tv.btnZones.click(); });
         c8.appendChild(zt);
-        var r6 = tvEl("div", "tv-row");
-        r6.style.marginTop = "10px";
-        c8.appendChild(r6);
-        r6.appendChild(tvEl("span", "tv-muted", i18nT('vision.opacity_on_the_zones_map')));
-        var inO = tvEl("input");
-        inO.type = "range";
-        inO.min = "0.2";
-        inO.max = "1";
-        inO.step = "0.05";
-        inO.value = String(mp.opacity >= 0.1 && mp.opacity <= 1 ? mp.opacity : 0.75);
-        inO.addEventListener("change", function () {
-          var v = parseFloat(inO.value);
-          tvCfgSave(tv, function (o) { o.map = Object.assign({}, o.map || {}, { opacity: v }); return o; });
-        });
-        r6.appendChild(inO);
         c8.appendChild(tvEl("div", "tv-muted", i18nT('vision.aligned_with_the_calibration_here_and')));
       }
 
@@ -388,7 +402,7 @@
         tgF.appendChild(tvEl("b", "est", fu.fz.active ? i18nT('vision.yes') : i18nT('vision.no')));
         tgF.addEventListener("click", function () { if (fu.fz.active) fu.fireChangeInJob({ active: false }); else fu.fireSave({ active: true }); });
         fu.cF.appendChild(tgF);
-        fu.cF.appendChild(tvEl("div", "tv-muted", i18nT('vision.while_a_laser_job_runs_the')));
+        fu.cF.appendChild(tvEl("div", "tv-muted", tvTx('vision.while_a_laser_job_runs_the', 'activity')));
         // usage notice (request 2026-10-10: "I put a candle and it detected nothing;
         // put a usage notice on those functions")
         var useF = tvAcc(tv, "fire-use", i18nT('vision.how_it_works_and_its_limits'), "information-outline", i18nT('vision.read_it_before_relying_on_it'), null, false);

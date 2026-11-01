@@ -5,19 +5,24 @@
 
       (function workshopNavScrollStart() {
         if (typeof document === "undefined" || typeof document.addEventListener !== "function") return;
-        if (window.__workshopNavScroll) return;
-        window.__workshopNavScroll = true;
-        document.addEventListener("click", function (e) {
-          var item = e.target && typeof e.target.closest === "function" ? e.target.closest(".wf-nav-item") : null;
-          if (!item) return;
-          var nav = item.closest(".wf-nav");
-          var layout = nav ? nav.parentElement : null;
-          if (!layout) return;
-          setTimeout(function () {
-            if (layout.isConnected === false || typeof layout.scrollIntoView !== "function") return;
-            if (layout.getBoundingClientRect().top >= 0) return;
-            layout.style.scrollMarginTop = "72px";
-            layout.scrollIntoView({ block: "start" });
-          }, 60);
+        // one listener for all the plugins of the page; it goes when the last of them stops (workshopSharedUse, 30-lifecycle.js)
+        workshopSharedUse("nav-scroll", function () {
+          function onClick(e) {
+            var item = e.target && typeof e.target.closest === "function" ? e.target.closest(".wf-nav-item") : null;
+            if (!item) return;
+            var nav = item.closest(".wf-nav");
+            var layout = nav ? nav.parentElement : null;
+            if (!layout) return;
+            setTimeout(function () {
+              if (layout.isConnected === false || typeof layout.scrollIntoView !== "function") return;
+              if (layout.getBoundingClientRect().top >= 0) return;
+              layout.style.scrollMarginTop = "72px";
+              layout.scrollIntoView({ block: "start" });
+            }, 60);
+          }
+          document.addEventListener("click", onClick);
+          return function () {
+            document.removeEventListener("click", onClick);
+          };
         });
       })();

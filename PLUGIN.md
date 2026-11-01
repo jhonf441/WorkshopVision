@@ -38,7 +38,7 @@ The page is "Vision (camera)" (side menu: Plugins > Vision). Its side bar has th
 Picture 1: Detect and measure: the video with rulers in bed millimetres, the card "Image to measure" and the card "Detections" (red rectangles).
 
 #### Image to measure: Live video or Measuring photo
-- What: "Live video" is quick for looking and aiming (800x600); "Measuring photo" is precise: the camera switches to 2048x1536 for a few seconds. The line "gantry at Y321.3 Z7.5" says where the camera is.
+- What: "Live video" is quick for looking and aiming (the resolution is the camera's own image profile); "Measuring photo" is precise: the camera switches to 2048x1536 for a few seconds. The line "gantry at Y321.3 Z7.5" says where the camera is.
 - Where: card "Image to measure" (red rectangle, picture 1).
 - How: press one of the two buttons; then analyze the image.
 - Watch out: the measuring photo changes the camera mode for a few seconds.
@@ -54,7 +54,7 @@ Picture 1: Detect and measure: the video with rulers in bed millimetres, the car
 - How: type the height in mm.
 
 #### Dimensions and Dimensions report
-- What: the toggle "Dimensions: Yes" shows the dimensions on the image; "Dimensions report" makes a report of the measurements.
+- What: the toggle "Dimensions: Yes" shows the dimensions on the image; "Dimensions report" downloads a table (CSV, for a spreadsheet) with the part and each hole: position on the machine, position from the bottom-left corner of the part, diameter and roundness (see "Files this page writes").
 - Where: two buttons in "Detections" (red rectangle, picture 1).
 - How: press the toggle or the report button.
 
@@ -188,7 +188,7 @@ Picture 10: sensitivity, the last detection and the photo exposure (red rectangl
 - Watch out: a wrong choice makes the map and the measures wrong.
 
 #### Measuring photos
-- What: measuring photo size (here 2048x1536, the maximum), surveillance video (800x600), minimum Z for photos (60 mm), mosaic overlap (0 to 0.5) and unused border (0 to 0.2), with its Save button. Calibration is per resolution: if you change the measuring photo resolution, calibrate again.
+- What: measuring photo size (here 2048x1536, the maximum), minimum Z for photos (60 mm), mosaic overlap (0 to 0.5) and unused border (0 to 0.2), with its Save button. Calibration is per resolution: if you change the measuring photo resolution, calibrate again.
 - Where: card "Measuring photos" (picture 9, middle column).
 - How: 1. Change the values. 2. Press "Save".
 
@@ -197,11 +197,11 @@ Picture 10: sensitivity, the last detection and the photo exposure (red rectangl
 - Where: card "Photo exposure" (red rectangle, picture 10).
 - How: choose the mode and the values, press "Save".
 
-#### Light for the photo, Camera address and Work zones map
-- What: "Light for the photo": choose which lights turn on only during the photo (the usual work light; extra zones of Lights appear here). "Camera": the address of the video stream (by default the system relay on this machine; with a second camera put its MJPEG stream here). "Work zones map": the video shows under the map, with an opacity slider.
+#### Light for the photo, Camera and Work zones map
+- What: "Light for the photo": choose which lights turn on only during the photo (the usual work light; extra zones of Lights appear here). "Camera": which camera Vision looks at, chosen from the list of cameras of the system (only the ones the relay serves; the main one by default). The same camera is the video of the camera layer of the work zones map. "Work zones map": the video shows under the map (its opacity is chosen on the map itself, in Layers, and is kept per screen).
 - Where: right column of Settings (picture 9, top right; picture 10, top right).
 - How: change the value and press its "Save".
-- Watch out: the camera address is read by the system, not by the browser.
+- Watch out: the camera is read by the system, not by the browser.
 
 ## 4. Settings
 
@@ -211,7 +211,7 @@ Picture 10: sensitivity, the last detection and the photo exposure (red rectangl
 | Watch fire and smoke during laser | 2 looks per second while lasing | Yes | Off: no automatic fire warning |
 | On detection | Only warn / pause the job / emergency stop | Only warn | Emergency stop on a false alarm kills a job |
 | Sensitivity | Low / Medium / High | Medium | High: false alarms on bright material |
-| Measurement photo, video resolution | Pixels | 2048x1536 / 800x600 | Changing it needs a new calibration |
+| Measurement photo resolution | Pixels | 2048x1536 | Changing it needs a new calibration |
 | Minimum Z for photos | Head height limit for mosaic photos | 60 mm | Too low: head too near the part |
 | Exposure | Photo exposure mode | Adjust by itself, 115 | Burnt photo: wrong measures |
 
@@ -268,3 +268,23 @@ Uninstalling removes the plugin folder; your data in `0:/sys/workshop/` and `/op
 
 Measures on the bed plane (tall objects need the height); fire watch is an aid, not a certified detector and never replaces being present; Vision has no `/measure` for Machine v2 yet; stops with the plugin (and its backend rests when stopped).
 
+## Files this page writes
+
+Every file is named `<name>-<YYYYMMDD-HHMMSS>.<extension>` (local time of the browser). None of them is read back by the page.
+
+**Dimensions report (`workshop-vision-dimensions-...csv`).** UTF-8 with a byte order mark, comma separated, lines end with CRLF (a spreadsheet whose list separator is `;` opens it in one column: use its text import, Data, From text/CSV).
+The first row holds the column keys, always in English. A number carries no unit and uses a dot; an empty cell means no value. One row for the part and one per hole, in the order along the part.
+
+| Column | Meaning |
+|---|---|
+| `element` | `part` or `hole` |
+| `number` | Number of the hole (1, 2...); empty for the part |
+| `machine_x_mm`, `machine_y_mm` | Bottom-left corner of the part, or centre of the hole, in mm of the machine |
+| `along_mm`, `across_mm` | Position from the bottom-left corner of the part along its two sides (0 and 0 for the part) |
+| `diameter_mm`, `roundness` | Of the hole (roundness 1 is a perfect circle); empty when the camera did not measure it |
+| `length_mm`, `width_mm`, `rotation_deg` | Of the part only: the sides of its smallest enclosing rectangle and its rotation |
+
+**Piece drawing (`workshop-vision-piece-<name of the piece>-...svg`).** The outline and the holes of a detected piece in an SVG in mm, Y downward, with 0,0 at the top-left corner of the outline; a comment names the piece and says where its bottom-left corner was on the machine.
+It is a drawing, not data: it has no envelope.
+
+**Camera image (`workshop-vision-image-...jpg`).** The image shown with what is drawn on it, at its resolution (JPEG). It is a picture, not data: it has no envelope.

@@ -1,0 +1,2 @@
+# The camera client (the day's key and the identity headers for the Vision server and the relay): see src/WorkshopCamera/_includes.txt
+_camera_client

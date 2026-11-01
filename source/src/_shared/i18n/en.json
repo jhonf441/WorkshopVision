@@ -37,7 +37,7 @@
 		"understood_continue": "Understood, continue",
 		"the_duet_restarts_whatever_it_is": "The Duet restarts: whatever it is doing stops and homing is lost.",
 		"restart_the_board": "Restart the board",
-		"the_probe_bltouch_goes_down_until": "The probe (BLTouch) goes down until it touches the material at the zone's Z point and then the laser is left at focus height. Check that the material is in place and that nothing taller is in the way.",
+		"the_probe_goes_down_until": "The probe goes down until it touches the material at the zone's Z point and then the laser is left at focus height. Check that the material is in place and that nothing taller is in the way.",
 		"measure_and_focus": "Measure and focus",
 		"the_motor_stays_at_full_current": "The motor stays at full current even while standing still, so it can be measured with the clamp meter. It gets hot: don't leave it like this for long.",
 		"motor_at_full_current": "Motor at full current",
@@ -59,9 +59,9 @@
 		"while_they_re_released_don_t": "While they're released, don't use the jog or other motion buttons.",
 		"move_the_head_by_hand_slowly": "Move the head by hand SLOWLY: moving it fast generates current that goes back into the drivers.",
 		"x_and_y_are_left_without": "X and Y are left WITHOUT POWER and the machine loses its position (not homed) until the corner is captured.",
-		"the_probe_bltouch_deploys_and_z_2": "The probe (BLTouch) deploys and Z moves until it touches the surface. Check that there is surface underneath (not a hole in the honeycomb) and that the probe works; if it does not trigger, Z can crash.",
+		"the_probe_deploys_and_z_2": "The probe deploys and Z moves until it touches the surface. Check that there is surface underneath (not a hole in the honeycomb) and that the probe works; if it does not trigger, Z can crash.",
 		"measure_with_the_probe": "Measure with the probe",
-		"the_probe_bltouch_deploys_and_z": "The probe (BLTouch) deploys and Z touches the surface at many points. Check that there is surface under every point (not a hole in the honeycomb) and that the probe works.",
+		"the_probe_deploys_and_z": "The probe deploys and Z touches the surface at many points. Check that there is surface under every point (not a hole in the honeycomb) and that the probe works.",
 		"measure_the_bed_mesh": "Measure the bed mesh",
 		"the_machine_turns_the_laser_on": "The machine turns the laser on and moves by itself. Wear safety glasses, check the material and the air, and don't leave it alone. It can be paused or cancelled like any job.",
 		"job_with_the_laser_on": "Job with the LASER on",
@@ -98,7 +98,7 @@
 		"status_leds_on": "{total} status LEDs ({on} on)"
 	},
 	"launcher": {
-		"no_workshopcontrolbar_sidebar_tap_to_open": "{title} (no WorkshopControlBar sidebar: tap to open/close, drag to move)"
+		"tap_to_open": "{title} (tap to open/close, drag to move)"
 	},
 	"startup": {
 		"title": "Start-up",
@@ -248,17 +248,19 @@
 		"camera_relay_little_space_left_system_less_delete": "little space left on the system (less than 2 GB): delete old timelapses or captures",
 		"camera_relay_lut_name_invalid": "The LUT name is not valid (.cube only)",
 		"camera_relay_lut_not_valid": "The file is not a valid .cube LUT",
+		"camera_relay_main_camera_name": "Main",
 		"camera_relay_new_look": "new look",
 		"camera_relay_no_status_endpoint": "no /status ({error})",
 		"camera_relay_no_timelapse_being_recorded": "no timelapse is being recorded",
 		"camera_relay_photo_job": "Job: {job}",
 		"camera_relay_scheduled_timelapse_name": "Scheduled {time}",
+		"camera_relay_stamp_layer": "layer {layer}",
 		"camera_relay_start_or_stop_time_missing": "the start or stop time is missing",
 		"camera_relay_start_time_already_passed": "the start time has already passed",
 		"camera_relay_stop_time_has_after_start_time": "the stop time has to be after the start time",
-		"camera_relay_timelapse_action_must_be": "action: begin | stop | schedule | unschedule",
 		"camera_relay_timelapse_already_being_recorded": "a timelapse is already being recorded ({job})",
 		"camera_relay_too_many_screens_watching_wait_minute": "Too many screens are watching {label}. Wait a minute or close the camera on another screen.",
+		"camera_relay_video_does_not_exist": "that video does not exist",
 		"communication_12864_screen_on_board": "a 12864 screen connected to the board",
 		"communication_a_paneldue": "a PanelDue",
 		"communication_a_serial_terminal": "a serial terminal",
@@ -704,9 +706,25 @@
 		"zone_active": "Active zone: {old} -> {new}",
 		"zone_origin": "Origin {zone}: X{x0} Y{y0} -> X{x1} Y{y1}"
 	},
-	"session": {
-		"camera_sign_in": "Not signed in: sign in to see the camera.",
-		"camera_role": "Your role does not include the camera: ask the administrator to enable it.",
-		"camera_down": "The camera does not answer."
+	"exchange": {
+		"title": "Import {what}",
+		"source": "Made by {plugin} on {date}.",
+		"source_machine": "Made by {plugin} on {date}, machine {machine}.",
+		"note": "Nothing is changed until you press Apply.",
+		"blocked": "It cannot be applied now.",
+		"apply": "Apply",
+		"cancel": "Cancel",
+		"close": "Close",
+		"warn_other_machine": "This file was made on another machine ({machine}). Check that it fits this one.",
+		"err_read": "The file could not be read.",
+		"err_too_large": "The file is too large ({mb} MB; the limit is {max} MB).",
+		"err_not_json": "The file is not valid JSON.",
+		"err_not_workshop": "It is not a Workshop export file.",
+		"err_wrong_format": "It is a {found} file; this page imports {expected}.",
+		"err_wrong_plugin": "It was made by {plugin}, which this page does not read.",
+		"err_wrong_version": "Version {found} of the format is not supported (this page reads {expected}).",
+		"err_no_data": "The file has no data.",
+		"export_failed": "The browser did not allow the download.",
+		"exported": "File downloaded: {name}"
 	}
 }

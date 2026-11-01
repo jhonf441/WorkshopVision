@@ -1,11 +1,11 @@
       // ==== Rediseno 2026-10-10: funciones de las secciones nuevas ====
       function tvHasWorkbench(tv) {
-        return workshopPathExists("/Plugins/Workbench");
+        return workshopPluginActive("workbench");
       }
 
       // the work area is saved by the service and edited in Machine
       function tvHasMachine(tv) {
-        return workshopPathExists("/Plugins/Machine");
+        return workshopPluginActive("machine");
       }
 
       // machine mm -> coordinates of the image being shown
@@ -51,27 +51,9 @@
       }
 
       function tvLowerSvg(tv, it) {
-        var polys = [tvOutlineOf(tv, it)].concat(tvHolesOf(tv, it).map(function (a) { return a.mm.poly; }));
-        var xs = [], ys = [];
-        polys.forEach(function (p) { p.forEach(function (q) { xs.push(q[0]); ys.push(q[1]); }); });
-        var x0 = Math.min.apply(null, xs), y1 = Math.max.apply(null, ys);
-        var w = Math.max.apply(null, xs) - x0, h = y1 - Math.min.apply(null, ys);
-        // SVG with Y downward: the machine's Y is flipped; the file's 0,0 is the
-        // top left corner of the outline
-        var d = polys.map(function (p) {
-          return "M" + p.map(function (q) { return (q[0] - x0).toFixed(3) + " " + (y1 - q[1]).toFixed(3); }).join(" L") + " Z";
-        }).join(" ");
-        var txt = '<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="' + w.toFixed(3) + 'mm" height="' + h.toFixed(3) + 'mm" viewBox="0 0 ' + w.toFixed(3) + " " + h.toFixed(3) + '">\n' +
-          "<!-- Vision: " + tvNamePiece(tv, it).replace(/--/g, "-") + "; " + ("bottom-left corner on the machine: X" + x0.toFixed(2) + " Y" + (y1 - h).toFixed(2)) + " -->\n" +
-          '<path d="' + d + '" fill="none" stroke="#000" stroke-width="0.1" fill-rule="evenodd"/>\n</svg>\n';
-        var url = URL.createObjectURL(new Blob([txt], { type: "image/svg+xml" }));
-        var a = document.createElement("a");
-        a.href = url;
-        a.download = tvNamePiece(tv, it).replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") + ".svg";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+        // the SVG (Y downward, 0,0 at the top left corner of the outline) is built by 14-vision-files.js and goes out through the exchange module
+        var holes = tvHolesOf(tv, it).map(function (a) { return a.mm.poly; });
+        if (!tvSavePieceSvg(tvNamePiece(tv, it), tvOutlineOf(tv, it), holes)) tvFlash(tv, i18nT('exchange.export_failed'), false);
       }
 
       // ---- parts library: signature that does not depend on where it is nor how it is rotated ----

@@ -17,11 +17,10 @@ Everything comes out in pixels and, if the camera is calibrated, in MACHINE mm
 (coordinates where the POINTER lands, the same as the Zones map of WorkshopJog).
 
 The calibration is an image -> bed homography (the bed is a plane). It lives
-in 0:/sys/workshop/config/vision.json (written by DWC's Vision page through DSF's
-file API; here it is only read, reloading if it changes). It is computed with
+in 0:/sys/workshop/config/vision.json (written by the pages through the settings
+store of WorkshopService, name "vision"; here it is only read, reloading if it changes). It is computed with
 POST /calibrar from ArUco marks with a known position or from pairs of
-points touched by hand. If there is no calibration of its own, the map's is used
-(0:/sys/workshop/config/camera-map.json, 4 points).
+points touched by hand. Without a calibration of its own the measurements come out in pixels.
 
 The camera goes on the BRIDGE (it rises with Z; Y centers): each image is associated with the
 machine position (Y, Z read from DSF) and the calibration corrects itself
@@ -78,8 +77,7 @@ PORT = int(os.environ.get("WORKSHOP_VISION_PORT", "8095"))
 BIND = os.environ.get("WORKSHOP_VISION_BIND", "0.0.0.0")  # "127.0.0.1" keeps Vision on this Pi
 SD = os.environ.get("WORKSHOP_VISION_SD", "/opt/dsf/sd")
 CFG_FILE = os.path.join(SD, "sys", "workshop", "config", "vision.json")
-MAP_FILE = os.path.join(SD, "sys", "workshop", "config", "camera-map.json")
-DEFAULT_URL = "http://127.0.0.1:8090/stream"
+RELAY_BASE = "http://127.0.0.1:8090"  # the camera relay of the Pi; the camera is the id vision.json "camera" names (direct_camera.py)
 IDLE_S = 30  # no requests for this time -> the stream is released
 ARUCO_DICTS = {k: getattr(cv2.aruco, k) for k in dir(cv2.aruco) if k.startswith("DICT_")}
 
@@ -97,10 +95,8 @@ def log(*a):
 # 2048x1536 works; 19 needs JPEG quality >= 12 (otherwise cam_hal: FB-OVF).
 FS_SIZE = {6: (320, 240), 8: (400, 296), 9: (480, 320), 10: (640, 480), 11: (800, 600), 12: (1024, 768), 13: (1280, 720), 14: (1280, 1024), 15: (1600, 1200), 19: (2048, 1536)}
 FS_QUALITY_MIN = {19: 12}  # minimum JPEG quality (higher number = more compressed) so that it fits in the buffer
-FS_STARTUP = 6  # the example firmware starts at QVGA (320x240) after every restart
 PHOTO_DEF = {
     "fs": 19,  # measurement photo: 2048x1536 (only while it is taken)
-    "video_fs": 11,  # surveillance video: 800x600 (0 = do not touch)
     "zmin": 60.0,  # minimum Z to take photos (mm, machine coordinate)
     "edge": 0.04,  # fraction of the image edge that is not used when planning
     "overlap": 0.2,  # overlap between mosaic photos
@@ -134,7 +130,7 @@ def mat_S(sx, sy):
 
 def camera_in_carriage():
     """The camera goes on the CARRIAGE (it follows X, Y and Z) instead of the bridge (Y and Z).
-    sys/workshop/config/vision.json "camera_en": "carro" | "puente" (Vision page > Settings)."""
+    sys/workshop/config/vision.json "camera_en": "carriage" | "gantry" (Vision page > Settings, or the Layers panel of the Workbench map)."""
     return CFG.get().get("camera_en") == "carriage"
 
 
@@ -213,22 +209,17 @@ class Config:
 
     def __init__(self):
         self.data = {}
-        self.mtimes = (None, None)
+        self.mtime = None
         self.calibs = {}
         self.height = None
-        self.mapping = None
 
     def get(self):
         try:
-            m1 = os.path.getmtime(CFG_FILE)
+            mtime = os.path.getmtime(CFG_FILE)
         except OSError:
-            m1 = None
-        try:
-            m2 = os.path.getmtime(MAP_FILE)
-        except OSError:
-            m2 = None
-        if (m1, m2) != self.mtimes:
-            self.mtimes = (m1, m2)
+            mtime = None
+        if mtime != self.mtime:
+            self.mtime = mtime
             self._load()
         return self.data
 
@@ -241,7 +232,7 @@ class Config:
             pass
         except Exception as e:  # archivo a medio escribir, JSON roto...
             log("config ilegible:", e)
-            self.mtimes = (None, self.mtimes[1])  # retry the next time
+            self.mtime = None  # retry the next time
         self.data = data if isinstance(data, dict) else {}
         self.calibs = {}
         cs = dict(self.data.get("calibs") or {})
@@ -252,25 +243,7 @@ class Config:
                 log("calibracion invalida", k, e)
         a = self.data.get("height")
         self.height = a if isinstance(a, dict) and a.get("h0") is not None and a.get("N_rel") else None
-        self.mapping = None
-        self._load_map()
-        log("config cargada; calibraciones:", list(self.calibs) or ("la del mapa" if self.mapping is not None else "none"), "height:", bool(self.height))
-
-    def _load_map(self):
-        """4-point calibration of the map's camera (normalized coords, fixed)."""
-        try:
-            with open(MAP_FILE, encoding="utf-8-sig") as f:
-                m = json.load(f)
-            c = m.get("calibration")
-            if not c or len(c.get("img", [])) != 4 or len(c.get("map", [])) != 4:
-                return
-            src = np.array(c["img"], dtype=np.float32)
-            dst = np.array(c["map"], dtype=np.float32)
-            self.mapping = cv2.getPerspectiveTransform(src, dst).astype(np.float64)
-        except FileNotFoundError:
-            pass
-        except Exception as e:
-            log("calib del mapa ilegible:", e)
+        log("config cargada; calibraciones:", list(self.calibs) or "none", "height:", bool(self.height))
 
     def photo_cfg(self):
         f = dict(PHOTO_DEF)
@@ -305,8 +278,6 @@ class Config:
         machine at `pose`."""
         c, reason = self.calibration_for(w, h)
         if c is None:
-            if self.mapping is not None:
-                return self.mapping @ mat_S(1.0 / w, 1.0 / h), M("vision_uses_the_map_calibration")
             return None, reason
         if c.get("y") is None or c.get("z") is None:
             return c["Hm"], M("vision_calibration_without_machine_position")
@@ -329,12 +300,6 @@ class Config:
         nx = a["N_rel"][0] + (float(c["x"]) if a.get("rel_x") and c.get("x") is not None else 0.0) + dx
         ny = a["N_rel"][1] + float(c["y"]) + float(pose["y"]) - float(c["y"])
         return (nx, ny), float(pose["z"]) + float(a["h0"])
-
-    def source(self):
-        self.get()
-        if self.calibs:
-            return "own"
-        return "map" if self.mapping is not None else None
 
 
 CFG = Config()
@@ -498,26 +463,36 @@ class Camera:
         self.direct = None  # MJPEG URL of the ESP32 in direct mode
         self.t_probe = 0.0
         self.dfallos = 0
+        self.known = []  # the list of cameras the last time the service answered: the direct mode needs it when the service is the one that is down
         threading.Thread(target=self._loop, daemon=True).start()
 
+    def camera_id(self):
+        return direct_camera.clean_id(CFG.get().get("camera"))
+
     def url(self):
-        return str(CFG.get().get("url") or DEFAULT_URL)
+        return direct_camera.relay_stream(RELAY_BASE, self.camera_id())
 
     def _relay_live(self):
         """True if the relay of the Pi answers (a tiny JSON, not the stream)."""
-        u = urllib.parse.urlparse(self.url())
         try:
-            with urllib.request.urlopen("%s://%s:%d/state" % (u.scheme, u.hostname, u.port or 80), timeout=2) as r:
+            with urllib.request.urlopen(RELAY_BASE + "/state", timeout=2) as r:
                 r.read(256)
             return True
         except Exception:
             return False
 
+    def _cameras(self):
+        """The list of cameras from the service (camera.status); the last one it gave when it does not answer."""
+        got = direct_camera.cameras_of(dsf_io.service("camera.status", timeout=3))
+        if got is not None:
+            self.known = got
+        return self.known
+
     def _pass_a_direct(self):
         """The relay does not answer: use the ESP32-camera of this camera directly (if it is known)."""
         if self._relay_live():
             return False  # the relay is there: the camera itself is not sending, going direct would not help
-        direct = direct_camera.direct_of(self.url(), SD)
+        direct = direct_camera.direct_of(self.camera_id(), self._cameras(), RELAY_BASE)
         if not direct:
             return False
         self.mode, self.direct, self.dfallos = "direct", direct, 0
@@ -563,6 +538,8 @@ class Camera:
                 self._cycle_direct()
                 continue
             try:
+                if not failures:
+                    self._cameras()  # remembered for the direct mode, while the service answers
                 self._read_stream(self.url())
                 failures = 0
             except Exception as e:
@@ -678,10 +655,7 @@ def ctrl_base():
     control server on port 80 and /capture."""
     if CAMERA.mode == "direct" and CAMERA.direct:
         return direct_camera.base_of(CAMERA.direct), False
-    u = urllib.parse.urlparse(CAMERA.url())
-    if u.port == 81:
-        return "%s://%s" % (u.scheme, u.hostname), False
-    return "%s://%s:%d" % (u.scheme, u.hostname, u.port or 80), True
+    return direct_camera.relay_base(RELAY_BASE, CAMERA.camera_id()), True
 
 
 def camera_status(max_age=0.0):
@@ -842,13 +816,9 @@ def _photo_high_raw(fs):
                 raise IOError(M("vision_the_camera_did_not_deliver_a_photo_note", w=want[0], h=want[1], note=note))
             raise IOError(M("vision_the_camera_did_not_deliver_a_photo", w=want[0], h=want[1]))
         finally:
-            turn = prev
-            vf = CFG.photo_cfg()["video_fs"]
-            if prev == FS_STARTUP and vf > 0:
-                turn = vf
             try:
-                if turn is not None and turn != fs:
-                    camera_set("framesize", turn)
+                if prev is not None and prev != fs:
+                    camera_set("framesize", prev)
                 if q_high and prev_q is not None:
                     camera_set("quality", prev_q)
             except Exception as e:
@@ -865,23 +835,6 @@ def psram_notice(st):
     if st and "psram" in st and not st.get("psram"):
         return M("vision_the_camera_has_no_psram")
     return None
-
-
-def watch_video():
-    """The ESP32 goes back to 320x240 every time it restarts (example firmware).
-    If it finds it like that, it raises it to the chosen video resolution
-    (foto.video_fs; 0 = do not touch)."""
-    while True:
-        time.sleep(20)
-        try:
-            vf = CFG.photo_cfg()["video_fs"]
-            if vf <= 0 or vf == FS_STARTUP or photo_lock.locked():
-                continue
-            if camera_status().get("framesize") == FS_STARTUP:
-                camera_set("framesize", vf)
-                log("camara en 320x240 (recien reiniciada): se sube a %dx%d" % FS_SIZE.get(vf, (0, 0)))
-        except Exception:
-            pass  # camera off / relay stopped: it is retried
 
 
 # ---------------------------------------------------------------- geometria
@@ -1768,41 +1721,6 @@ def view_up(img, H, q):
     return cv2.warpPerspective(img, T @ H, (max(W, 1), max(Hh, 1))), (x0, y0, x1, y1, ppm)
 
 
-def config_post(body):
-    """Small changes to sys/workshop/config/vision.json from other pages (2026-10-10:
-    the Workbench map chooses where the camera is mounted). Only the
-    keys of this list; the file is rewritten whole (atomic) and CFG reloads
-    it by itself by the date. It returns a notice if recalibration is needed."""
-    allowed = {"camera_en": ("gantry", "carriage")}
-    changes = {k: v for k, v in (body or {}).items() if k in allowed}
-    if not changes:
-        raise ValueError(M("vision_nothing_to_change", accepted=", ".join(allowed)))
-    for k, v in changes.items():
-        if v not in allowed[k]:
-            raise ValueError(M("vision_value_is_not_valid", setting=k, value=v, options=" / ".join(allowed[k])))
-    try:
-        with open(CFG_FILE, encoding="utf-8-sig") as fh:
-            data = json.load(fh)
-        if not isinstance(data, dict):
-            data = {}
-    except FileNotFoundError:
-        data = {}
-    before = {k: data.get(k) for k in changes}
-    data.update(changes)
-    tmp = CFG_FILE + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as fh:
-        json.dump(data, fh, ensure_ascii=False, indent=1)
-        fh.flush()
-        os.fsync(fh.fileno())  # to the card before the rename (power cut)
-    os.replace(tmp, CFG_FILE)
-    CFG.get()
-    notice = None
-    if "camera_en" in changes and (before.get("camera_en") or "gantry") != changes["camera_en"]:
-        notice = M("vision_the_camera_changed_place")
-    log("config:", changes)
-    return {"ok": True, "changes": changes, "notice": notice, "camera_en": data.get("camera_en") or "gantry"}
-
-
 BED_JPG = os.path.join(SD, "sys", "workshop", "data", "vision-bed.jpg")
 BED_JSON = os.path.join(SD, "sys", "workshop", "data", "vision-bed.json")
 
@@ -1958,10 +1876,10 @@ def state():
         "version": VERSION,
         "opencv": cv2.__version__,
         "url": CAMERA.url(),
+        "camera_id": CAMERA.camera_id(),
         "camera": {"ok": age is not None and age < 5, "age_s": r2(age, 1), "fps": r2(CAMERA.fps, 1), "error": CAMERA.err, "control": camera_ctrl, "mode": CAMERA.mode},
         "ipc": dsf_io.ipc_stats.snapshot(),  # IPC calls to DCS (calls/min and totals per type)
         "calibs": calibs,
-        "source": CFG.source(),
         "height": CFG.height,
         "camera_en": "carriage" if camera_in_carriage() else "gantry",
         "photo": CFG.photo_cfg(),
@@ -2246,8 +2164,6 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, plan(body))
             if u.path == "/before":
                 return self._send(200, image_compare.before(body))
-            if u.path == "/config":
-                return self._send(200, config_post(body))
             if u.path == "/bed_background":
                 return self._send(200, bed_background(body))
             if u.path == "/compare":
@@ -2284,7 +2200,6 @@ def main():
     cv2.setNumThreads(2)  # leave cores for the kiosk and DSF
     CFG.get()
     dsf_io.begin()  # subscription to the object model (instead of GET /machine/status)
-    threading.Thread(target=watch_video, daemon=True).start()
     fire_watch.begin()  # fire and smoke watch (only with a laser job and if it is enabled)
     notified = False
     while True:

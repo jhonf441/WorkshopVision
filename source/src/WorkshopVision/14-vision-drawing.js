@@ -49,12 +49,11 @@
         for (var i = 0; i + 1 < hs.length; i++) {
           lines.push({ a: hs[i].px.c, b: hs[i + 1].px.c, txt: tvFmt(d(hs[i].mm.c, hs[i + 1].mm.c), 1) });
         }
-        var rows = [[i18nT('vision.col_element'), i18nT('vision.col_machine_x_mm'), i18nT('vision.col_machine_y_mm'), i18nT('vision.col_from_corner_along_mm'), i18nT('vision.col_from_corner_across_mm'), i18nT('vision.col_diameter_mm'), i18nT('vision.col_roundness')]];
-        rows.push([i18nT('vision.part_size_rotation', { l: tvFmt(L, 2), a: tvFmt(A, 2), ang: tvFmt(p.mm.ang, 2) }), tvFmt(bm[i0][0], 2), tvFmt(bm[i0][1], 2), "0", "0", "", ""]);
-        hs.forEach(function (h, j) {
-          rows.push([i18nT('vision.hole_n', { n: j + 1 }), tvFmt(h.mm.c[0], 2), tvFmt(h.mm.c[1], 2), tvFmt(h._loc[0], 2), tvFmt(h._loc[1], 2), h.mm.d ? tvFmt(h.mm.d, 2) : "", h.mm.roundness !== undefined ? tvFmt(h.mm.roundness, 2) : ""]);
-        });
-        return { piece: p, lines: lines, rows: rows, L: L, A: A, holes: hs.length };
+        // the report: the fixed table of 14-vision-files.js (the part, then each hole measured from its bottom-left corner)
+        var table = tvDimensionsTable({ corner: bm[i0], length: L, width: A, rotation: p.mm.ang }, hs.map(function (h) {
+          return { c: h.mm.c, along: h._loc[0], across: h._loc[1], diameter: h.mm.d, roundness: h.mm.roundness };
+        }));
+        return { piece: p, lines: lines, table: table, L: L, A: A, holes: hs.length };
       }
 
       function tvPolyStr(tv, pts) {

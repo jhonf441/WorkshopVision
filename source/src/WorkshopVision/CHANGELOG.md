@@ -1,5 +1,17 @@
 # WorkshopVision -- historial de versiones
 
+## 2.7.9 -- 2026-11-01
+
+- WorkshopVision: nav scroll finds the new bar after a redraw
+
+## 2.7.8 -- 2026-11-01
+
+- WorkshopVision: nav scroll second try; camera preview late photo
+
+## 2.7.7 -- 2026-11-01
+
+- WorkshopVision: shared nav-scroll fix; job control stage 1 where applicable
+
 ## 2.7.6 -- 2026-10-31
 
 - Vision: camera by id, no config_post, no camera-map.json, no video_fs, no legacy token file

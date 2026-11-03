@@ -115,26 +115,125 @@
         return i18nT('core.range_last', { span: workshopRangeShort(value.unit, value.amount) });
       }
 
+      var WORKSHOP_RANGE_EDGE = "1px solid var(--c-field-edge,rgba(128,128,128,0.45))";
+      var WORKSHOP_RANGE_FIELD = "padding:2px 5px;border:" + WORKSHOP_RANGE_EDGE + ";border-radius:4px;background:var(--c-field,transparent);color:inherit;color-scheme:light dark;font:inherit;";
+
+      function workshopRangeChip(text, on, fn) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.textContent = text;
+        b.style.cssText = "padding:2px 8px;border-radius:4px;cursor:pointer;font:inherit;font-size:12px;border:" + WORKSHOP_RANGE_EDGE + ";" +
+          (on ? "background:#1976d2;color:#fff;border-color:#1976d2;" : "background:transparent;color:inherit;");
+        b.addEventListener("click", fn);
+        return b;
+      }
+
+      // the button that opens the picker (its text is painted by the picker)
+      function workshopRangeButton() {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.setAttribute("aria-label", i18nT('core.range_label'));
+        btn.setAttribute("aria-haspopup", "dialog");
+        btn.style.cssText = "padding:4px 10px;border-radius:4px;cursor:pointer;font:inherit;border:" + WORKSHOP_RANGE_EDGE + ";background:transparent;color:inherit;";
+        return btn;
+      }
+
+      function workshopRangeNewPanel() {
+        var panel = document.createElement("div");
+        panel.setAttribute("role", "dialog");
+        panel.setAttribute("aria-label", i18nT('core.range_label'));
+        panel.style.cssText = "position:absolute;z-index:60;top:100%;left:0;margin-top:4px;min-width:300px;max-width:420px;padding:12px;border-radius:6px;" +
+          "background:var(--c-card,#1e1e1e);color:var(--c-text,#fff);border:" + WORKSHOP_RANGE_EDGE + ";box-shadow:0 4px 16px rgba(0,0,0,0.35);";
+        return panel;
+      }
+
+      // the quick choices ("Last 1 h", ...) -> the two rows to append
+      function workshopRangeQuickRow(value, pick) {
+        var tq = document.createElement("div");
+        tq.textContent = i18nT('core.range_quick');
+        tq.style.cssText = "font-weight:600;margin-bottom:4px;";
+        var qb = document.createElement("div");
+        qb.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;";
+        WORKSHOP_RANGE_QUICK.forEach(function (q) {
+          var on = !!value && value.type === "relative" && Number(value.amount) === q.amount && value.unit === q.unit;
+          qb.appendChild(workshopRangeChip(workshopRangeShort(q.unit, q.amount), on, function () { pick({ type: "relative", amount: q.amount, unit: q.unit }); }));
+        });
+        return [tq, qb];
+      }
+
+      // the amount and the unit of a relative range
+      function workshopRangeRelativeRow(draft, status, redraw) {
+        var row = document.createElement("div");
+        row.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:8px;";
+        var am = document.createElement("input");
+        am.type = "number";
+        am.min = "1";
+        am.max = String(WORKSHOP_RANGE_MAX);
+        am.step = "1";
+        am.value = String(draft.amount);
+        am.setAttribute("aria-label", i18nT('core.range_amount'));
+        am.style.cssText = WORKSHOP_RANGE_FIELD + "width:72px;";
+        am.addEventListener("input", function () { draft.amount = am.value; status(); });
+        row.appendChild(am);
+        WORKSHOP_RANGE_UNITS.forEach(function (u) { row.appendChild(workshopRangeChip(workshopRangeUnitName(u), draft.unit === u, function () { draft.unit = u; redraw(); })); });
+        return row;
+      }
+
+      // one line of an absolute range: the label, the date and the time (ab[dk], ab[tk])
+      function workshopRangeDateLine(label, ab, dk, tk, status) {
+        var r = document.createElement("div");
+        r.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:8px;";
+        var t = document.createElement("span");
+        t.textContent = label;
+        t.style.minWidth = "44px";
+        var d = document.createElement("input");
+        d.type = "date";
+        d.value = ab[dk];
+        d.setAttribute("aria-label", label);
+        d.style.cssText = WORKSHOP_RANGE_FIELD;
+        d.addEventListener("input", function () { ab[dk] = d.value; status(); });
+        var h = document.createElement("input");
+        h.type = "time";
+        h.value = ab[tk];
+        h.setAttribute("aria-label", label);
+        h.style.cssText = WORKSHOP_RANGE_FIELD;
+        h.addEventListener("input", function () { ab[tk] = h.value; status(); });
+        r.appendChild(t);
+        r.appendChild(d);
+        r.appendChild(h);
+        return r;
+      }
+
+      // the line under the fields: the error, or the two moments the range means now; and the state of the Apply button
+      function workshopRangeShowStatus(err, ok, c) {
+        if (!c.ok) {
+          err.style.color = "var(--c-error,#ef9a9a)";
+          err.textContent = workshopRangeError(c.why);
+        } else {
+          var r = workshopRangeResolve(c.value, new Date());
+          err.style.color = "inherit";
+          err.style.opacity = "0.7";
+          err.textContent = workshopRangeLocalText(r.from).replace("T", " ") + "  ->  " + workshopRangeLocalText(r.to).replace("T", " ");
+        }
+        ok.disabled = !c.ok;
+        ok.style.opacity = c.ok ? "1" : "0.5";
+      }
+
+      // the bottom line: Cancel and Apply
+      function workshopRangeFoot(ok, close) {
+        var foot = document.createElement("div");
+        foot.style.cssText = "display:flex;justify-content:flex-end;gap:8px;margin-top:12px;";
+        foot.appendChild(workshopRangeChip(i18nT('core.range_cancel'), false, close));
+        foot.appendChild(ok);
+        return foot;
+      }
+
       function workshopRangePicker(opts) {
         var o = opts || {};
         var value = o.value || null;
         var root = document.createElement("div");
         root.style.cssText = "position:relative;display:inline-block;";
-        var field = "padding:2px 5px;border:1px solid var(--c-field-edge,rgba(128,128,128,0.45));border-radius:4px;background:var(--c-field,transparent);color:inherit;color-scheme:light dark;font:inherit;";
-        var chip = function (text, on, fn) {
-          var b = document.createElement("button");
-          b.type = "button";
-          b.textContent = text;
-          b.style.cssText = "padding:2px 8px;border-radius:4px;cursor:pointer;font:inherit;font-size:12px;border:1px solid var(--c-field-edge,rgba(128,128,128,0.45));" +
-            (on ? "background:#1976d2;color:#fff;border-color:#1976d2;" : "background:transparent;color:inherit;");
-          b.addEventListener("click", fn);
-          return b;
-        };
-        var btn = document.createElement("button");
-        btn.type = "button";
-        btn.setAttribute("aria-label", i18nT('core.range_label'));
-        btn.setAttribute("aria-haspopup", "dialog");
-        btn.style.cssText = "padding:4px 10px;border-radius:4px;cursor:pointer;font:inherit;border:1px solid var(--c-field-edge,rgba(128,128,128,0.45));background:transparent;color:inherit;";
+        var btn = workshopRangeButton();
         var panel = null;
 
         function paintButton() {
@@ -171,36 +270,22 @@
           var ab = value && value.type === "absolute"
             ? { fd: value.from.split("T")[0], ft: value.from.split("T")[1] || "00:00", td: value.to.split("T")[0], tt: value.to.split("T")[1] || "23:59" }
             : { fd: today, ft: "00:00", td: today, tt: "23:59" };
-          panel = document.createElement("div");
-          panel.setAttribute("role", "dialog");
-          panel.setAttribute("aria-label", i18nT('core.range_label'));
-          panel.style.cssText = "position:absolute;z-index:60;top:100%;left:0;margin-top:4px;min-width:300px;max-width:420px;padding:12px;border-radius:6px;" +
-            "background:var(--c-card,#1e1e1e);color:var(--c-text,#fff);border:1px solid var(--c-field-edge,rgba(128,128,128,0.45));box-shadow:0 4px 16px rgba(0,0,0,0.35);";
+          panel = workshopRangeNewPanel();
           document.addEventListener("mousedown", away, true);
 
           function draw() {
             panel.textContent = "";
             if (o.clearable) {
-              var all = chip(i18nT('core.range_all'), !value, function () { pick(null); });
+              var all = workshopRangeChip(i18nT('core.range_all'), !value, function () { pick(null); });
               all.style.marginBottom = "8px";
               panel.appendChild(all);
             }
-            var tq = document.createElement("div");
-            tq.textContent = i18nT('core.range_quick');
-            tq.style.cssText = "font-weight:600;margin-bottom:4px;";
-            panel.appendChild(tq);
-            var qb = document.createElement("div");
-            qb.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;";
-            WORKSHOP_RANGE_QUICK.forEach(function (q) {
-              var on = !!value && value.type === "relative" && Number(value.amount) === q.amount && value.unit === q.unit;
-              qb.appendChild(chip(workshopRangeShort(q.unit, q.amount), on, function () { pick({ type: "relative", amount: q.amount, unit: q.unit }); }));
-            });
-            panel.appendChild(qb);
+            workshopRangeQuickRow(value, pick).forEach(function (n) { panel.appendChild(n); });
 
             var tabs = document.createElement("div");
             tabs.style.cssText = "display:flex;gap:6px;margin:12px 0 8px;";
-            tabs.appendChild(chip(i18nT('core.range_relative'), tab === "relative", function () { tab = "relative"; draw(); }));
-            tabs.appendChild(chip(i18nT('core.range_absolute'), tab === "absolute", function () { tab = "absolute"; draw(); }));
+            tabs.appendChild(workshopRangeChip(i18nT('core.range_relative'), tab === "relative", function () { tab = "relative"; draw(); }));
+            tabs.appendChild(workshopRangeChip(i18nT('core.range_absolute'), tab === "absolute", function () { tab = "absolute"; draw(); }));
             panel.appendChild(tabs);
 
             var help = document.createElement("div");
@@ -208,7 +293,7 @@
             panel.appendChild(help);
             var err = document.createElement("div");
             err.style.cssText = "font-size:12px;margin-top:8px;";
-            var ok = chip(i18nT('core.range_apply'), true, function () { if (current().ok) pick(current().value); });
+            var ok = workshopRangeChip(i18nT('core.range_apply'), true, function () { if (current().ok) pick(current().value); });
 
             function current() {
               var nv = tab === "relative" ? { type: "relative", amount: Number(draft.amount), unit: draft.unit }
@@ -217,71 +302,18 @@
               return { ok: c.ok, why: c.why, value: nv };
             }
 
-            function status() {
-              var c = current();
-              if (!c.ok) {
-                err.style.color = "var(--c-error,#ef9a9a)";
-                err.textContent = workshopRangeError(c.why);
-              } else {
-                var r = workshopRangeResolve(c.value, new Date());
-                err.style.color = "inherit";
-                err.style.opacity = "0.7";
-                err.textContent = workshopRangeLocalText(r.from).replace("T", " ") + "  ->  " + workshopRangeLocalText(r.to).replace("T", " ");
-              }
-              ok.disabled = !c.ok;
-              ok.style.opacity = c.ok ? "1" : "0.5";
-            }
+            function status() { workshopRangeShowStatus(err, ok, current()); }
 
-            var row = document.createElement("div");
-            row.style.cssText = "display:flex;flex-wrap:wrap;align-items:center;gap:8px;";
             if (tab === "relative") {
               help.textContent = i18nT('core.range_relative_help');
-              var am = document.createElement("input");
-              am.type = "number";
-              am.min = "1";
-              am.max = String(WORKSHOP_RANGE_MAX);
-              am.step = "1";
-              am.value = String(draft.amount);
-              am.setAttribute("aria-label", i18nT('core.range_amount'));
-              am.style.cssText = field + "width:72px;";
-              am.addEventListener("input", function () { draft.amount = am.value; status(); });
-              row.appendChild(am);
-              WORKSHOP_RANGE_UNITS.forEach(function (u) { row.appendChild(chip(workshopRangeUnitName(u), draft.unit === u, function () { draft.unit = u; draw(); })); });
-              panel.appendChild(row);
+              panel.appendChild(workshopRangeRelativeRow(draft, status, draw));
             } else {
               help.textContent = i18nT('core.range_absolute_help');
-              var line = function (label, dk, tk) {
-                var r = document.createElement("div");
-                r.style.cssText = "display:flex;align-items:center;gap:8px;margin-bottom:8px;";
-                var t = document.createElement("span");
-                t.textContent = label;
-                t.style.minWidth = "44px";
-                var d = document.createElement("input");
-                d.type = "date";
-                d.value = ab[dk];
-                d.setAttribute("aria-label", label);
-                d.style.cssText = field;
-                d.addEventListener("input", function () { ab[dk] = d.value; status(); });
-                var h = document.createElement("input");
-                h.type = "time";
-                h.value = ab[tk];
-                h.setAttribute("aria-label", label);
-                h.style.cssText = field;
-                h.addEventListener("input", function () { ab[tk] = h.value; status(); });
-                r.appendChild(t);
-                r.appendChild(d);
-                r.appendChild(h);
-                panel.appendChild(r);
-              };
-              line(i18nT('core.range_from'), "fd", "ft");
-              line(i18nT('core.range_to'), "td", "tt");
+              panel.appendChild(workshopRangeDateLine(i18nT('core.range_from'), ab, "fd", "ft", status));
+              panel.appendChild(workshopRangeDateLine(i18nT('core.range_to'), ab, "td", "tt", status));
             }
             panel.appendChild(err);
-            var foot = document.createElement("div");
-            foot.style.cssText = "display:flex;justify-content:flex-end;gap:8px;margin-top:12px;";
-            foot.appendChild(chip(i18nT('core.range_cancel'), false, close));
-            foot.appendChild(ok);
-            panel.appendChild(foot);
+            panel.appendChild(workshopRangeFoot(ok, close));
             status();
           }
           draw();

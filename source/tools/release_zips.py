@@ -25,6 +25,10 @@ import zipfile
 
 LINES = ("3.6", "3.7")
 SERVICE_ID = "WorkshopService"
+# plugins that by design do not depend on WorkshopService (the release check does not demand the dependency): Translations is a
+# standalone JS plugin (src/<Id>/_standalone.txt); Model talks to the board through the file and G-code API of DWC itself; ModelAgent is the
+# Raspberry Pi companion of Model and talks to DSF only (its own backend, no other plugin)
+SERVICE_FREE = {"WorkshopTranslations", "WorkshopModel", "WorkshopModelAgent"}
 # the python library that talks to DSF must be of the same line as the server (docs/UPGRADE-3.7.md of WorkshopService)
 DSF_PYTHON = {"3.6": "dsf-python==3.6.0", "3.7": "dsf-python==3.7.0"}
 GZ_MIN_BYTES = 32 * 1024  # bundles at least this big carry a .gz companion (DWC's own builds ship them)
@@ -236,7 +240,7 @@ def check_zip(path, line, plugin_id, version, official=False, perms=None, standa
             if re.match(r"dsf-python\b", d) and d != DSF_PYTHON[line]:
                 problems.append("sbcPythonDependencies pins %r, the %s line needs %r" % (d, line, DSF_PYTHON[line]))
         if plugin_id != SERVICE_ID:
-            if not standalone and SERVICE_ID not in (m.get("dwcDependencies") or []):
+            if not standalone and plugin_id not in SERVICE_FREE and SERVICE_ID not in (m.get("dwcDependencies") or []):
                 problems.append("dwcDependencies does not name " + SERVICE_ID)
         elif m.get("dwcDependencies"):
             problems.append("the service must not depend on a DWC plugin: " + str(m["dwcDependencies"]))

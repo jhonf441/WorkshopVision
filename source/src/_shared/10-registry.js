@@ -7,6 +7,7 @@
       //     builds its launchers (rail + card) from what has been
       //     registered. If a plugin is not installed, its launcher
       //     simply does not appear.
+      //   - barTiles: the optional GLOBAL tiles a plugin offers to the sidebar for what it owns (10-registry-tiles.js).
       //   - status: the latest machine state someone read (copy
       //     of the object model from DWC's store, same shape as
       //     /machine/status; see 01-dwc-state.js). The jog reads it every 2s and
@@ -29,12 +30,12 @@
       if (workshop.lastStatus === undefined) workshop.lastStatus = null;
       if (!workshop.lastStatusAt) workshop.lastStatusAt = 0;
 
-      // Version of each loaded plugin (the sidebar shows them).
-      // PLUGIN_VERSION / PLUGIN_COMMIT are injected by build.py.
+      // Version of each loaded plugin: the registry of the JS plugins present in this page (13-presence.js reads it; the control bar shows
+      // only its own version). PLUGIN_VERSION / PLUGIN_COMMIT are injected by build.py.
       workshop.versions = workshop.versions || {};
       workshop.versions[PLUGIN_ID] = { version: PLUGIN_VERSION, commit: PLUGIN_COMMIT };
       console.info("[" + PLUGIN_ID + "] v" + PLUGIN_VERSION + " (" + PLUGIN_COMMIT + ")");
-      workshopNotify(); // the bar (if already loaded) updates its version list
+      workshopNotify(); // the bar (if already loaded) refreshes: a plugin arrived
       setTimeout(function () { workshopReportPlugin(false); }, 0); // started: the service forgets that it was stopped (30-lifecycle.js), once the whole file has run
 
       function workshopNotify() {

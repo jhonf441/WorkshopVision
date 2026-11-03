@@ -295,6 +295,11 @@ def load_manifest(plugin_id):
     return manifest
 
 
+def set_version_constant(text, new):
+    """The text of a backend's version.py with its VERSION = "x.y.z" line set to `new` (the first such line only)."""
+    return re.sub(r'^VERSION = "[^"]*"$', 'VERSION = "%s"' % new, text, count=1, flags=re.M)
+
+
 def bump(plugin_id, part, message):
     manifest = load_manifest(plugin_id)
     old = manifest.get("version", "0.0.0")
@@ -313,6 +318,13 @@ def bump(plugin_id, part, message):
     with open(manifest_path(plugin_id), "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2, ensure_ascii=False)
         f.write("\n")
+    backend_version = os.path.join(plugin_dir(plugin_id), "dsf", "version.py")
+    if os.path.isfile(backend_version):
+        # a backend that bundles its own version (vue/WorkshopModelAgent/dsf/version.py) gets the new one too
+        with open(backend_version, encoding="utf-8", newline="") as f:
+            text = f.read()
+        with open(backend_version, "w", encoding="utf-8", newline="") as f:
+            f.write(set_version_constant(text, new))
     if is_vue(plugin_id) and has_36(plugin_id):
         # the DWC 3.6 manifest of a Vue plugin carries the same version (tests/lines-divergence.test.js)
         p36 = os.path.join(VUE, plugin_id, "dwc36", "plugin.json")

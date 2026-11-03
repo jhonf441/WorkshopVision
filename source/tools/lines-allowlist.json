@@ -55,8 +55,42 @@
         "expand-transition.js",
         "use-role.js"
       ],
-      "only36": [],
-      "reason": "dwc-host.js is the DWC 3.7 adapter (the 3.6 pieces import DWC internals directly); use-role.js and expand-transition.js are Vue 3 composables and transitions, 3.6 uses role-mixin.js; FileEditDialog.vue is used only by the stopped WorkshopConfig"
+      "only36": [
+        "zoom-plugin.js"
+      ],
+      "reason": "dwc-host.js is the DWC 3.7 adapter (the 3.6 pieces import DWC internals directly); use-role.js and expand-transition.js are Vue 3 composables and transitions, 3.6 uses role-mixin.js; FileEditDialog.vue is used only by the stopped WorkshopConfig; zoom-plugin.js exists only on the 3.6 line: the zoom plugin of the charts is taken by the charts of the plugins only, not registered for every chart (commit 6a75f049)"
+    }
+  },
+  "WorkshopMachine": {
+    "i18n.en": {
+      "only37": [],
+      "only36": [
+        "run.auto_title",
+        "run.auto_ok_homed",
+        "run.auto_bad_not_homed",
+        "run.auto_bad_unknown",
+        "run.auto_ok_probe",
+        "run.auto_bad_no_probe",
+        "run.auto_bad_manual_probe",
+        "run.auto_bad_triggered",
+        "run.auto_blocked"
+      ],
+      "reason": "the checks of a motion procedure that the machine answers by itself (axes homed, probe ready and at rest: lib/precheck.js + RunStart.vue) were written on the DWC 3.6 line, the one in use; the 3.7 line still asks the person to tick them. Porting them to 3.7 needs a check on a real DWC 3.7"
+    },
+    "i18n.es": {
+      "only37": [],
+      "only36": [
+        "run.auto_title",
+        "run.auto_ok_homed",
+        "run.auto_bad_not_homed",
+        "run.auto_bad_unknown",
+        "run.auto_ok_probe",
+        "run.auto_bad_no_probe",
+        "run.auto_bad_manual_probe",
+        "run.auto_bad_triggered",
+        "run.auto_blocked"
+      ],
+      "reason": "the checks of a motion procedure that the machine answers by itself (axes homed, probe ready and at rest: lib/precheck.js + RunStart.vue) were written on the DWC 3.6 line, the one in use; the 3.7 line still asks the person to tick them. Porting them to 3.7 needs a check on a real DWC 3.7"
     }
   }
 }

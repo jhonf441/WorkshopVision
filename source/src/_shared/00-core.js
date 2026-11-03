@@ -180,6 +180,8 @@
         printing: ["WorkshopPrinting"],
         workbench: ["WorkshopWorkbench"],
         machine: ["WorkshopMachine"],
+        model: ["WorkshopModel"],
+        modelAgent: ["WorkshopModelAgent"],
         config: ["WorkshopConfig"],
       };
       var WORKSHOP_ID_KEY = {}; // Id -> key

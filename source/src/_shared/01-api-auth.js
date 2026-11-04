@@ -39,10 +39,11 @@
         });
       }
 
-      // The service has users and this browser has no session (the person is a visitor, or nothing is allowed yet).
+      // The service has users and this browser has no session (the person is a visitor, or nothing is allowed yet): no token, or a token the
+      // service no longer accepts (expired, another machine): its answer to whoami says login_required. Same rule as the header of the Vue pages.
       function workshopSignedOut() {
         var id = workshopAuthState().identity;
-        return !!(id && id.configured && !workshopAuthToken());
+        return !!(id && id.configured && (!workshopAuthToken() || id.login_required));
       }
 
       // The person touched the page a moment ago: what fails now is probably their action (so it is worth telling them).

@@ -37,16 +37,18 @@ FACTS = {
         risk="High (backend with broad permissions; it can shut the system down)",
         writes=["`0:/sys/workshop/` (settings, data, history database `duet.db`, macros it generates, work zones, backups)",
                 "`/opt/dsf/conf/workshop-secrets.json` and `workshop-users.json` (mode 600), `workshop-camera.key`"],
-        system=["`/etc/sudoers.d/dsf-power`, only if you want the shutdown / restart buttons: you create it by hand (see the security document)",
+        system=["`/etc/sudoers.d/dsf-power`, only if you want the shutdown / restart buttons: you create it by hand (steps below)",
                 "the G-code bridge (`sudo bridge/install.sh`): systemd unit, polkit rule and `/opt/workshop-bridge`; `sudo bridge/install.sh uninstall` removes them",
                 "ports: the camera relay (8090 by default, all interfaces; `camera_relay.bind` keeps it on the Pi) and the G-code bridge (23)",
                 "`ffmpeg` for timelapses and snapshots; `tinytuya` for a Tuya energy meter"],
-        notes=["Without users, everybody who reaches DWC is an administrator and the relay and the bridge are open to the network: create the first administrator in the Users section."]),
+        notes=["Without users, everybody who reaches DWC is an administrator and the relay and the bridge are open to the network: create the first administrator in the Users section."],
+        howto=['**How to: the shutdown / restart rule (sudoers)**', '', '1. On the Pi run `sudo visudo -f /etc/sudoers.d/dsf-power` and write this single line, then save:', '   `dsf ALL=(root) NOPASSWD: /usr/sbin/shutdown, /usr/sbin/reboot`', '2. Check the syntax: `sudo visudo -c` (it must report that the files parsed OK). Check what `dsf` may run: `sudo -l -U dsf`.', '3. Test without shutting down: `sudo -u dsf sudo -n -l /usr/sbin/shutdown` prints the path when the rule works and an error when it does not. The real test is the *Shut down now* button, which powers the Pi off.', '4. Undo: `sudo rm /etc/sudoers.d/dsf-power`. Without the file those buttons log an error and the system keeps running.', '', '**How to: the G-code bridge**', '', '1. From the `bridge` folder of the WorkshopService sources, on the Pi: `sudo ./install.sh` (the same command updates it later). It copies the code to `/opt/workshop-bridge`, writes and starts the unit `workshop-gcode-bridge.service` and writes the polkit rule `49-workshop-gcode-bridge.rules`, which lets the `dsf` user start and stop only that unit.', '2. Check: `systemctl status workshop-gcode-bridge`, or the "G-code bridge" section of the System service page.', '3. Undo: `sudo ./install.sh uninstall` removes the unit, the rule and `/opt/workshop-bridge` (your data in `0:/sys/workshop` stays); `sudo ./install.sh no-control` removes only the polkit rule (the page can then no longer start or stop the bridge).', '', '**About AppArmor**', '', '- DSF writes the profile `/etc/apparmor.d/dsf.<PluginId>` from the manifest when the plugin is INSTALLED, not when it is only reloaded or restarted. The permissions you approve in DWC become its lines (details and measurements: `docs/PERMISSIONS.md` of the WorkshopService repository).', '- To see whether it blocks something: `journalctl -k | grep DENIED | grep Workshop` (no output means no denial).', '- If the profile is old or a feature is denied after an update that changed the permissions, install the plugin again from DWC so DSF rewrites the profile, then check the command above once more.']),
     "WorkshopControlBar": dict(
         risk="Medium (buttons that shut the machine down or run your macros)",
         writes=["its buttons and groups in `0:/sys/workshop/config/`"],
         system=["the shutdown and restart buttons need the optional sudo rule of the service (`/etc/sudoers.d/dsf-power`)"],
-        notes=["\"Shut down now\" cuts the power of EVERYTHING through the Tuya breaker if you configured one; it asks for confirmation."]),
+        notes=["\"Shut down now\" cuts the power of EVERYTHING through the Tuya breaker if you configured one; it asks for confirmation."],
+        howto=['**How to: the shutdown / restart rule**', '', '"Shut down now", "Shut down when done" and the full restart run `sudo -n shutdown` / `sudo -n reboot` as the `dsf` user, so they need the sudoers rule. Create it, check it and undo it as described in the section "How to: the shutdown / restart rule (sudoers)" of [WorkshopService](../WorkshopService/README.md): `sudo visudo -f /etc/sudoers.d/dsf-power`, line `dsf ALL=(root) NOPASSWD: /usr/sbin/shutdown, /usr/sbin/reboot`, check with `sudo visudo -c`, undo with `sudo rm /etc/sudoers.d/dsf-power`. Without it the buttons log an error and the system keeps running.']),
     "WorkshopJog": dict(
         risk="Medium-high (moves the machine)",
         writes=["its settings and saved positions in `0:/sys/workshop/`", "the macros it installs into `0:/sys/workshop/macros/` (for example `workzeroaxis.g`, `jogFreeSet.g`)"],
@@ -175,6 +177,8 @@ def section(pid, m):
         out += ["**Files it writes:**"] + ["- " + w for w in f["writes"]] + [""]
     if f["system"]:
         out += ["**What it needs outside the zip** (each one is a separate step you do on purpose and can undo):"] + ["- " + s for s in f["system"]] + [""]
+    if f.get("howto"):
+        out += f["howto"] + [""]
     if f["notes"]:
         out += ["**Safety notes:**"] + ["- " + n for n in f["notes"]] + [""]
     out += ["Uninstalling removes the plugin folder; your data in `0:/sys/workshop/` and `/opt/dsf/conf/workshop-*.json` stays.", "", END]

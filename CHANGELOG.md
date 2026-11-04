@@ -1,5 +1,17 @@
 # WorkshopVision -- historial de versiones
 
+## 2.7.12 -- 2026-11-03
+
+- Sesion: tarjeta de aviso estandar tipo consola
+
+## 2.7.11 -- 2026-11-03
+
+- Sesion: el aviso tambien sale con un token caducado
+
+## 2.7.10 -- 2026-11-03
+
+- Sesion: un solo aviso para todo lo de sesion (parpadea, sin toast encima)
+
 ## 2.7.9 -- 2026-11-01
 
 - WorkshopVision: nav scroll finds the new bar after a redraw

@@ -2,7 +2,7 @@
       // The i18n key of what the service row says when it is "missing". refusal is the code the service refused examples.list with
       // ("login_required", "forbidden") or "" for a real failure (network, 5xx, service down: only that one is "not running").
       function workshopStartupServiceKey(refusal, signedOut) {
-        if (refusal === "login_required" || signedOut) return "startup.service_sign_in";
+        if (refusal === "login_required" || signedOut) return "startup.service_session";
         if (refusal === "forbidden") return "startup.service_role";
         return "startup.service_not_running";
       }
@@ -18,4 +18,10 @@
           refrescar().catch(function () {});
         });
         if (typeof workshopOnStop === "function") workshopOnStop(identityOff);
+      }
+
+      // The state of the service row: nobody is signed in => "session" (blue, cannot be checked), not "missing" (red: the service is off).
+      function workshopStartupServiceState(list, refusal, signedOut) {
+        if (list !== null) return "configured";
+        return refusal === "login_required" || signedOut ? "session" : "missing";
       }

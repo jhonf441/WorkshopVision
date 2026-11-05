@@ -7,8 +7,6 @@
 		"calibration": "calibración ?",
 		"camera": "cámara ?",
 		"service_off": "servicio apagado",
-		"sign_in_needed": "Inicia sesión",
-		"sign_in_needed_text": "Sin sesión: inicia sesión para usar la visión. Con tu usuario y PIN puedes analizar; el servicio no está apagado.",
 		"start_over": "Empezar de nuevo",
 		"the_camera_is_not_calibrated_without": "La cámara no está calibrada: sin calibración no hay medidas. Anda a Calibrar.",
 		"no_part_was_found_try_detect": "No se encontró ninguna pieza. Proba con Detectar y medir > Ajustes de detección, o marca una Zona sobre la imagen.",
@@ -852,7 +850,6 @@
 		"guided_quality_good": "Quedó muy bien.",
 		"guided_quality_fair": "Quedó aceptable. Puedes guardarla.",
 		"guided_quality_bad": "No quedó bien. Toma otra foto de la hoja, bien plana y sin sombras.",
-		"roles_viewer": "Tu rol ({role}) puede ver el estado pero no usar la visión. Pide a un operador que lo haga.",
 		"advanced_detection": "Avanzado: parámetros de detección"
 	},
 	"startup_vision": {
@@ -905,5 +902,12 @@
 		"could_not_cancel_v": "No se pudo cancelar: {v}",
 		"pausing_the_job_in_n_s": "pausa el trabajo en {n} s si sigue",
 		"emergency_stop_in_n_s": "parada de emergencia en {n} s si sigue"
+	},
+	"helpTips": {
+		"vision_zones_title": "Cámara en Zonas de trabajo",
+		"vision_zones_what": "Pone el video de esta cámara debajo del mapa de Zonas de trabajo, alineado con la calibración.",
+		"vision_zones_why": "Te deja ver la pieza real bajo el mapa para colocar las zonas con precisión.",
+		"vision_zones_missing": "Sin ella el mapa se ve solo, sin la imagen de la cámara debajo.",
+		"vision_zones_how": "Toca el interruptor para activarla o apagarla; el texto dice Sí o No. Necesita la cámara calibrada."
 	}
 }

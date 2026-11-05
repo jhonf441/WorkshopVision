@@ -32,13 +32,14 @@
           tvPaintZones(tv);
           if (before !== tv.state.ok) tvRenderSide(tv);
           if (!tv.state.ok) {
-            // a missing session is not a service that is off (it answers 401): say so
-            if (workshopSignedOut()) tv.chipSrv.set("warn", i18nT('vision.sign_in_needed'), workshopApiT('signedOut'));
-            else tv.chipSrv.set("err", i18nT('vision.service_off'), i18nT('vision.vision_service_not_answering_port', { port: WORKSHOP_VISION_PORT, error: tv.state.error || "" }));
+            // a missing session is not a service that is off (it answers 401), and the chip of the bar already says it: this pill stays out of the way
+            tv.chipSrv.style.display = workshopSignedOut() ? "none" : "";
+            if (!workshopSignedOut()) tv.chipSrv.set("err", i18nT('vision.service_off'), i18nT('vision.vision_service_not_answering_port', { port: WORKSHOP_VISION_PORT, error: tv.state.error || "" }));
             tv.chipCamera.set("", i18nT('vision.camera'));
             tv.chipCal.set("", i18nT('vision.calibration'));
             return;
           }
+          tv.chipSrv.style.display = "";
           tv.chipSrv.set("ok", "OpenCV " + tv.state.opencv, i18nT('vision.workshop_vision_service_port', { port: WORKSHOP_VISION_PORT }));
           var camera = tv.state.camera || {};
           var ctl = camera.control || {};

@@ -7,30 +7,11 @@
       //   workshopNoteEl(kind, text)                     P4: an always visible note, kind "info" or "warn"
       // Same DOM and class names as the Vue pieces (button.help-tip, dl.help-tip-list, .wf-popover, .wf-field, .wf-field-label, .wf-guide, .wf-note).
       // One card open at a time; it opens under the button, is kept inside the window, and closes with a tap outside or Esc. Nothing is read from the machine.
-      // The styles are injected once from here until the standard moves them to design/family.css.
 
       var WORKSHOP_HELP_OPEN = null; // { btn, card, off } of the card that is open, if any
-      var WORKSHOP_HELP_CSS =
-        ".help-tip{display:inline-flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;margin:-4px 0;padding:0;border:0;border-radius:50%;background:transparent;color:var(--wf-icon,inherit);cursor:pointer;opacity:1;font:inherit}" +
-        ".help-tip .mdi{font-size:18px;line-height:1}" +
-        "@media (pointer:coarse){.help-tip{width:40px;height:40px;margin:-8px}}" +
-        ".wf-popover{position:fixed;z-index:9999;box-sizing:border-box;max-width:380px;padding:12px 16px;border:1px solid var(--wf-line,rgba(128,128,128,.3));border-radius:8px;background:var(--wf-surface,#1e1e1e);color:inherit;box-shadow:0 4px 16px rgba(0,0,0,.35)}" +
-        ".wf-popover .help-tip-title{font-size:14px;font-weight:600;margin-bottom:6px}" +
-        ".help-tip-list{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 12px;margin:6px 0 0;font-size:13px}" +
-        ".help-tip-list dt{font-weight:600}.help-tip-list dd{margin:0}" +
-        ".wf-field{display:flex;flex-direction:column;gap:4px;min-width:0}" +
-        ".wf-field-label{display:flex;align-items:center;gap:2px;min-height:24px;font-size:13px;font-weight:500}" +
-        ".wf-field-label .help-tip{flex:none;margin:-4px 0}" +
-        ".wf-guide>summary{cursor:pointer;font-size:13px;font-weight:600;opacity:.85;min-height:24px}" +
-        "@media (pointer:coarse){.wf-guide>summary{min-height:44px;display:flex;align-items:center}}" +
-        ".wf-note{display:flex;gap:8px;font-size:13px}.wf-note.is-warn{border-left:3px solid var(--wf-warn,#ff8f00);padding-left:8px}";
-
+      // The styles live in design/family.css (the Vue pieces share them); workshopInjectFamily() puts them in once per page.
       function workshopHelpCss() {
-        if (document.getElementById("workshop-help-css")) return;
-        var st = document.createElement("style");
-        st.id = "workshop-help-css";
-        st.textContent = WORKSHOP_HELP_CSS;
-        (document.head || document.documentElement).appendChild(st);
+        if (typeof workshopInjectFamily === "function") workshopInjectFamily();
       }
 
       // Pure: the rows of a card in their fixed order, without the empty ones. t = i18nT.
@@ -102,7 +83,7 @@
         workshopHelpCss();
         var btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "help-tip";
+        btn.className = "help-tip wf-help-btn";
         var label = i18nT('core.help_tip_open') + (spec.title ? ": " + spec.title : "");
         btn.setAttribute("aria-label", label);
         btn.setAttribute("title", label);
@@ -133,6 +114,22 @@
           };
         });
         return btn;
+      }
+
+      // The spec of a tip from the catalog block "helpTips" of the plugin: helpTips.<id>_title / _what / _why / _missing / _how (es and en, same keys).
+      // The four rows of HelpTip.vue; a row without text is not drawn. id is a literal (tests/help-tip-js.test.js checks every id used has its five keys).
+      function workshopHelpSpecOf(id) {
+        var k = function (part) {
+          var key = "helpTips." + id + "_" + part;
+          var v = i18nT(key);
+          return v === key ? "" : v;
+        };
+        return { title: k("title"), what: k("what"), why: k("why"), ifMissing: k("missing"), how: k("how") };
+      }
+
+      // The "?" of a thing of the catalog (workshopHelpTipEl(workshopHelpSpecOf(id)))
+      function workshopHelpTipOf(id) {
+        return workshopHelpTipEl(workshopHelpSpecOf(id));
       }
 
       // A field whose label is OUTSIDE the control; the "?" sits next to the label, never inside the control (AYUDAS.md 3, 4)

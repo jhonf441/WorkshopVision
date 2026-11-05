@@ -30,7 +30,7 @@
       // "Do not use" hides the row on this screen (localStorage); "Show again" brings them back. Nothing here
       // writes over a file of the person: "Create" asks the service, which refuses to overwrite.
 
-      var WORKSHOP_STARTUP_STATES = ["configured", "example", "missing", "na"];
+      var WORKSHOP_STARTUP_STATES = ["configured", "example", "missing", "session", "na"];
 
       // defs: rows as above. archivos: [{archivo, estado}] from examples.list, or null when the service did not answer.
       // ocultos: ids of rows the person hid. Returns [{id, def, archivo, estado, existe, oculta, sinDatos}].
@@ -63,12 +63,12 @@
           return !f.hidden && !f.withoutData && f.state !== "na";
         });
         var pending = count.filter(function (f) {
-          return f.state === "example" || f.state === "missing";
+          return f.state === "example" || f.state === "missing" || f.state === "session";
         }).length;
         return { total: count.length, pending: pending, ready: pending === 0 };
       }
 
-      var WORKSHOP_STARTUP_POINT = { configured: "#2e7d32", example: "#e65100", missing: "#c62828", na: "#455a64" };
+      var WORKSHOP_STARTUP_POINT = { configured: "#2e7d32", example: "#e65100", missing: "#c62828", session: "#1e88e5", na: "#455a64" };
 
       function workshopStartupHiddenRead(key) {
         try {
@@ -99,7 +99,7 @@
       // the sentence that says why those buttons are off (null when the session is there)
       function workshopStartupLockedNote() {
         if (typeof workshopSignedOut !== "function" || !workshopSignedOut()) return null;
-        return workshopStartupEl("div", "font-size:12px;color:#ffcc80;border-left:3px solid #ff8f00;padding:4px 8px;background:rgba(255,143,0,0.10);border-radius:4px;", i18nT("startup.locked"));
+        return workshopReasonEl("session", workshopNoticeText("session")); // by state: signed out, expired or locked PIN
       }
 
       function workshopStartupButton(text, help, onClick, kind) {
@@ -111,7 +111,7 @@
         var css = "flex:0 0 auto;border:none;border-radius:4px;padding:6px 12px;min-height:40px;cursor:pointer;font:inherit;font-size:12px;background:#455a64;color:#fff;touch-action:manipulation;";
         if (kind === "primary") css = "flex:0 0 auto;border:none;border-radius:10px;padding:8px 18px;min-height:44px;cursor:pointer;font:inherit;font-size:14px;font-weight:600;background:#1976d2;color:#fff;touch-action:manipulation;";
         else if (kind === "soft") css = "flex:0 0 auto;border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:6px 14px;min-height:40px;cursor:pointer;font:inherit;font-size:13px;background:rgba(255,255,255,0.07);color:inherit;touch-action:manipulation;";
-        else if (kind === "text") css = "flex:0 0 auto;border:none;border-radius:8px;padding:6px 10px;min-height:40px;cursor:pointer;font:inherit;font-size:13px;background:transparent;color:#90caf9;touch-action:manipulation;";
+        else if (kind === "text") css = "flex:0 0 auto;border:none;border-radius:8px;padding:6px 10px;min-height:40px;cursor:pointer;font:inherit;font-size:13px;background:transparent;color:var(--wf-info, #90caf9);touch-action:manipulation;";
         b.style.cssText = css;
         b.addEventListener("pointerdown", function (ev) {
           ev.stopPropagation();
@@ -119,7 +119,7 @@
         });
         if (workshopStartupLocked(text)) {
           b.disabled = true;
-          b.title = i18nT("startup.locked");
+          b.title = i18nT("notice.notice_session_reason");
           b.style.opacity = "0.45";
           b.style.cursor = "not-allowed";
         }
@@ -211,11 +211,11 @@
           if (opts.serviceRow !== false) {
             defs.push({
               id: "service",
-              state: last.list === null ? "missing" : "configured",
+              state: workshopStartupServiceState(last.list, last.refusal, typeof workshopSignedOut === "function" && workshopSignedOut()),
               label: "startup.service",
               help: "startup.service_tip",
               // signed out the service cannot be asked (it answers "sign in"), so it is not said to be off: the row says what is really missing, the session
-              texts: { missing: workshopStartupServiceKey(last.refusal, typeof workshopSignedOut === "function" && workshopSignedOut()) },
+              texts: { session: "startup.service_session", missing: workshopStartupServiceKey(last.refusal, false) },
             });
           }
           defs = defs.concat(last.defs || []);
@@ -224,7 +224,7 @@
         }
 
         function pending(f) {
-          return !!f && !f.hidden && !f.withoutData && (f.state === "missing" || f.state === "example");
+          return !!f && !f.hidden && !f.withoutData && (f.state === "missing" || f.state === "session" || f.state === "example");
         }
 
         function paint() {
@@ -392,7 +392,7 @@
           var prog = workshopStartupEl("div", "display:flex;flex-direction:column;gap:8px;");
           var line = workshopStartupEl("div", "display:flex;align-items:baseline;justify-content:space-between;gap:8px;");
           line.appendChild(workshopStartupEl("span", "font-weight:600;font-size:15px;", res.ready ? i18nT("startup.modal_all_ready") : i18nT("startup.modal_progress", { a: lists, b: res.total })));
-          line.appendChild(workshopStartupEl("span", "font-size:12px;color:" + (res.ready ? "#a5d6a7" : "#ffb74d") + ";", res.ready ? i18nT("startup.summary_ready") : i18nT("startup.summary_pending", { n: res.pending, total: res.total })));
+          line.appendChild(workshopStartupEl("span", "font-size:12px;color:" + (res.ready ? "#a5d6a7" : "var(--wf-n-down-text, #ffb74d)") + ";", res.ready ? i18nT("startup.summary_ready") : i18nT("startup.summary_pending", { n: res.pending, total: res.total })));
           prog.appendChild(line);
           var pista = workshopStartupEl("div", "height:8px;border-radius:4px;background:rgba(255,255,255,0.10);overflow:hidden;");
           var pct = res.total ? Math.round((lists / res.total) * 100) : 100;
@@ -754,7 +754,7 @@
           box.appendChild(workshopStartupEl("div", "font-weight:500;overflow-wrap:anywhere;", i18nT("startup.preview_title", { file: destination })));
           var pre = workshopStartupCode(prev.text);
           box.appendChild(pre);
-          if (prev.commented) box.appendChild(workshopStartupEl("div", "color:#ffcc80;", i18nT("startup.warn_moves", { n: prev.commented })));
+          if (prev.commented) box.appendChild(workshopNoteEl("warn", i18nT("startup.warn_moves", { n: prev.commented })));
           if (prev.active) box.appendChild(workshopStartupEl("div", "opacity:.9;", i18nT("startup.warn_active")));
           box.appendChild(workshopStartupEl("div", "overflow-wrap:anywhere;", i18nT(plan.reason, { file: destination, backup: plan.backup || "", target: plan.path })));
           if (asis.failure) box.appendChild(workshopStartupEl("div", "color:#ef9a9a;", asis.failure));
@@ -923,14 +923,14 @@
       // colour of each state in the modal: text, soft background, border
       var WORKSHOP_STARTUP_TONE = {
         configured: { text: "#a5d6a7", background: "rgba(46,125,50,0.20)", edge: "rgba(165,214,167,0.35)" },
-        example: { text: "#ffb74d", background: "rgba(230,81,0,0.20)", edge: "rgba(255,183,77,0.35)" },
-        missing: { text: "#ef9a9a", background: "rgba(198,40,40,0.22)", edge: "rgba(239,154,154,0.35)" },
+        example: { text: "var(--wf-n-down-text, #ffb74d)", background: "rgba(230,81,0,0.20)", edge: "rgba(255,183,77,0.35)" },
+        missing: { text: "#ef9a9a", background: "rgba(198,40,40,0.22)", edge: "rgba(239,154,154,0.35)" }, session: { text: "var(--wf-n-session-text, #90caf9)", background: "var(--wf-n-session-bg, rgba(30,136,229,0.10))", edge: "var(--wf-n-session, #1e88e5)" },
         na: { text: "#b0bec5", background: "rgba(69,90,100,0.30)", edge: "rgba(176,190,197,0.25)" },
       };
 
       // the worst state of a group (what the card shows): missing > example > configured > na
       function workshopStartupWorstState(rows) {
-        var order = ["missing", "example", "configured", "na"];
+        var order = ["missing", "session", "example", "configured", "na"];
         var best = "na";
         (rows || []).forEach(function (f) {
           if (order.indexOf(f.state) < order.indexOf(best)) best = f.state;
@@ -1062,7 +1062,7 @@
           box.style.cssText = res.ready // chip only while something is pending (2026-10-23); ready = a quiet icon, same dialog
             ? "display:inline-flex;align-items:center;box-sizing:border-box;margin:0;padding:4px;border-radius:50%;cursor:pointer;border:0;background:transparent;"
             : "display:inline-flex;align-items:center;gap:6px;box-sizing:border-box;margin:0;padding:2px 10px 2px 8px;border-radius:16px;font-size:12px;line-height:1.5;cursor:pointer;white-space:nowrap;border:1px solid rgba(128,128,128,0.4);background:transparent;";
-          icon.style.color = res.ready ? "#66bb6a" : "#ffb74d";
+          icon.style.color = res.ready ? "#66bb6a" : "var(--wf-n-down-text, #ffb74d)";
           text.textContent = res.ready ? "" : i18nT("startup.chip_pending", { n: res.pending }); // same words as the chip of the Vue pages (StartupPanel)
           box.title = i18nT("startup.title") + " - " + (res.ready ? i18nT("startup.strip_ready") : i18nT("startup.strip_pending", { n: res.pending })) + " - " + (res.ready ? i18nT("startup.strip_open") : i18nT("startup.strip_setup"));
         }

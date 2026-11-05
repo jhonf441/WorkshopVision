@@ -140,7 +140,7 @@
  "vision_photos_are_missing": "faltan fotos",
  "vision_some_photos_have_no_calibration": "hay fotos sin calibración",
  "vision_the_calibration_has_no_position": "la calibración no tiene posición",
- "vision_the_camera_buffers_are_not_in_psram": "los búferes de la cámara no quedaron en PSRAM: reiníciala cortando la corriente",
+ "vision_the_camera_buffers_are_not_in_psram": "los búferes de la cámara no quedaron en PSRAM: hay que reiniciarla cortando la corriente",
  "vision_the_camera_did_not_deliver_a_photo": "la cámara no entregó una foto de {w}x{h}",
  "vision_the_camera_did_not_deliver_a_photo_note": "la cámara no entregó una foto de {w}x{h} ({note})",
  "vision_the_camera_has_no_psram": "la cámara no tiene PSRAM activa: firmware viejo",
@@ -173,7 +173,7 @@
  "vision_x_does_not_fit_gantry": "En X no entra ni con Z al máximo (Z{z:.0f}): la foto cubre X {x0:.0f} a {x1:.0f} y se pidió {ax0:.0f} a {ax1:.0f} (la cámara no se mueve en X).",
  "vision_y_reaches_the_end_of_travel": "Y llega al límite del recorrido: lo de más cerca del borde puede quedar afuera.",
  "vision_zmin_is_above_the_z_maximum": "zmin ({zmin:.0f}) está por encima del máximo de Z ({zmax:.0f})",
- "vision_login_required": "hay que identificarse: inicia sesión con tu nombre y PIN",
+ "vision_login_required": "hay que identificarse: requiere iniciar sesión con tu nombre y PIN",
  "vision_forbidden": "tu usuario no tiene permiso para esta acción",
  "vision_service_unreachable": "no se pudo comprobar quién eres (el servicio del taller no contesta): inténtalo de nuevo en unos segundos"
 }

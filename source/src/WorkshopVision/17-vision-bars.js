@@ -49,12 +49,10 @@
         if (tvIsTech()) tvRenderParams(tv); // the 17 detection parameters are the technician's, under "Advanced"
       }
 
-      // The look-only view says why: no session (with the sign-in button) or a role that is too low (with the role, no button).
+      // The look-only view says why with ONE reason (N3, no button: the chip of the bar has the sign-in): no session, or the role that is needed.
       function tvRenderViewerNote(tv, signedOut) {
-        var role = typeof workshopRole === "function" ? workshopRole() : "";
-        var note = tvViewerNote(signedOut, workshopApiT("role_" + (role || "viewer")), i18nT);
-        tv.side.appendChild(tvMsg("info", note.text));
-        if (note.signIn && typeof workshopLogin === "function") tv.side.appendChild(tvBtn(workshopApiT("signInAction"), "", function () { workshopLogin(); }));
+        var note = tvViewerNote(signedOut);
+        tv.side.appendChild(workshopReasonEl(note.kind, workshopNoticeText(note.kind, note.needed)));
       }
 
       // Without the Vision service (2026-10-10, test "what if a

@@ -173,7 +173,7 @@
  "vision_x_does_not_fit_gantry": "It does not fit in X even with Z at the maximum (Z{z:.0f}): the photo covers X {x0:.0f} to {x1:.0f} and {ax0:.0f} to {ax1:.0f} was asked (the camera does not move in X).",
  "vision_y_reaches_the_end_of_travel": "Y reaches the end of travel: what is nearest the edge may be left out.",
  "vision_zmin_is_above_the_z_maximum": "zmin ({zmin:.0f}) is above the Z maximum ({zmax:.0f})",
- "vision_login_required": "you need to identify yourself: log in with your name and PIN",
+ "vision_login_required": "you need to identify yourself: sign-in with your name and PIN is required",
  "vision_forbidden": "your user is not allowed to do this",
  "vision_service_unreachable": "could not check who you are (the workshop service does not answer): try again in a few seconds"
 }

@@ -43,14 +43,36 @@
       // The service has users and this browser has no session (the person is a visitor, or nothing is allowed yet): no token, or a token the
       // service no longer accepts (expired, another machine): its answer to whoami says login_required. Same rule as the header of the Vue pages.
       function workshopSignedOut() {
-        var id = workshopAuthState().identity;
-        return !!(id && id.configured && (!workshopAuthToken() || id.login_required));
+        return workshopIsSignedOutState(workshopSessionState());
+      }
+
+      // "resolving" | "signed-out" | "signing-in" | "active" | "expired" | "pin-locked" (01-session-state.js)
+      function workshopSessionState() {
+        var s = workshopAuthState();
+        return workshopSessionStateOf({ identity: s.identity, token: workshopAuthToken(), flight: s.flight, lockUntil: s.lockUntil, unreachable: s.whoamiFailed }, Date.now());
+      }
+
+      // "resolving" | "ok" | "session" | "role" for one operation
+      function workshopAccessState(op, ctx) {
+        return workshopAccessStateOf(workshopSessionState(), workshopCan(op, ctx));
       }
 
       // Why the person cannot call an operation: "" (they can), "signed_out" (signing in may fix it) or "role" (only another role does).
       function workshopAccessReason(op, ctx) {
-        if (workshopCan(op, ctx)) return "";
-        return workshopSignedOut() ? "signed_out" : "role";
+        var a = workshopAccessState(op, ctx);
+        return a === "session" ? "signed_out" : a === "role" ? "role" : "";
+      }
+
+      // The session state changed without a new answer of the service (the PIN dialog opened or closed, the PIN got locked)
+      function workshopAuthNotifyState() {
+        var s = workshopAuthState();
+        s.listeners.slice().forEach(function (fn) {
+          try {
+            fn(s.identity);
+          } catch (e) {
+            /* a listener must not break the others */
+          }
+        });
       }
 
       // The person touched the page a moment ago: what fails now is probably their action (so it is worth telling them).
@@ -206,9 +228,14 @@
 
       // call(op, args) must resolve the JSON body of the API ({ok, result, error}) and never ask for a login itself.
       function workshopAuthRefresh(call) {
-        return call("auth.whoami", {}).then(function (j) {
+        function answered(j) {
+          // the service did not answer: the session stays unknown but it is not "resolving" any more
+          workshopAuthState().whoamiFailed = !(j && j.ok);
           if (j && j.ok) workshopAuthSetIdentity(j.result);
           return j && j.ok ? j.result : null;
+        }
+        return call("auth.whoami", {}).then(answered, function () {
+          return answered(null);
         });
       }
 
@@ -254,15 +281,22 @@
         workshopAuthSetToken("");
         s.flight = workshopPinDialog(function (name, pin) {
           return workshopAuthLogin(call, name, pin).then(function (j) {
-            if (j.ok) return null;
+            if (j.ok) {
+              s.lockUntil = 0;
+              return null;
+            }
             var e = j.error || {};
+            s.lockUntil = e.wait_s > 0 ? Date.now() + e.wait_s * 1000 : 0;
+            workshopAuthNotifyState();
             return { code: e.code, message: e.message, wait_s: e.wait_s };
           });
         }, workshopApiT).then(function (ok) {
           s.flight = null;
           if (!ok) s.quietUntil = Date.now() + WORKSHOP_AUTH_QUIET_MS;
+          workshopAuthNotifyState();
           return ok;
         });
+        workshopAuthNotifyState();
         return s.flight;
       }
 

@@ -93,12 +93,10 @@
 
       // ---- what touches the page ----
 
-      // The sentence of a "look only" view and whether signing in would change it: no session -> sign in (the button is offered); a role that is too
-      // low -> the role text and no button, since signing in again cannot help. roleLabel: the name of the role ("Visitor"); t = i18nT.
-      function tvViewerNote(signedOut, roleLabel, t) {
-        return signedOut
-          ? { text: t("vision.sign_in_needed_text"), signIn: true }
-          : { text: t("vision.roles_viewer", { role: roleLabel || "" }), signIn: false };
+      // The cause of a "look only" view (ESTANDAR 2): no session -> "session", a role that is too low -> "role" (needs the operator). Neither has a button
+      // here: the sign-in call is the chip of the bar, the only one on the page.
+      function tvViewerNote(signedOut) {
+        return signedOut ? { kind: "session" } : { kind: "role", needed: "operator" };
       }
 
       function tvView() {
@@ -127,6 +125,14 @@
           tvPaintNav(tv);
           tvRenderAll(tv);
         });
+        // what a refusal said ("signed out", "no permission") must not stay once the person signs in, out or changes role
+        if (typeof workshopOnSessionErrors === "function" && typeof workshopOnStop === "function") {
+          workshopOnStop(workshopOnSessionErrors(function () {
+            if (!tv.alive) return;
+            tv.lastMsg = null;
+            tvRenderSide(tv);
+          }));
+        }
       }
 
       // Keeps tv.tab inside what the view shows (a saved "calibrate" for an operator, a role that changed).

@@ -100,6 +100,8 @@
           );
         });
         right.appendChild(tv.btnZones);
+        tv.btnZonesHelp = workshopHelpTipOf("vision_zones");
+        right.appendChild(tv.btnZonesHelp);
         // the start-up chip is the last thing of the header row, on the right, as in every other page (PageHeader slot "startup")
         right.appendChild(tv.startup.el);
       }

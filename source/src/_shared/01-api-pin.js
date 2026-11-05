@@ -44,7 +44,7 @@
         if (mode) input.setAttribute("inputmode", mode);
         // Accent border while the field has the focus, red while the sign shows an error (workshopPinPaintError)
         input.addEventListener("focus", function () {
-          input.style.borderColor = "#1976d2";
+          input.style.borderColor = "var(--wf-accent, #1976d2)";
         });
         input.addEventListener("blur", function () {
           input.style.borderColor = input.getAttribute("data-bad") ? "#ef9a9a" : "rgba(255,255,255,0.23)";
@@ -109,9 +109,9 @@
         v.box.setAttribute("aria-modal", "true");
         var head = workshopPinEl("div", "display:flex;align-items:center;gap:12px;");
         var badge = workshopPinEl("div", "width:40px;height:40px;border-radius:50%;background:rgba(25,118,210,0.2);display:flex;align-items:center;justify-content:center;flex:none;");
-        badge.appendChild(workshopPinIcon(WORKSHOP_PIN_LOCK, 22, "#90caf9"));
+        badge.appendChild(workshopPinIcon(WORKSHOP_PIN_LOCK, 22, "var(--wf-n-session, #1e88e5)"));
         var titles = workshopPinEl("div", "min-width:0;");
-        titles.appendChild(workshopPinEl("div", "font-size:14px;font-weight:600;color:#90caf9;", t("pinTitle")));
+        titles.appendChild(workshopPinEl("div", "font-size:14px;font-weight:600;color:var(--wf-n-session-text, #90caf9);", t("pinTitle")));
         titles.appendChild(workshopPinEl("div", "color:#b0bec5;font-size:12px;", t("pinHint")));
         head.appendChild(badge);
         head.appendChild(titles);
@@ -142,14 +142,14 @@
         eye.addEventListener("click", function () {
           var shown = v.pin.input.style.getPropertyValue("-webkit-text-security") === "none";
           v.pin.input.style.setProperty("-webkit-text-security", shown ? "disc" : "none");
-          eye.firstChild.style.fill = shown ? "#b0bec5" : "#90caf9";
+          eye.firstChild.style.fill = shown ? "#b0bec5" : "var(--wf-n-session-text, #90caf9)";
         });
         v.pin.wrap.style.position = "relative";
         v.pin.wrap.appendChild(eye);
         v.msg = workshopPinEl("div", "min-height:20px;margin-top:10px;font-size:12px;color:#ef9a9a;");
         v.row = workshopPinEl("div", "display:flex;gap:8px;justify-content:flex-end;margin-top:6px;");
         v.bc = workshopPinEl("button", "background:transparent;color:#eceff1;border:0;border-radius:6px;padding:8px 16px;min-height:44px;font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;font-family:inherit;", t("cancel"));
-        v.bo = workshopPinEl("button", "background:#1976d2;color:#fff;border:0;border-radius:6px;padding:8px 20px;min-height:44px;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;font-family:inherit;", t("pinEnter"));
+        v.bo = workshopPinEl("button", "background:var(--wf-accent, #1976d2);color:#fff;border:0;border-radius:6px;padding:8px 20px;min-height:44px;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;font-family:inherit;", t("pinEnter"));
         v.bc.type = v.bo.type = "button";
         v.row.appendChild(v.bc);
         v.row.appendChild(v.bo);

@@ -1,6 +1,6 @@
 {
 	"session": {
-		"camera_sign_in": "Sin sesión: inicia sesión para ver la cámara.",
+		"camera_sign_in": "Requiere iniciar sesión para ver la cámara.",
 		"camera_role": "Tu rol no incluye la cámara: pídele al administrador que la active.",
 		"camera_down": "La cámara no responde."
 	}

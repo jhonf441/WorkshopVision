@@ -47,7 +47,7 @@
       // text button = no border. Over the image (.tv-ov, .tv-pad, full screen) they stay filled grey.
       ".tv-ov .tvb,.tv-pad .tvb,.tv-left.tv-full .tvb{background:#455a64;border-color:#455a64;color:#eceff1}" +
       ".tv-ov .tvb.on,.tv-ov .tvb.primary,.tv-pad .tvb.on,.tv-pad .tvb.primary,.tv-left.tv-full .tvb.on,.tv-left.tv-full .tvb.primary{background:#1976d2;border-color:#1976d2;color:#fff}" +
-      ".tv-ov .tvb.ghost,.tv-pad .tvb.ghost{background:transparent;border-color:transparent;color:#90caf9}" +
+      ".tv-ov .tvb.ghost,.tv-pad .tvb.ghost{background:transparent;border-color:transparent;color:var(--wf-n-session-text,#90caf9)}" +
       ".tv-ov .tv-sec .tvb{background:transparent;border-color:transparent;color:#b0bec5}.tv-ov .tv-sec .tvb.on{background:#1976d2;color:#fff}" +
       ".tv-ov .tv-toggle{color:#eceff1;border-color:#455a64;background:#1e272c}" +
       ".tv-kind{display:inline-flex;align-items:center;gap:6px}.tv-dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}" +
@@ -67,7 +67,7 @@
       ".tv-glass{background:rgba(16,22,26,.78);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.08);border-radius:8px}" +
       ".tv-ov .tv-sec{background:rgba(16,22,26,.78);backdrop-filter:blur(4px);border-color:rgba(255,255,255,.1)}" +
       ".tv-badge{padding:4px 10px;font-size:12px;color:#eceff1;display:inline-flex;align-items:center;gap:6px}" +
-      ".tv-badge.live .tv-ic{color:#ef9a9a}.tv-badge.photo .tv-ic{color:#90caf9}" +
+      ".tv-badge.live .tv-ic{color:#ef9a9a}.tv-badge.photo .tv-ic{color:var(--wf-n-session-text,#90caf9)}" +
       // 2026-10-11 ("let all that camera's functions be contained"): the viewer is
       // a frame with its bars inside, like the Workbench map
       ".tv-left{position:relative}" + // the bar's menus are placed inside the viewer
@@ -77,7 +77,7 @@
       ".tv-readout{padding:6px 10px;font-size:13px;color:#e0f7fa;line-height:1.35}.tv-readout b{font-size:16px;color:#00e5ff;font-weight:600}" +
       ".tv-info{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;font-size:12px;color:var(--tv-sec);min-height:20px}" +
       ".tv-info>span{background:var(--tv-interna);border-radius:10px;padding:2px 8px}" +
-      ".tv-info>span.warn{color:#ffb74d}" +
+      ".tv-info>span.warn{color:var(--wf-n-down-text,#ffb74d)}" +
       // tarjetas
       ".tv-muted{color:var(--tv-faint);font-size:12px;line-height:1.45}" +
       // messages like a dense text v-alert: tinted fill, icon in the meaning colour, 4 px corners
@@ -91,7 +91,7 @@
       // detecciones
       ".tv-filt{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}" +
       ".tv-item{border-left:4px solid #888;padding:7px 10px;margin:6px 0;background:var(--tv-interna);border-radius:6px;cursor:pointer}" +
-      ".tv-item:hover{background:var(--tv-hover)}.tv-item.sel{background:rgba(25,118,210,.18);outline:1px solid #90caf9}" +
+      ".tv-item:hover{background:var(--tv-hover)}.tv-item.sel{background:rgba(25,118,210,.18);outline:1px solid var(--wf-n-session-text,#90caf9)}" +
       ".tv-item .t{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tv-sec)}.tv-item .big{font-size:16px;font-weight:500;color:inherit;margin:2px 0;font-variant-numeric:tabular-nums}" +
       ".tv-item .v{font-size:12px;color:var(--tv-sec);line-height:1.45;white-space:pre-line}" +
       ".tv-acts{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:5px;margin-top:8px}.tv-acts .tvb{justify-content:center}" +
@@ -121,7 +121,7 @@
       ".theme--light .tv-toggle.on{background:rgba(46,125,50,.12);border-color:#2e7d32}.theme--light .tv-toggle.on .est{color:#1b5e20}" +
       ".theme--light .tvb.ghost{background:transparent;border-color:transparent;color:#1565c0}" +
       ".theme--light .tvb.ghost:hover{background:rgba(21,101,192,.08)}" +
-      ".theme--light .tv-ov .tvb.ghost,.theme--light .tv-pad .tvb.ghost{color:#90caf9}" +
+      ".theme--light .tv-ov .tvb.ghost,.theme--light .tv-pad .tvb.ghost{color:var(--wf-n-session-text,#90caf9)}" +
       ".theme--light .tvb:disabled{opacity:.55}" +
       ".theme--light .tv-info>span.warn{color:#b26a00}" +
       ".theme--light .tv-step .num{background:#546e7a;color:#fff}" +
@@ -137,7 +137,7 @@
       ".tv-stage.pan svg{cursor:grab}.tv-stage.panning svg{cursor:grabbing}.tv-stage.move svg{cursor:crosshair}" +
       ".tv-cursor{padding:4px 10px;font-size:12px;color:#eceff1;font-variant-numeric:tabular-nums;white-space:nowrap}" +
       ".tv-pad{position:absolute;right:8px;top:50%;transform:translateY(-50%);padding:8px;flex-direction:column;gap:6px;line-height:1.35;color:#eceff1;font-size:12px;width:184px}" +
-      ".tv-pad .h{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px}.tv-pad .h .tv-ic{color:#ffe082;font-size:16px}" +
+      ".tv-pad .h{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px}.tv-pad .h .tv-ic{color:var(--wf-n-down-text,#ffe082);font-size:16px}" +
       ".tv-pad .pos{color:#b0bec5;font-variant-numeric:tabular-nums}" +
       ".tv-pad .dp{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}" +
       ".tv-pad .tvb{justify-content:center;padding:4px 6px}" +
@@ -149,7 +149,7 @@
       ".tv-left.tv-full .tv-stage{margin:0 auto;border-radius:0;border:none;flex:none;width:100%}" +
       ".tv-pad .h{cursor:move;touch-action:none;user-select:none}.tv-pad .h .tvb{margin-left:auto;min-height:28px;padding:2px 6px}" +
       ".tv-pad .seguro{display:flex;gap:5px;align-items:flex-start;font-size:11px;color:#a5d6a7;line-height:1.35}.tv-pad .seguro .tv-ic{font-size:14px}" +
-      ".tv-pad .data{font-size:11px;color:#b0bec5;line-height:1.35}.tv-pad .data b{color:#eceff1;font-weight:500}.tv-pad .data .more{color:#a5d6a7}.tv-pad .data .minus{color:#ffb74d}" +
+      ".tv-pad .data{font-size:11px;color:#b0bec5;line-height:1.35}.tv-pad .data b{color:#eceff1;font-weight:500}.tv-pad .data .more{color:#a5d6a7}.tv-pad .data .minus{color:var(--wf-n-down-text,#ffb74d)}" +
       // Viewer work bar (2026-10-11, "arrange all the function buttons",
       // same style as the Workbench bar): square buttons with icon on top and
       // short name below, in blocks of the same function; the rarely used in small menus
@@ -159,16 +159,16 @@
       ".tv-ib .tv-ic{font-size:20px;pointer-events:none}.tv-ib .cap{font-size:10px;line-height:1.05;white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums}" +
       ".tv-ib:hover:not(:disabled){filter:brightness(1.2)}.tv-ib:disabled{opacity:.45;cursor:default}" +
       ".tv-ib.half{min-width:34px}" +
-      ".tv-ib.on,.tv-ib.prim{background:#1976d2;border-color:#90caf9;color:#fff}" +
-      ".tv-ib.live{background:#ff8f00;border-color:#ffe082;color:#212121}" +
-      ".tv-ib.open{background:#37474f;border-color:#90caf9}" +
+      ".tv-ib.on,.tv-ib.prim{background:#1976d2;border-color:var(--wf-n-session-text,#90caf9);color:#fff}" +
+      ".tv-ib.live{background:var(--wf-armed,#ff8f00);border-color:var(--wf-n-down-text,#ffe082);color:#212121}" +
+      ".tv-ib.open{background:#37474f;border-color:var(--wf-n-session-text,#90caf9)}" +
       ".tv-ib .dots{position:absolute;top:3px;right:3px;display:flex;gap:1px;pointer-events:none}.tv-ib .dots i{width:6px;height:6px;border-radius:50%;display:block}" +
       ".tv-pair{display:inline-flex;border:1px solid rgba(255,255,255,.3);border-radius:8px;overflow:hidden;background:#455a64}" +
       ".tv-pair .tv-ib{border:0;border-radius:0}.tv-pair .tv-ib+.tv-ib{border-left:1px solid rgba(255,255,255,.18)}" +
       ".tv-dock.without-names .cap{display:none}.tv-dock.without-names .tv-ib{min-width:38px;min-height:36px}.tv-dock.without-names .tv-ib.half{min-width:32px}" +
       // bar menus: they open upward stuck to their button; tapping outside or Esc closes them
       ".tv-dpop{position:absolute;z-index:8;display:none;background:var(--tv-card);border:1px solid var(--tv-line);border-radius:6px;padding:8px 10px;box-shadow:0 6px 20px rgba(0,0,0,.55);font-size:12px;color:#eceff1;width:max-content;max-width:min(340px,calc(100% - 8px));line-height:1.35;box-sizing:border-box}" +
-      ".tv-dpop h4{margin:0 0 6px;font-size:13px;font-weight:600;color:#90caf9}" +
+      ".tv-dpop h4{margin:0 0 6px;font-size:13px;font-weight:600;color:var(--wf-n-session-text,#90caf9)}" +
       ".tv-dpop .dsec{margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,.1)}" +
       ".tv-dpop .dlbl{font-size:11px;color:#b0bec5;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}" +
       ".tv-dpop .drow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.tv-dpop .tv-muted{font-size:11px;margin-top:4px}" +
@@ -180,7 +180,7 @@
       ".theme--light .tv-ib{background:#eceff1;color:#263238;border-color:#cfd8dc}.theme--light .tv-ib:hover:not(:disabled){filter:brightness(.96)}" +
       ".theme--light .tv-pair{background:#eceff1;border-color:#cfd8dc}.theme--light .tv-pair .tv-ib+.tv-ib{border-left-color:rgba(0,0,0,.12)}" +
       ".theme--light .tv-ib.on,.theme--light .tv-ib.prim{background:#1976d2;border-color:#1976d2;color:#fff}" +
-      ".theme--light .tv-ib.live{background:#ff8f00;border-color:#ff8f00;color:#212121}.theme--light .tv-ib.open{background:#cfd8dc;border-color:#1976d2}" +
+      ".theme--light .tv-ib.live{background:var(--wf-armed,#ff8f00);border-color:var(--wf-armed,#ff8f00);color:#212121}.theme--light .tv-ib.open{background:#cfd8dc;border-color:#1976d2}" +
       ".theme--light .tv-dpop{color:#212121;box-shadow:0 4px 14px rgba(0,0,0,.18)}.theme--light .tv-dpop h4{color:#1565c0}" +
       ".theme--light .tv-dpop .dsec{border-top-color:rgba(0,0,0,.08)}.theme--light .tv-dpop .dlbl{color:#616161}" +
       ".theme--light .tv-dpop .it .n{color:#212121}.theme--light .tv-dpop .it .d{color:#616161}.theme--light .tv-dpop .footer{border-top-color:rgba(0,0,0,.08)}" +

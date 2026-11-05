@@ -157,7 +157,7 @@
         // the main action without a session: disabled, and the reason is its tooltip (always there, not a toast)
         if (/(^| )primary( |$)/.test(cls || "") && workshopSignedOut()) {
           b.disabled = true;
-          b.title = workshopApiT('signedOut');
+          b.title = workshopNoticeText("session"); // the shared sentence of the state (catalog), also next to it in the bar chip
         }
         var armed = false,
           timer = null;

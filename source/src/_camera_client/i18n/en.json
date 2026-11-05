@@ -1,6 +1,6 @@
 {
 	"session": {
-		"camera_sign_in": "Not signed in: sign in to see the camera.",
+		"camera_sign_in": "Sign-in required to see the camera.",
 		"camera_role": "Your role does not include the camera: ask the administrator to enable it.",
 		"camera_down": "The camera does not answer."
 	}

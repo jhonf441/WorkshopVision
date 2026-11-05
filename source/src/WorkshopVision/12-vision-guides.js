@@ -43,13 +43,13 @@
         }
         var y1 = vy0 + banda, x1 = vx0 + banda;
         edge(function (t) { return [x1 + (vw - banda) * t, vy0 + banda / 2]; }, function (q, mayor, txt) {
-          tvSvg("line", { x1: q[0], y1: y1, x2: q[0], y2: y1 - banda * (mayor ? 0.55 : 0.25), stroke: mayor ? "#ffe082" : "#eceff1", "stroke-width": (mayor ? 1.4 : 0.9) * k }, gr);
-          if (mayor) tvSvg("text", { x: q[0] + 2.5 * k, y: vy0 + fs * 0.85, fill: "#ffe082", "font-size": fs * 0.78, "font-family": "sans-serif" }, gr).textContent = txt;
+          tvSvg("line", { x1: q[0], y1: y1, x2: q[0], y2: y1 - banda * (mayor ? 0.55 : 0.25), stroke: mayor ? "rgb(255,224,130)" : "#eceff1", "stroke-width": (mayor ? 1.4 : 0.9) * k }, gr);
+          if (mayor) tvSvg("text", { x: q[0] + 2.5 * k, y: vy0 + fs * 0.85, fill: "rgb(255,224,130)", "font-size": fs * 0.78, "font-family": "sans-serif" }, gr).textContent = txt;
         });
         edge(function (t) { return [vx0 + banda / 2, y1 + (vh - banda) * t]; }, function (q, mayor, txt) {
-          tvSvg("line", { x1: x1, y1: q[1], x2: x1 - banda * (mayor ? 0.55 : 0.25), y2: q[1], stroke: mayor ? "#ffe082" : "#eceff1", "stroke-width": (mayor ? 1.4 : 0.9) * k }, gr);
+          tvSvg("line", { x1: x1, y1: q[1], x2: x1 - banda * (mayor ? 0.55 : 0.25), y2: q[1], stroke: mayor ? "rgb(255,224,130)" : "#eceff1", "stroke-width": (mayor ? 1.4 : 0.9) * k }, gr);
           if (mayor) {
-            var tx = tvSvg("text", { x: vx0 + fs * 0.95, y: q[1] - 2.5 * k, fill: "#ffe082", "font-size": fs * 0.78, "font-family": "sans-serif", transform: "rotate(-90 " + (vx0 + fs * 0.95) + " " + (q[1] - 2.5 * k) + ")" }, gr);
+            var tx = tvSvg("text", { x: vx0 + fs * 0.95, y: q[1] - 2.5 * k, fill: "rgb(255,224,130)", "font-size": fs * 0.78, "font-family": "sans-serif", transform: "rotate(-90 " + (vx0 + fs * 0.95) + " " + (q[1] - 2.5 * k) + ")" }, gr);
             tx.textContent = txt;
           }
         });
@@ -75,14 +75,14 @@
           var va = tvMmAView(tv, a),
             vb = tvMmAView(tv, b);
           if (!va || !vb) return;
-          tvSvg("line", { x1: va[0], y1: va[1], x2: vb[0], y2: vb[1], stroke: mayor ? "#ffe082" : "#eceff1", "stroke-width": (mayor ? 1.1 : 0.7) * k, "stroke-opacity": mayor ? 0.55 : 0.28 }, gr);
+          tvSvg("line", { x1: va[0], y1: va[1], x2: vb[0], y2: vb[1], stroke: mayor ? "rgb(255,224,130)" : "#eceff1", "stroke-width": (mayor ? 1.1 : 0.7) * k, "stroke-opacity": mayor ? 0.55 : 0.28 }, gr);
           if (!mayor) return;
           // the value, where the line enters the image
           for (var i = 0; i <= 40; i++) {
             var t = i / 40,
               q = [va[0] + (vb[0] - va[0]) * t, va[1] + (vb[1] - va[1]) * t];
             if (q[0] >= 4 * k && q[0] <= tv.view.w - 44 * k && q[1] >= fs + 2 * k && q[1] <= tv.view.h - 4 * k) {
-              var tt = tvSvg("text", { x: q[0] + 3 * k, y: q[1] - 3 * k, fill: "#ffe082", "font-size": fs * 0.85, "font-family": "sans-serif", "paint-order": "stroke", stroke: "#000", "stroke-width": 3 * k }, gr);
+              var tt = tvSvg("text", { x: q[0] + 3 * k, y: q[1] - 3 * k, fill: "rgb(255,224,130)", "font-size": fs * 0.85, "font-family": "sans-serif", "paint-order": "stroke", stroke: "#000", "stroke-width": 3 * k }, gr);
               tt.textContent = txt;
               return;
             }

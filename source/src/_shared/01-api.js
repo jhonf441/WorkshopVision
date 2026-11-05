@@ -34,7 +34,7 @@
         pinMissing: "Write your name and PIN.",
         pinWrong: "Wrong name or PIN.",
         loginCancelled: "Identification is needed to continue.",
-        signInNeeded: "Not authorized: you need to sign in.",
+        signInNeeded: "Not signed in: this action requires signing in.",
         signedOut: "Not signed in: you can only look.",
         signInAction: "Sign in",
         permissionTitle: "Not authorized",
@@ -162,7 +162,11 @@
         opts = opts || {};
         var byPerson = opts.byPerson !== undefined ? opts.byPerson : workshopAuthRecentGesture(); // started by a touch: if it fails, the person is told
         function fail(err) {
-          if (byPerson && !opts.quiet && typeof workshopToast === "function") workshopToast(err.message);
+          if (byPerson && !opts.quiet) {
+            // a missing session is told from the notice catalog (title + sentence by state), whatever language the service wrote; other refusals keep the service text
+            if (err.code === "login_required" && typeof workshopRefusalToast === "function") workshopRefusalToast("session");
+            else if (typeof workshopToast === "function") workshopToast(err.message);
+          }
           return err;
         }
         var sentToken = workshopAuthToken(); // the session this call went out with

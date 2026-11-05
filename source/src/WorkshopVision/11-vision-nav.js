@@ -13,6 +13,7 @@
 
       function tvPaintZones(tv) {
         tv.btnZones.style.display = tvHasWorkbench(tv) ? "" : "none"; // the switch is about the Workbench map
+        if (tv.btnZonesHelp) tv.btnZonesHelp.style.display = tvHasWorkbench(tv) ? "" : "none"; // and so is its "?"
         var on = !!(tv.cfg && tv.cfg.map && tv.cfg.map.use);
         tv.btnZones.classList.toggle("on", on);
         tv.btnZonasEst.textContent = on ? i18nT('vision.yes') : i18nT('vision.no');

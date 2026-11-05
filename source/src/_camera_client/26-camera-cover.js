@@ -37,7 +37,7 @@
       }
 
       function workshopCoverReason() {
-        if (typeof workshopSignedOut === "function" && workshopSignedOut()) return i18nT("session.camera_sign_in");
+        if (typeof workshopSignedOut === "function" && workshopSignedOut()) return workshopSessionSentence("session.camera_sign_in");
         if (typeof workshopCan === "function" && !workshopCan("camera.token")) return i18nT("session.camera_role");
         return i18nT("session.camera_down");
       }

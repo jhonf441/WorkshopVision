@@ -1,5 +1,9 @@
 # WorkshopVision -- historial de versiones
 
+## 2.7.19 -- 2026-11-04
+
+- Sign out no longer reopens the PIN dialog
+
 ## 2.7.18 -- 2026-11-04
 
 - Rebuilt with the readable text colours, the shared start-up card and the session notice

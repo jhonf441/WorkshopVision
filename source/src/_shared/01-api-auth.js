@@ -21,6 +21,7 @@
       var WORKSHOP_AUTH_RANK = { viewer: 0, operator: 1, technician: 2, admin: 3 };
 
       var WORKSHOP_AUTH_GESTURE_MS = 1500;
+      var WORKSHOP_AUTH_AFTER_LOGOUT_MS = 20000; // after signing out, a failing call does not open the PIN dialog by itself this long
 
       // Remembers when the person last touched the page (not the sign-in dialog itself)
       function workshopAuthWatchGestures(s) {
@@ -222,7 +223,14 @@
       }
 
       function workshopLogout() {
+        // The tap on "sign out" is a touch, and signing out makes the pages reload what they show: those reads fail (nobody is signed in)
+        // inside the window of that touch and used to open the PIN dialog again, so the session seemed never to close. After signing out
+        // the touch is forgotten and nothing opens the dialog by itself for a while; the "sign in" button and a later touch still do.
+        var st = workshopAuthState();
+        st.gestureAt = 0;
+        st.quietUntil = Date.now() + WORKSHOP_AUTH_AFTER_LOGOUT_MS;
         function done() {
+          st.gestureAt = 0;
           workshopAuthSetToken("");
           return workshopAuthRefresh(workshopApiCall);
         }

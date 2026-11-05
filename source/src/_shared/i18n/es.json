@@ -69,7 +69,12 @@
 		"lower_z_to_the_work_zero": "Bajar Z al cero de trabajo",
 		"cancel": "Cancelar",
 		"continue": "Continuar",
-		"cancelled_title": "Cancelado: {title}"
+		"cancelled_title": "Cancelado: {title}",
+		"help_tip_open": "Ayuda",
+		"help_tip_what": "Qué es",
+		"help_tip_why": "Para qué sirve",
+		"help_tip_missing": "Sin ella",
+		"help_tip_how": "Cómo se usa"
 	},
 	"dwcState": {
 		"no_connection_to_the_machine": "sin conexión con la máquina"

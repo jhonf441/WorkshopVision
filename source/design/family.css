@@ -132,7 +132,7 @@
 .workshop-theme .v-btn[class*='bg-amber'], .workshop-theme .v-btn.amber, .workshop-theme .v-btn[class*='amber darken'], .wf-btn.wf-armed { background: var(--wf-armed) !important; color: #000 !important; border: 0; }
 .workshop-theme .v-btn :is(.v-btn__overlay, .v-btn__underlay) { display: none; }
 .workshop-theme .v-btn:not(.v-btn--icon):hover { background-color: rgba(128, 128, 128, 0.1); }
-.workshop-theme .v-btn:is(.bg-primary, .primary):hover { background-color: var(--wf-accent) !important; filter: brightness(1.1); }
+.workshop-theme .v-btn:is(.bg-primary, .primary):hover { background-color: var(--wf-accent) !important; filter: brightness(0.92); }
 .workshop-theme .v-btn .v-icon { color: inherit; }
 
 /* ================= chips and states: a neutral outline; a state shows as a colored dot + the word ================= */

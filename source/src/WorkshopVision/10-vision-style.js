@@ -12,7 +12,7 @@
       ".tv-sec .tvb.on{background:#1976d2;color:#fff}.tv-sec .tvb:hover:not(.on){background:var(--tv-hover,#263238)}" +
       ".tv-lbl{font-size:12px;font-weight:600;margin:10px 0 4px;opacity:.85}" + // titulito de un grupo (Vigilancia de fuego)
       // cuenta regresiva antes de pausar por fuego/humo (2026-10-12): relleno de aviso, texto blanco
-      ".tv-count{background:#e65100;color:#fff;border-radius:6px;padding:8px 10px;margin:6px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:600}" +
+      ".tv-count{background:#bf360c;color:#fff;border-radius:6px;padding:8px 10px;margin:6px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:600}" +
       ".tv-count .tvb{background:transparent;border:1px solid #fff;color:#fff;min-height:32px}" +
       ".tv-hist{font-size:12px;margin-top:4px}.tv-hist>div{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.08)}.tv-hist>div.f{cursor:pointer}" +
       ".theme--light .tv-hist>div{border-bottom-color:rgba(0,0,0,.08)}" +
@@ -118,13 +118,13 @@
       ".theme--light .tv-sec .tvb:hover:not(.on){background:#eceff1}" +
       ".theme--light .tv-toggle .sw{background:#b0bec5}" +
       ".theme--light .tv-toggle .sw:after{background:#fff}" +
-      ".theme--light .tv-toggle.on{background:rgba(46,125,50,.12);border-color:#2e7d32}.theme--light .tv-toggle.on .est{color:#2e7d32}" +
+      ".theme--light .tv-toggle.on{background:rgba(46,125,50,.12);border-color:#2e7d32}.theme--light .tv-toggle.on .est{color:#1b5e20}" +
       ".theme--light .tvb.ghost{background:transparent;border-color:transparent;color:#1565c0}" +
       ".theme--light .tvb.ghost:hover{background:rgba(21,101,192,.08)}" +
       ".theme--light .tv-ov .tvb.ghost,.theme--light .tv-pad .tvb.ghost{color:#90caf9}" +
       ".theme--light .tvb:disabled{opacity:.55}" +
       ".theme--light .tv-info>span.warn{color:#b26a00}" +
-      ".theme--light .tv-step .num{background:#b0bec5;color:#fff}" +
+      ".theme--light .tv-step .num{background:#546e7a;color:#fff}" +
       ".theme--light .tv-step.done .num{background:#2e7d32}" +
       ".theme--light .tv-item.sel{background:#e3f2fd;outline-color:#1976d2}" +
       ".theme--light .tv-prog{background:#e0e0e0}" +
@@ -160,7 +160,7 @@
       ".tv-ib:hover:not(:disabled){filter:brightness(1.2)}.tv-ib:disabled{opacity:.45;cursor:default}" +
       ".tv-ib.half{min-width:34px}" +
       ".tv-ib.on,.tv-ib.prim{background:#1976d2;border-color:#90caf9;color:#fff}" +
-      ".tv-ib.live{background:#ff8f00;border-color:#ffe082;color:#fff}" +
+      ".tv-ib.live{background:#ff8f00;border-color:#ffe082;color:#212121}" +
       ".tv-ib.open{background:#37474f;border-color:#90caf9}" +
       ".tv-ib .dots{position:absolute;top:3px;right:3px;display:flex;gap:1px;pointer-events:none}.tv-ib .dots i{width:6px;height:6px;border-radius:50%;display:block}" +
       ".tv-pair{display:inline-flex;border:1px solid rgba(255,255,255,.3);border-radius:8px;overflow:hidden;background:#455a64}" +
@@ -180,7 +180,7 @@
       ".theme--light .tv-ib{background:#eceff1;color:#263238;border-color:#cfd8dc}.theme--light .tv-ib:hover:not(:disabled){filter:brightness(.96)}" +
       ".theme--light .tv-pair{background:#eceff1;border-color:#cfd8dc}.theme--light .tv-pair .tv-ib+.tv-ib{border-left-color:rgba(0,0,0,.12)}" +
       ".theme--light .tv-ib.on,.theme--light .tv-ib.prim{background:#1976d2;border-color:#1976d2;color:#fff}" +
-      ".theme--light .tv-ib.live{background:#ff8f00;border-color:#ff8f00;color:#fff}.theme--light .tv-ib.open{background:#cfd8dc;border-color:#1976d2}" +
+      ".theme--light .tv-ib.live{background:#ff8f00;border-color:#ff8f00;color:#212121}.theme--light .tv-ib.open{background:#cfd8dc;border-color:#1976d2}" +
       ".theme--light .tv-dpop{color:#212121;box-shadow:0 4px 14px rgba(0,0,0,.18)}.theme--light .tv-dpop h4{color:#1565c0}" +
       ".theme--light .tv-dpop .dsec{border-top-color:rgba(0,0,0,.08)}.theme--light .tv-dpop .dlbl{color:#616161}" +
       ".theme--light .tv-dpop .it .n{color:#212121}.theme--light .tv-dpop .it .d{color:#616161}.theme--light .tv-dpop .footer{border-top-color:rgba(0,0,0,.08)}" +

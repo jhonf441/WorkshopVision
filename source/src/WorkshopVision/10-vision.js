@@ -154,6 +154,11 @@
         var b = tvEl("button", "wf-btn tv-btn tvb" + (/(^| )primary( |$)/.test(cls || "") ? " wf-main" : "") + (cls ? " " + cls : ""), label);
         b.type = "button";
         if (tip) b.title = tip;
+        // the main action without a session: disabled, and the reason is its tooltip (always there, not a toast)
+        if (/(^| )primary( |$)/.test(cls || "") && workshopSignedOut()) {
+          b.disabled = true;
+          b.title = workshopApiT('signedOut');
+        }
         var armed = false,
           timer = null;
         b.addEventListener("click", function (ev) {

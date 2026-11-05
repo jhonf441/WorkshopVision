@@ -90,5 +90,13 @@
           setInterval(function () {
             if (state.token ? Date.now() - state.last > 6 * 3600 * 1000 : attempts++ < 15) request();
           }, 20000);
+          // The person signed in or out (or the role changed): ask for the key at once; the 15 s pause and the 15 tries count from this moment
+          if (typeof workshopOnIdentity === "function") {
+            workshopOnIdentity(function () {
+              attempts = 0;
+              state.last = 0;
+              request();
+            });
+          }
         }
       })();

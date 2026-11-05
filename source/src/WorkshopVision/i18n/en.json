@@ -8,7 +8,7 @@
 		"camera": "camera ?",
 		"service_off": "service off",
 		"sign_in_needed": "Sign in",
-		"sign_in_needed_text": "To talk to the Vision service the page needs you to sign in with your name and PIN. The service is not off.",
+		"sign_in_needed_text": "Not signed in: sign in to use the vision. With your name and PIN you can analyze; the service is not off.",
 		"start_over": "Start over",
 		"the_camera_is_not_calibrated_without": "The camera is not calibrated: without calibration there are no measurements. Go to Calibrate.",
 		"no_part_was_found_try_detect": "No part was found. Try Detect and measure > Detection settings, or mark a Zone on the image.",
@@ -852,7 +852,7 @@
 		"guided_quality_good": "It came out very well.",
 		"guided_quality_fair": "It came out acceptable. You can save it.",
 		"guided_quality_bad": "It did not come out well. Take another photo of the sheet, flat and without shadows.",
-		"roles_viewer": "Your user can see the state but not use the vision. Ask an operator to do it.",
+		"roles_viewer": "Your role ({role}) can see the state but not use the vision. Ask an operator to do it.",
 		"advanced_detection": "Advanced: detection parameters"
 	},
 	"startup_vision": {

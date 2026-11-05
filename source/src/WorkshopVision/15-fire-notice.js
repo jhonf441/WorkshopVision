@@ -42,7 +42,7 @@
             bar.id = "workshop-fire-count";
             bar.setAttribute("role", "alert");
             // debajo de la barra roja de riesgo activo (04-warnings.js), relleno de aviso
-            bar.style.cssText = "position:fixed;top:30px;left:50%;transform:translateX(-50%);z-index:2147483646;background:#e65100;color:#fff;font:600 13px Roboto,sans-serif;padding:6px 8px 6px 14px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.5);max-width:calc(100vw - 32px);display:flex;gap:10px;align-items:center;flex-wrap:wrap;";
+            bar.style.cssText = "position:fixed;top:30px;left:50%;transform:translateX(-50%);z-index:2147483646;background:#bf360c;color:#fff;font:600 13px Roboto,sans-serif;padding:6px 8px 6px 14px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.5);max-width:calc(100vw - 32px);display:flex;gap:10px;align-items:center;flex-wrap:wrap;";
             var txt = document.createElement("span");
             bar.appendChild(txt);
             var b = document.createElement("button");

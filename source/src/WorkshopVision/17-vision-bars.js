@@ -33,9 +33,9 @@
         var signedOut = workshopSignedOut();
         var down = tv.state && !tv.state.ok && !signedOut;
         if (down) tv.side.appendChild(tvNoticeService(tv));
-        else if (signedOut && tv.state && !tv.state.ok) tv.side.appendChild(tvMsg("info", i18nT('vision.sign_in_needed_text')));
-        if (tv.lastMsg && !(down && /fetch|NetworkError|Failed/i.test(tv.lastMsg.t))) tv.side.appendChild(tvMsg(tv.lastMsg.ok ? "ok" : "err", tv.lastMsg.t));
-        if (tvView() === "viewer") return tv.side.appendChild(tvMsg("info", i18nT('vision.roles_viewer'))); // a visitor: a clear message, not an error
+        // signed out: the chip of the bar says it and the sentence below offers the sign-in; the side shows no refusal of its own
+        if (tv.lastMsg && !(signedOut && !tv.lastMsg.ok) && !(down && /fetch|NetworkError|Failed/i.test(tv.lastMsg.t))) tv.side.appendChild(tvMsg(tv.lastMsg.ok ? "ok" : "err", tv.lastMsg.t));
+        if (tvView() === "viewer") return tvRenderViewerNote(tv, signedOut); // a visitor: a clear message, not an error
         if (tv.tab === "guided") return tvRenderGuided(tv);
         if (tv.tab === "calibrate") return tvRenderCal(tv);
         if (tv.tab === "settings") return tvRenderSettings(tv);
@@ -47,6 +47,14 @@
         tvRenderPhoto(tv);
         tvRenderResults(tv);
         if (tvIsTech()) tvRenderParams(tv); // the 17 detection parameters are the technician's, under "Advanced"
+      }
+
+      // The look-only view says why: no session (with the sign-in button) or a role that is too low (with the role, no button).
+      function tvRenderViewerNote(tv, signedOut) {
+        var role = typeof workshopRole === "function" ? workshopRole() : "";
+        var note = tvViewerNote(signedOut, workshopApiT("role_" + (role || "viewer")), i18nT);
+        tv.side.appendChild(tvMsg("info", note.text));
+        if (note.signIn && typeof workshopLogin === "function") tv.side.appendChild(tvBtn(workshopApiT("signInAction"), "", function () { workshopLogin(); }));
       }
 
       // Without the Vision service (2026-10-10, test "what if a

@@ -88,6 +88,20 @@
       }
 
       // tipo (optional, only the modal view uses it): "primario" = filled blue, "suave" = quiet outline, "texto" = link-like
+      // the buttons that create or change a file or open the guide that does: they need a session (the card itself can be read without one)
+      function workshopStartupLocked(text) {
+        if (typeof workshopSignedOut !== "function" || !workshopSignedOut()) return false;
+        var keys = ["assist", "assist_all", "edit", "create_help", "make", "preview", "save", "apply_save"];
+        for (var i = 0; i < keys.length; i++) if (text === i18nT("startup." + keys[i])) return true;
+        return false;
+      }
+
+      // the sentence that says why those buttons are off (null when the session is there)
+      function workshopStartupLockedNote() {
+        if (typeof workshopSignedOut !== "function" || !workshopSignedOut()) return null;
+        return workshopStartupEl("div", "font-size:12px;color:#ffcc80;border-left:3px solid #ff8f00;padding:4px 8px;background:rgba(255,143,0,0.10);border-radius:4px;", i18nT("startup.locked"));
+      }
+
       function workshopStartupButton(text, help, onClick, kind) {
         var b = document.createElement("button");
         b.type = "button";
@@ -103,8 +117,15 @@
           ev.stopPropagation();
           ev.preventDefault();
         });
+        if (workshopStartupLocked(text)) {
+          b.disabled = true;
+          b.title = i18nT("startup.locked");
+          b.style.opacity = "0.45";
+          b.style.cursor = "not-allowed";
+        }
         b.addEventListener("click", function (ev) {
           ev.stopPropagation();
+          if (b.disabled) return;
           onClick();
         });
         return b;
@@ -154,7 +175,7 @@
         var abierto = null; // null = open while something is pending
         var abiertas = {}; // rows whose explanation is shown
         var asis = null; // the assistant: null = closed, else {est, vista, resp, errores, prev, plan, existente, msgs, escribiendo, fallo}
-        var last = { list: null, rows: [] };
+        var last = { list: null, rows: [], refusal: "" };
         var el = document.createElement("div");
         el.setAttribute("data-workshop-startup", plugin);
         el.style.cssText = M
@@ -193,7 +214,8 @@
               state: last.list === null ? "missing" : "configured",
               label: "startup.service",
               help: "startup.service_tip",
-              texts: { missing: "startup.service_not_running" },
+              // signed out the service cannot be asked (it answers "sign in"), so it is not said to be off: the row says what is really missing, the session
+              texts: { missing: workshopStartupServiceKey(last.refusal, typeof workshopSignedOut === "function" && workshopSignedOut()) },
             });
           }
           defs = defs.concat(last.defs || []);
@@ -219,7 +241,7 @@
           var opens = abierto === null ? !res.ready : abierto;
 
           if (M) {
-            workshopStartupReport(plugin, res, last.list !== null, opts.onChange);
+            workshopStartupReport(plugin, res, last.list !== null && (typeof opts.canReport !== "function" || !!opts.canReport()), opts.onChange);
             if (asis) pintarAsistente(rows);
             else paintModal(rows, visibles, res, nOcultas);
             return;
@@ -232,7 +254,7 @@
           point.style.cssText = "flex:none;width:8px;height:8px;border-radius:50%;background:" + (res.ready ? WORKSHOP_STARTUP_POINT.configured : WORKSHOP_STARTUP_POINT.example) + ";";
           var tit = document.createElement("span");
           tit.style.cssText = "flex:1 1 auto;min-width:0;font-weight:500;";
-          tit.textContent = i18nT("startup.title") + " - " + (res.ready ? i18nT("startup.summary_ready") : i18nT("startup.summary_pending", { n: res.pending }));
+          tit.textContent = i18nT("startup.title") + " - " + (res.ready ? i18nT("startup.summary_ready") : i18nT("startup.summary_pending", { n: res.pending, total: res.total }));
           var fl = document.createElement("span");
           fl.style.cssText = "flex:none;opacity:.7;";
           fl.textContent = opens ? "▴" : "▾";
@@ -248,8 +270,10 @@
             paint();
           });
           el.appendChild(cab);
-          workshopStartupReport(plugin, res, last.list !== null, opts.onChange);
+          workshopStartupReport(plugin, res, last.list !== null && (typeof opts.canReport !== "function" || !!opts.canReport()), opts.onChange);
           if (!opens) return;
+          var lockedNote = workshopStartupLockedNote();
+          if (lockedNote) el.appendChild(lockedNote);
 
           if (asis) {
             pintarAsistente(rows);
@@ -361,12 +385,14 @@
 
         function paintModal(rows, visibles, res, nOcultas) {
           var steps = workshopStartupSteps(rows);
+          var lockedNoteM = workshopStartupLockedNote();
+          if (lockedNoteM) el.appendChild(lockedNoteM);
           // progress: how many of the shown rows are ready
           var lists = res.total - res.pending;
           var prog = workshopStartupEl("div", "display:flex;flex-direction:column;gap:8px;");
           var line = workshopStartupEl("div", "display:flex;align-items:baseline;justify-content:space-between;gap:8px;");
           line.appendChild(workshopStartupEl("span", "font-weight:600;font-size:15px;", res.ready ? i18nT("startup.modal_all_ready") : i18nT("startup.modal_progress", { a: lists, b: res.total })));
-          line.appendChild(workshopStartupEl("span", "font-size:12px;color:" + (res.ready ? "#a5d6a7" : "#ffb74d") + ";", res.ready ? i18nT("startup.summary_ready") : i18nT("startup.summary_pending", { n: res.pending })));
+          line.appendChild(workshopStartupEl("span", "font-size:12px;color:" + (res.ready ? "#a5d6a7" : "#ffb74d") + ";", res.ready ? i18nT("startup.summary_ready") : i18nT("startup.summary_pending", { n: res.pending, total: res.total })));
           prog.appendChild(line);
           var pista = workshopStartupEl("div", "height:8px;border-radius:4px;background:rgba(255,255,255,0.10);overflow:hidden;");
           var pct = res.total ? Math.round((lists / res.total) * 100) : 100;
@@ -839,9 +865,12 @@
             .then(function () {
               return workshopApi("examples.list", { plugin: plugin }).then(
                 function (r) {
+                  last.refusal = "";
                   return r && Array.isArray(r.files) ? r.files : null;
                 },
-                function () {
+                function (e) {
+                  // a refusal (no session, role too low) is not the service being down: keep what it said so the row can say why
+                  last.refusal = e && (e.code === "forbidden" || e.code === "login_required") ? e.code : "";
                   return null;
                 }
               );
@@ -855,6 +884,8 @@
               paint();
             });
         }
+
+        workshopStartupFollowSession(el, refrescar);
 
         return {
           el: el,

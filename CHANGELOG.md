@@ -1,5 +1,29 @@
 # WorkshopVision -- historial de versiones
 
+## 2.7.18 -- 2026-11-04
+
+- Rebuilt with the readable text colours, the shared start-up card and the session notice
+
+## 2.7.17 -- 2026-11-04
+
+- Start-up card: the chip says 'n of total to do' like the service, and the report waits for the backend's first answer (the total no longer jumps between 3 and 6)
+
+## 2.7.16 -- 2026-11-04
+
+- Rebuilt with the AWS-style session notice (no fixed card)
+
+## 2.7.15 -- 2026-11-04
+
+- Signed out: no raw refusals, main actions disabled with the reason
+
+## 2.7.14 -- 2026-11-04
+
+- Session notice: latest shared copy
+
+## 2.7.13 -- 2026-11-04
+
+- Refusal banners marked by class too
+
 ## 2.7.12 -- 2026-11-03
 
 - Sesion: tarjeta de aviso estandar tipo consola

@@ -93,6 +93,14 @@
 
       // ---- what touches the page ----
 
+      // The sentence of a "look only" view and whether signing in would change it: no session -> sign in (the button is offered); a role that is too
+      // low -> the role text and no button, since signing in again cannot help. roleLabel: the name of the role ("Visitor"); t = i18nT.
+      function tvViewerNote(signedOut, roleLabel, t) {
+        return signedOut
+          ? { text: t("vision.sign_in_needed_text"), signIn: true }
+          : { text: t("vision.roles_viewer", { role: roleLabel || "" }), signIn: false };
+      }
+
       function tvView() {
         return tvViewOf(typeof workshopIdentity === "function" ? workshopIdentity() : null);
       }

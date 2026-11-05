@@ -46,6 +46,12 @@
         return !!(id && id.configured && (!workshopAuthToken() || id.login_required));
       }
 
+      // Why the person cannot call an operation: "" (they can), "signed_out" (signing in may fix it) or "role" (only another role does).
+      function workshopAccessReason(op, ctx) {
+        if (workshopCan(op, ctx)) return "";
+        return workshopSignedOut() ? "signed_out" : "role";
+      }
+
       // The person touched the page a moment ago: what fails now is probably their action (so it is worth telling them).
       function workshopAuthRecentGesture() {
         return Date.now() - (workshopAuthState().gestureAt || 0) < WORKSHOP_AUTH_GESTURE_MS;
@@ -175,10 +181,12 @@
       function workshopCan(op, ctx) {
         ctx = ctx || {};
         var id = workshopAuthState().identity;
-        if (!id || !id.table || !id.role) return true;
+        if (!id || !id.table) return true;
+        // users exist and nobody is signed in (role null): a VISITOR, who can only look and stop; it used to say yes to everything
+        if (!id.role && !id.configured) return true;
         var t = id.table;
         if ((t.stop || []).indexOf(op) >= 0) return true;
-        var role = id.role;
+        var role = id.role || "viewer";
         var need = (t.ops || {})[op] || "admin";
         var esc = (t.escalate || {})[op]; // some operations need more when their arguments change settings
         if (esc) {

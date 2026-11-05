@@ -56,9 +56,10 @@
         "use-role.js"
       ],
       "only36": [
+        "HelpTip.vue",
         "zoom-plugin.js"
       ],
-      "reason": "dwc-host.js is the DWC 3.7 adapter (the 3.6 pieces import DWC internals directly); use-role.js and expand-transition.js are Vue 3 composables and transitions, 3.6 uses role-mixin.js; FileEditDialog.vue is used only by the stopped WorkshopConfig; zoom-plugin.js exists only on the 3.6 line: the zoom plugin of the charts is taken by the charts of the plugins only, not registered for every chart (commit 6a75f049)"
+      "reason": "dwc-host.js is the DWC 3.7 adapter (the 3.6 pieces import DWC internals directly); use-role.js and expand-transition.js are Vue 3 composables and transitions, 3.6 uses role-mixin.js; FileEditDialog.vue is used only by the stopped WorkshopConfig; zoom-plugin.js exists only on the 3.6 line: the zoom plugin of the charts is taken by the charts of the plugins only, not registered for every chart (commit 6a75f049); HelpTip.vue is the Vue 2 help button of the 3.6 line (DESIGN.md 7b), the 3.7 line is paused"
     }
   },
   "WorkshopMachine": {

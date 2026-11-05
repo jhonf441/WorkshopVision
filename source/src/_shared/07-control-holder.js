@@ -77,7 +77,7 @@
         var b = document.createElement("button");
         b.type = "button";
         b.textContent = i18nT("control.take");
-        b.style.cssText = "flex:none;border:0;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;background:#e65100;color:#fff;";
+        b.style.cssText = "flex:none;border:0;border-radius:6px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;background:#bf360c;color:#fff;";
         var armedUntil = 0;
         b.addEventListener("click", function (ev) {
           ev.stopPropagation();

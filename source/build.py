@@ -163,6 +163,10 @@ IIFE_TAIL = """
 # is).
 # When testing the fast one is used; before uploading to the repo (tools/export_public.py requires it) the version is redone
 # with --completa.
+# DWC 3.7 is PAUSED (owner's decision, 2026-11-03/04; vue/WorkshopModel/DWC37-PAUSED.md, docs/DWC-LINES.md): nobody builds, tests or releases that line
+# unless the owner asks for it and the run says so with --paused-37. Every release/check path below uses ACTIVE_LINES, not release_zips.LINES.
+PAUSED_LINES = ("3.7",)
+ACTIVE_LINES = [l for l in release_zips.LINES if l not in PAUSED_LINES]
 MODO = {"completa": os.environ.get("TALLER_BUILD_COMPLETO") == "1"}
 RAPIDA_CFG = os.path.join(ROOT, "tools", "vue.config.fast.js")
 
@@ -547,7 +551,7 @@ def build_release(plugin_id, reuse=False):
     reuse: no compiling, finalize the zips already in dist/3.6 and dist/3.7 again."""
     os.makedirs(RELEASE, exist_ok=True)
     out = []
-    for line in release_zips.LINES:
+    for line in ACTIVE_LINES:
         if reuse:
             zp, version = os.path.join(DIST, line, f"{plugin_id}.zip"), load_manifest(plugin_id).get("version", "0.0.0")
             if not os.path.isfile(zp):
@@ -601,7 +605,7 @@ def cmd_github_release(ids, publish):
     sums = os.path.join(RELEASE, "SHA256SUMS.txt")
     for pid in ids:
         version = load_manifest(pid).get("version", "0.0.0")
-        zips = [os.path.join(RELEASE, release_zips.release_name(pid, version, line)) for line in release_zips.LINES]
+        zips = [os.path.join(RELEASE, release_zips.release_name(pid, version, line)) for line in ACTIVE_LINES]
         missing = [z for z in zips if not os.path.isfile(z)]
         if missing:
             sys.exit(f"{pid}: missing {', '.join(os.path.basename(z) for z in missing)} (python build.py --dwc both {pid} --completa)")
@@ -644,7 +648,7 @@ def cmd_check_release(ids):
 
     for pid in ids:
         version = load_manifest(pid).get("version", "0.0.0")
-        for line in release_zips.LINES:
+        for line in ACTIVE_LINES:
             path = os.path.join(RELEASE, release_zips.release_name(pid, version, line))
             if not os.path.isfile(path):
                 print(f"{os.path.basename(path):<52} {'-':>7} {'-':>7}  MISSING")
@@ -1469,10 +1473,16 @@ def main():
     ap.add_argument("--github-release", action="store_true", help="one GitHub Release per plugin version on jhonf441/<Id> with both strict zips + SHA256SUMS.txt; dry run by default (notes in dist/github-release/)")
     ap.add_argument("--publish", action="store_true", help="with --github-release: really create the releases (needs zips built with --completa and a clean --check-release)")
     ap.add_argument("--lines", action="store_true", help="tabla por plugin: tipo, lineas 3.6/3.7 presentes, version, sincronia de lo compartido y estado del zip universal (sin red)")
+    ap.add_argument("--paused-37", action="store_true", help="ONLY when the owner asked for the paused DWC 3.7 line: lets --dwc 3.7 / universal build it and makes --dwc both / --release / --check-release include it")
     ap.add_argument("--force-sd", action="store_true", help="instalar aunque pise macros editadas en la SD")
     ap.add_argument("--pull-sd", metavar="ID", help="traer al repo las macros sd/ tal como estan en la SD")
     a = ap.parse_args()
 
+    global ACTIVE_LINES
+    if a.paused_37:
+        ACTIVE_LINES = list(release_zips.LINES)
+    elif a.dwc in ("3.7", "universal"):
+        ap.error("DWC 3.7 is PAUSED (vue/WorkshopModel/DWC37-PAUSED.md): it is not built or worked on. If the owner asked for it, add --paused-37")
     if a.release:
         a.dwc = "both"
     if a.check_release:
@@ -1513,6 +1523,8 @@ def main():
             release_zips.finalize_zip(z37, z37, "3.7")
         return
     if a.dwc == "both":
+        if not a.paused_37:
+            print("(DWC 3.7 is paused: only the dwc3.6 release zip is built)")
         for pid in ids:
             print(f"{pid}: release zips")
             build_release(pid, a.reuse)

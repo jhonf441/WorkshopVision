@@ -108,7 +108,8 @@
         // the camera is added and tested in the Camera plugin: without it (not installed or off) the row says the same without naming it.
         // The keys are read when the card is drawn, so a plugin that starts or stops later changes them.
         tvRowVariants(rows[2], "camera", { help: "startup_vision.camera_tip", ifMissing: "startup_vision.camera_missing" });
-        var card = workshopStartupInput({ plugin: "WorkshopVision", rows: rows }); // the chip of the header (same as the other pages); the card is in the dialog
+        var card = workshopStartupInput({ plugin: "WorkshopVision", rows: rows, canReport: function () { return !!getState(); } }); // the chip of the header (same as the other pages); the card is in the dialog
+        // canReport: the report to the service waits for the first answer of the backend; before it the camera and the calibration are grey and the total would be 3, not 6
         var refrescar = card.refresh;
         card.refresh = function () {
           read = null; // read the two files again

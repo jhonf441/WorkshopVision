@@ -82,7 +82,8 @@
             return tvLoadView(tv);
           })
           .catch(function (e) {
-            tv.lastMsg = { t: i18nT('vision.could_not_analyze_v', { v: String(e.message) }), ok: false };
+            // no session: that is a state (the card says it), not a failure to report
+            tv.lastMsg = workshopSignedOut() ? null : { t: i18nT('vision.could_not_analyze_v', { v: String(e.message) }), ok: false };
           })
           .then(function () {
             tv.busy = false;

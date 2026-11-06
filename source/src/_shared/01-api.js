@@ -164,7 +164,8 @@
         function fail(err) {
           if (byPerson && !opts.quiet) {
             // a missing session is told from the notice catalog (title + sentence by state), whatever language the service wrote; other refusals keep the service text
-            if (err.code === "login_required" && typeof workshopRefusalToast === "function") workshopRefusalToast("session");
+            if (err.code === "login_required" && typeof workshopRefusalAttention === "function") workshopRefusalAttention("session", op);
+            else if (err.code === "forbidden" && typeof workshopRefusalAttention === "function") workshopRefusalAttention("role", op, err.message);
             else if (typeof workshopToast === "function") workshopToast(err.message);
           }
           return err;

@@ -51,6 +51,39 @@
         }).filter(function (g) { return g.items.length; });
       }
 
+      // The role each section needs: the operator sections, the technician for every other one.
+      function tvSectionNeed(id) {
+        return TV_OPERATOR_SECTIONS.indexOf(id) >= 0 ? "operator" : "technician";
+      }
+
+      // The role that opens the section `id` for this view, or "" when the view may open it (a viewer and a visitor are rank 0, "full" is everything).
+      function tvSectionLock(view, id) {
+        if (view === "full") return "";
+        var rank = view === "viewer" ? 0 : view === "operator" ? 1 : 2;
+        var need = tvSectionNeed(id);
+        return TV_RANK[need] > rank ? need : "";
+      }
+
+      // ALL the sections for the bar (AWS rule: what you cannot open stays in its place, locked, with the role that opens it): every item gets a 5th
+      // element, the role it needs when this view cannot open it, "" otherwise. Opening a locked one shows the cover (17-vision-bars.js).
+      function tvNavSectionsFor(view, all) {
+        var guided = ["guided", i18nT("vision.guided_calibration"), "target", i18nT("vision.guided_calibration_tip")];
+        return all.map(function (g) {
+          var items = g.items.slice();
+          if (items.some(function (it) { return it[0] === "calibrate"; })) {
+            var at = items.findIndex(function (it) { return it[0] === "calibrate"; });
+            items.splice(at < 0 ? 0 : at, 0, guided);
+          }
+          return { group: g.group, items: items.map(function (it) { return it.slice(0, 4).concat([tvSectionLock(view, it[0])]); }) };
+        });
+      }
+
+      function tvNavIds(all) {
+        var ids = [];
+        tvNavSectionsFor("full", all).forEach(function (g) { g.items.forEach(function (it) { ids.push(it[0]); }); });
+        return ids;
+      }
+
       function tvSectionIdsFor(view, all) {
         var ids = [];
         tvSectionsFor(view, all).forEach(function (g) { g.items.forEach(function (it) { ids.push(it[0]); }); });
@@ -137,6 +170,7 @@
 
       // Keeps tv.tab inside what the view shows (a saved "calibrate" for an operator, a role that changed).
       function tvEnsureTab(tv) {
+        if (tvNavIds(TV_SECTIONS).indexOf(tv.tab) >= 0) return false; // a locked section stays open: its cover says why
         var ids = tvSectionIdsFor(tvView(), TV_SECTIONS);
         if (ids.indexOf(tv.tab) >= 0) return false;
         tv.tab = ids.indexOf("detect") >= 0 ? "detect" : ids[0];

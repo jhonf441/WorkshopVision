@@ -35,7 +35,7 @@
 
       // Message of a generated G-code file (abort / M291 / M118 / echo) in both
       // languages: the board picks it when the file runs, like the workshop macros
-      // (global.workshopLanguage == "en", sys/workshop/macros/language.g; otherwise
+      // (global.workshopLanguage == "en", sys/workshop/macros/system/language.g; otherwise
       // Spanish). Returns the RRF expression {...} that goes after abort, P or S.
       function workshopGcodeText(es, en) {
         var q = function (s) { return '"' + String(s).replace(/"/g, "''") + '"'; };
@@ -82,7 +82,7 @@
         { re: workshopReMacro(["step-ceiling"]), title: i18nT('core.motor_pulse_test'), text: i18nT('core.the_axis_moves_back_and_forth') },
         { re: workshopReMacro(["axis-test"]), title: i18nT('core.axis_test'), text: i18nT('core.the_axis_moves_by_itself_to') },
         { re: /^\s*M906\s+I100\b/i, title: i18nT('core.motor_at_full_current'), text: i18nT('core.the_motor_stays_at_full_current') },
-        { re: /\/macros\/laser\/(?!air)[^"]+\.g/i, title: i18nT('core.measure_and_focus'), text: i18nT('core.the_probe_goes_down_until') },
+        { re: /(?:^|[^p])\/macros\/laser\/(?!air)[^"]+\.g/i, title: i18nT('core.measure_and_focus'), text: i18nT('core.the_probe_goes_down_until') },
         { re: /^\s*M999\b/i, title: i18nT('core.restart_the_board'), text: i18nT('core.the_duet_restarts_whatever_it_is') },
       ];
 
@@ -267,7 +267,7 @@
         if (/^\s*M112\b/im.test(c)) return null;
         if (/^\s*M32(?![0-9])/im.test(c)) return "job";
         if (WORKSHOP_GEOMETRY.test(c) || WORKSHOP_GEOMETRY_MACRO.test(c)) return "geometry";
-        if (WORKSHOP_MOVES.test(c) || WORKSHOP_MOVES_MACRO.test(c) || /\/macros\/laser\/(?!air)[^"]+\.g/i.test(c)) return "move";
+        if (WORKSHOP_MOVES.test(c) || WORKSHOP_MOVES_MACRO.test(c) || /(?:^|[^p])\/macros\/laser\/(?!air)[^"]+\.g/i.test(c)) return "move";
         return null;
       }
       // null = it may be sent; Error = denied or cancelled

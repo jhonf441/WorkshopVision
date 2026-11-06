@@ -2,7 +2,7 @@
   "id": "WorkshopVision",
   "name": "Vision",
   "author": "jhonf441",
-  "version": "2.7.23",
+  "version": "2.7.29",
   "license": "GPL-3.0-or-later",
   "homepage": "https://github.com/jhonf441/WorkshopVision",
   "tags": [
@@ -27,8 +27,8 @@
     "fileSystemAccess"
   ],
   "sbcPythonDependencies": [
-    "opencv-python-headless>=4.10",
-    "numpy>=1.26",
+    "opencv-python-headless==5.0.0.93",
+    "numpy==2.5.4",
     "dsf-python==3.6.0"
   ],
   "sbcPluginDependencies": [
@@ -36,7 +36,7 @@
   ],
   "data": {},
   "sdFiles": [
-    "sys/workshop/macros/visionpose.g"
+    "sys/workshop/macros/probe/visionpose.g"
   ],
   "dsfFiles": [
     "calibration_extra.py",
@@ -57,7 +57,7 @@
     "vision_access.py"
   ],
   "dwcFiles": [
-    "js/WorkshopVision.475c6a0c.js",
-    "js/WorkshopVision.475c6a0c.js.gz"
+    "js/WorkshopVision.fcd2e2c5.js",
+    "js/WorkshopVision.fcd2e2c5.js.gz"
   ]
 }

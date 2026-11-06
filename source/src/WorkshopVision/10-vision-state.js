@@ -14,7 +14,7 @@
       function tvStartState(tv, iv) {
         tv.alive = true;
         tv.prefs = tvLoadPrefs();
-        tv.tab = tvSectionIdsFor(tvView(), TV_SECTIONS).indexOf(tv.prefs.section) >= 0 ? tv.prefs.section : "detect";
+        tv.tab = tvNavIds(TV_SECTIONS).indexOf(tv.prefs.section) >= 0 ? tv.prefs.section : "detect";
         tvEnsureTab(tv); // a saved section the role does not have (09-vision-roles.js)
         tv.res = null; // ultimo /detectar
         tv.resHour = ""; // time of the last analyzed image (without Live it is a photo)
@@ -213,7 +213,7 @@
         // Move tool: arrows = one step (laser off), More area / More
         // detail = raises / lowers the bridge, tapping the image = choose a point and
         // Center there (double tap, level 2), Back = to where it was. All through
-        // sys/workshop/macros/visionpose.g (Z goes up first, S0, never below Z40).
+        // sys/workshop/macros/probe/visionpose.g (Z goes up first, S0, never below Z40).
         tv.TV_STEPS = [1, 10, 50];
         tv.TV_ZMIN = 40;
         tv.movTarget = null, // { px: [u, v] de la camara, mm: [x, y] }
@@ -286,7 +286,7 @@
         // ---- measurement photo: the camera goes on the BRIDGE ----
         // Raising Z enlarges what it sees (fewer px/mm); Y centers it. The service
         // computes the lowest Z that frames what was asked (/plan); here it moves
-        // with sys/workshop/macros/visionpose.g (double tap) and the photo is taken (/foto).
+        // with sys/workshop/macros/probe/visionpose.g (double tap) and the photo is taken (/foto).
         tv.TV_COVER = [
           ["zone", i18nT('vision.active_zone')],
           ["area", i18nT('vision.cutting_area_active_mode')],

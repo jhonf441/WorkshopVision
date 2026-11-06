@@ -59,7 +59,7 @@
         // the single move "Go to Z", which already went through the double tap (confirmado)
         var ml = workshopMachineFree(undefined, { purpose: "move", allowBusy: true });
         if (!ml.free && !(ml.confirm && confirmed)) return Promise.reject(new Error(ml.reason));
-        var code = 'M98 P"0:/sys/workshop/macros/visionpose.g"' + (x !== null && x !== undefined ? " X" + Number(x).toFixed(2) : "") + (y !== null && y !== undefined ? " Y" + Number(y).toFixed(2) : "") + (z !== null && z !== undefined ? " Z" + Number(z).toFixed(2) : "");
+        var code = 'M98 P"0:/sys/workshop/macros/probe/visionpose.g"' + (x !== null && x !== undefined ? " X" + Number(x).toFixed(2) : "") + (y !== null && y !== undefined ? " Y" + Number(y).toFixed(2) : "") + (z !== null && z !== undefined ? " Z" + Number(z).toFixed(2) : "");
         return postCode(code)
           .then(function (r) { return r.text(); })
           .then(function (t) {

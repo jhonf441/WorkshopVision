@@ -5,7 +5,10 @@ WorkshopService) would not reach it. The page now sends the same headers as for 
 module asks the service who that is (`auth.resolve`, the local API on 127.0.0.1, with the local key) before a POST is served.
 
 Rules (the same ones the service applies to `vision.post`, plus the two answers of the fire watch):
-  - machine WITHOUT users (the service says `configured: false` or `compat`): nothing changes, as before;
+  - machine WITHOUT users (the service says `configured: false` or `compat`): a request from the Pi itself (loopback) is not limited; from
+    the network every POST answers 403 `first_admin_required` (the stop of /crosses/cancel excepted) until the first administrator exists, and the
+    GET reads stay as before (the camera key). The exception is a machine whose owner switched the roles off on purpose (the service sends
+    `network_open: true`): there nothing changes;
   - /photo, /detect, /record/search: operator; /fire/cancel, /fire/confirm: operator; /crosses/cancel: any caller (stopping is never blocked);
   - everything else (/crosses/begin moves the machine and fires the laser, /calibrate*, /lens*, /plan, /mosaic...): technician;
     a path that is not in the table is the technician's too (a new path is closed until somebody classifies it);
@@ -88,8 +91,8 @@ def is_internal(client_ip, headers):
     return not (headers.get("Origin") or headers.get("X-Workshop-Token"))
 
 
-def decide(answer, need):
-    """(allowed, http_status, code) from the answer of auth.resolve and the role the call needs.
+def decide(answer, need, local=True):
+    """(allowed, http_status, code) from the answer of auth.resolve and the role the call needs. `local`: the request comes from the Pi itself.
 
     answer: the `result` of auth.resolve, or {"error": "<code>"} when the service did not give one, or None when it could not be reached.
     code: "" | "login_required" | "forbidden" | "service_unreachable"."""
@@ -102,7 +105,9 @@ def decide(answer, need):
     if answer.get("error"):
         return False, 503, "service_unreachable"
     if answer.get("configured") is False or answer.get("compat"):
-        return True, 200, ""  # nobody has been created yet: everybody is admin
+        if local or answer.get("network_open"):
+            return True, 200, ""  # the Pi itself, or the owner switched the roles off on purpose
+        return False, 403, "first_admin_required"  # nobody has been created yet: the network can only look
     role = answer.get("role")
     if role not in RANKS:
         return False, 401, "login_required"
@@ -168,7 +173,7 @@ def authorize(headers, client_ip, method, path, http=None, now=None):
     if need is None or is_internal(client_ip, headers):
         return True, 200, ""
     answer = ask(headers.get("X-Workshop-Token") or "", headers.get("X-Workshop-Device") or "", now=now, http=http)
-    return decide(answer, need)
+    return decide(answer, need, local=net_guard.is_loopback(client_ip))
 
 
 def authorize_get(headers, client_ip, path, day_key_valid, http=None, now=None):

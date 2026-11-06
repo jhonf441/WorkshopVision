@@ -130,7 +130,7 @@
           var ax = tvAxes(st);
           if (tvBusy(st)) throw new Error(i18nT('vision.a_job_is_running'));
           if (!ax.X || !ax.Y || !ax.X.homed || !ax.Y.homed) throw new Error(i18nT('vision.home_x_and_y_first'));
-          return postCode('M98 P"0:/sys/workshop/macros/gotobed.g" X' + x.toFixed(2) + " Y" + y.toFixed(2))
+          return postCode('M98 P"0:/sys/workshop/macros/work/gotobed.g" X' + x.toFixed(2) + " Y" + y.toFixed(2))
             .then(function (r) { return r.text(); })
             .then(function (t) {
               if (/error|abort/i.test(t || "")) throw new Error(t.trim());

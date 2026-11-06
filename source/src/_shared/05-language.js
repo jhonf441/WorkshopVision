@@ -2,7 +2,7 @@
       //
       // The pages translate their own texts with i18nT (official DWC localization). What is left here is telling the
       // Duet which language DWC uses, because the workshop macros print their messages in it (global.workshopLanguage,
-      // see sys/workshop/macros/language.g of WorkshopJog). It is sent only if the global does not match, once per
+      // see sys/workshop/macros/system/language.g of WorkshopJog). It is sent only if the global does not match, once per
       // language and page load. Every plugin brings its copy of this file; the state is shared in window.__workshopLanguage.
 
       // DWC's language: the app's vue-i18n locale (it changes live with the language selector); without that, "es".
@@ -36,7 +36,7 @@
         S.sent = l;
         var g = j.global && j.global.workshopLanguage;
         if (g === l) return;
-        fetch("/machine/code", { method: "POST", body: 'M98 P"0:/sys/workshop/macros/language.g" L"' + l + '"' }).catch(function () {
+        fetch("/machine/code", { method: "POST", body: 'M98 P"0:/sys/workshop/macros/system/language.g" L"' + l + '"' }).catch(function () {
           /* without DSF or without WorkshopJog: the macros keep their language */
         });
       }

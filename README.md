@@ -1,5 +1,11 @@
 # WorkshopVision (Vision)
 
+<!-- notice:start -->
+> **Read before installing.** This plugin runs with real permissions on your machine. Read [SECURITY.md](SECURITY.md) and the section **Permissions and what it changes** below: they say what it can do, which files it writes, and what it sends outside your network (nothing, unless you turn a feature on).
+
+> **The Workshop users and roles do not protect DWC itself.** Anyone who can open DWC on your network can send G-code, move the machine, edit `config.g` and upload files, whatever the Workshop roles say: Duet has no roles of its own. Set a DWC password (`M551`) and keep the machine on a network you trust.
+<!-- notice:end -->
+
 
 
 Page `/Plugins/Vision` ("Vision (camera)"). Measures with the bridge camera: finds parts, holes and circles, shows dimensions over the video, keeps a library of known parts, compares the bed before and after cutting, aligns a design with 2 marks and cuts on top of them, calibrates the camera (pixels to millimetres), and watches for fire and smoke during laser jobs. It has its own backend (`vision.py`, OpenCV, port 8095) and depends on the System service.
@@ -8,7 +14,7 @@ Version documented: 2.7.x on DWC 3.6.3.
 
 ## 1. Requirements
 
-1. WorkshopService running. 2. OpenCV on the Pi (shown in the page header chip "OpenCV 5.0.0"; the pre-install check warns if missing). 3. A camera calibrated for the bed (chip "calibrada + altura"). 4. Port 8095 free. 5. Camera relay running (shared with Camera and Workbench).
+1. WorkshopService running. 2. OpenCV on the Pi (shown in the page header chip "OpenCV 5.0.0"; the pre-install check warns if missing). DSF downloads `opencv-python-headless==5.0.0.93`, `numpy==2.5.4` and `dsf-python==3.6.0` from PyPI (pypi.org) into the plugin's own venv when you install it: the Pi needs Internet for that step only (a few minutes) and nothing is downloaded while the plugin runs. To install offline, stage the wheels of those three packages in a local pip cache first. 3. A camera calibrated for the bed (chip "calibrada + altura"). 4. Port 8095 free. 5. Camera relay running (shared with Camera and Workbench).
 
 ## 2. Install
 
@@ -217,7 +223,7 @@ Picture 10: sensitivity, the last detection and the photo exposure (red rectangl
 
 ## 5. Roles
 
-The backend (port 8095) asks the service who is calling (`vision_access.py`): GET reads need operator or a viewer with "camera for viewers"; a picture without headers may use the day key; POSTs need operator or technician; saving calibration and settings: technician. Without users: open on the network. A fire-watch action "pause" or "emergency stop" acts on the machine.
+The backend (port 8095) asks the service who is calling (`vision_access.py`): GET reads need operator or a viewer with "camera for viewers"; a picture without headers may use the day key; POSTs need operator or technician; saving calibration and settings: technician. Without users: the Pi itself is not limited, the network can only read (every POST answers `first_admin_required`) until the first administrator exists, unless the roles were switched off on purpose. A fire-watch action "pause" or "emergency stop" acts on the machine.
 
 ## 6. API operations used
 
@@ -239,12 +245,12 @@ Risk: **High (own Python process; fire watch can pause a job or send an emergenc
 
 **DSF permissions** (DSF shows them and you approve them when you install; the zip asks for nothing else):
 
-| Permission | What it lets the plugin do |
-|---|---|
-| `commandExecution` | send G-code to the board |
-| `objectModelRead` | read the state of the machine |
-| `networkAccess` | open network connections (notices, the meter, the camera, the service API) |
-| `fileSystemAccess` | read and write files outside the DSF folders (keys, camera files) |
+| Permission | What it lets the plugin do | Where the code uses it |
+|---|---|---|
+| `commandExecution` | send G-code to the board | `dsf/dsf_io.py` (`CommandConnection`): the G-code of a fire-watch action (pause `M25`, `M112`) and of the calibration photos |
+| `objectModelRead` | read the state of the machine | `dsf/dsf_io.py` (one `SubscribeConnection` in patch mode with a filter list): job, mode, laser |
+| `networkAccess` | open network connections (notices, the meter, the camera, the service API) | listens on port 8095 (`WORKSHOP_VISION_BIND`, default all interfaces: `dsf/vision.py` `BIND` / `PORT`); connects to the camera relay `127.0.0.1:8090` and `127.0.0.1:8090/key` (`dsf/vision.py`), to DSF and the service on `127.0.0.1` for roles (`dsf/vision.py`, `dsf/dsf_io.py`), and to the cameras you configure on your LAN (`dsf/vision.py`, `dsf/direct_camera.py`). No Internet host |
+| `fileSystemAccess` | read and write files outside the DSF folders (keys, camera files) | reads and writes `0:/sys/workshop/config/vision.json`, `data/vision-bed.json`, `data/vision-fire-log.jsonl` and `data/vision-fire/` (fire-watch photos), reads `config/laser.json` (`dsf/vision.py`, `dsf/fire_watch.py`, `dsf/laser_calibration.py`) and reads `/opt/dsf/conf/workshop-api-token` (`dsf/dsf_io.py`). Not measured with the permission probe (only the service was): unverified whether a narrower DSF permission would cover them |
 
 **Depends on:** `WorkshopService` (install it first, uninstall it last).
 
@@ -254,11 +260,11 @@ Risk: **High (own Python process; fire watch can pause a job or send an emergenc
 - its settings, bed photos and calibration under `0:/sys/workshop/`
 
 **What it needs outside the zip** (each one is a separate step you do on purpose and can undo):
-- Python packages in its own venv: `opencv-python-headless`, `numpy`, `dsf-python`
+- **Downloads from the Internet when you install it:** DSF fetches `opencv-python-headless`, `numpy` and `dsf-python` from PyPI (pypi.org) into the private venv `/opt/dsf/plugins/WorkshopVision/venv`, with the exact versions pinned in `plugin.json`. This happens only at install time and takes a few minutes; nothing is downloaded while the plugin runs. To install without Internet on the Pi, put the wheels of those three packages in a local pip cache or index first
 - port 8095 (all interfaces by default; `WORKSHOP_VISION_BIND=127.0.0.1` keeps it on the Pi)
 
 **Safety notes:**
-- The fire and smoke watch is a help, NOT a safety system. With no users, anyone on the network can use port 8095.
+- The fire and smoke watch is a help, NOT a safety system. With no users, the network can only look on port 8095: calibration, photos and fire-watch answers are refused until the first administrator exists (the Pi itself is not limited).
 
 Uninstalling removes the plugin folder; your data in `0:/sys/workshop/` and `/opt/dsf/conf/workshop-*.json` stays.
 

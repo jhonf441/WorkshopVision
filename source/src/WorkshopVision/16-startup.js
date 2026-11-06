@@ -7,11 +7,11 @@
       //   calibration cannot be known: never an error).
       // Rows (all checks, no example files: the macro visionpose.g is the plugin's own, sdFiles):
       //   vision.json (0:/sys/workshop/config), backend of the plugin (OpenCV, dsf/vision.py, port 8095), camera image,
-      //   calibration, macro 0:/sys/workshop/macros/visionpose.g.
+      //   calibration, macro 0:/sys/workshop/macros/probe/visionpose.g.
       // The page already reads /estado and vision.json every few seconds: the card reuses that (getEstado / getCfg) and
       // only reads the two files it needs; it is redrawn when the signature of what it shows changes. Nothing is written.
 
-      var TV_STARTUP_MACRO = "0:/sys/workshop/macros/visionpose.g";
+      var TV_STARTUP_MACRO = "0:/sys/workshop/macros/probe/visionpose.g";
 
       // Pure: state of one row. datos = {estado: /estado (null = not read yet), cfgTexto: text of vision.json (null = does
       // not exist, undefined = could not read), macroTexto: same for the macro}.

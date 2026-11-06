@@ -30,7 +30,7 @@ It talks to DSF through dsf-python (dsf_io.py): a subscription to the object
 model and a CommandConnection for the G-code; no HTTP to DuetWebServer.
 
 It does not move the machine nor send G-code: it only looks. The moves for the photo
-are made by the page with sys/workshop/macros/visionpose.g (double tap).
+are made by the page with sys/workshop/macros/probe/visionpose.g (double tap).
 
 API (all with CORS *):
     GET  /estado                       camera, calibration, version
@@ -2041,7 +2041,8 @@ class Handler(BaseHTTPRequestHandler):
         ok, status, code = vision_access.authorize(self.headers, self.client_address[0], "POST", path)
         if not ok:
             text = {"login_required": M("vision_login_required"), "forbidden": M("vision_forbidden"),
-                    "service_unreachable": M("vision_service_unreachable")}[code]
+                    "service_unreachable": M("vision_service_unreachable"),
+                    "first_admin_required": M("vision_first_admin_required")}[code]
             self._send(status, {"ok": False, "code": code, "error": text})
         return ok
 
@@ -2054,7 +2055,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._authorized()
         if not ok:
             text = {"login_required": M("vision_login_required"), "forbidden": M("vision_forbidden"),
-                    "service_unreachable": M("vision_service_unreachable")}[code]
+                    "service_unreachable": M("vision_service_unreachable"),
+                    "first_admin_required": M("vision_first_admin_required")}[code]
             self._send(status, {"ok": False, "code": code, "error": text})
         return ok
 

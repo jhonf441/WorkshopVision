@@ -123,23 +123,71 @@
       }
 
       // a refusal: one card that stays until it is closed (or the person signs in); the page asks for it through window.__workshop.sessionNeeded
+      // A touch on something that needs a session: no card, no dialog. The sign-in chip and the session notes blink (family.css .is-attention);
+      // if the chip is out of view the page first scrolls up to it. Same behaviour as vue/_shared36/session-attention.js.
+      // kind = "role" blinks the role notes of the page instead (the "Solo lectura" chip and the notes that name the needed role)
+      function workshopSessionBlink(kind) {
+        if (typeof document === "undefined" || typeof document.querySelectorAll !== "function") return false;
+        var sel = kind === "role" ? ".wf-session-chip.is-role, .wf-notice--role, .wf-reason--role, .wf-cover--role" : ".wf-session-chip:not(.is-role), .wf-notice--session, .wf-reason--session, .wf-cover--session";
+        var list = Array.prototype.slice.call(document.querySelectorAll(sel));
+        if (!list.length) return false;
+        var chip = null;
+        list.forEach(function (el) {
+          if (!chip && el.classList.contains("wf-session-chip")) chip = el;
+        });
+        if (chip && typeof chip.scrollIntoView === "function") {
+          var r = chip.getBoundingClientRect();
+          if (r.bottom < 0 || r.top > (window.innerHeight || document.documentElement.clientHeight)) chip.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        list.forEach(function (el) {
+          el.classList.remove("is-attention");
+          void el.offsetWidth; // restarts the animation when touched twice in a row
+          el.classList.add("is-attention");
+          setTimeout(function () {
+            el.classList.remove("is-attention");
+          }, 1800);
+        });
+        return true;
+      }
+
+      // a refusal: the page asks for it through window.__workshop.sessionNeeded; the session one blinks the chip, a role one is the card
       function workshopSessionAttention(text) {
         if (typeof document === "undefined" || !document.body) return false;
-        if (text) workshopToast(text);
-        else workshopRefusalToast("session");
+        if (!text || WORKSHOP_LOGIN_RE.test(String(text))) {
+          if (workshopSessionBlink()) return true;
+          if (!text) workshopRefusalToast("session"); // no chip on the page: the card still tells
+          else workshopToast(text);
+          return true;
+        }
+        workshopToast(text);
         return true;
       }
 
       // A refusal told from the catalog (never from a hardcoded sentence): kind = "session" | "role", the same title and sentence as the notices of the pages.
       // It stays until it is closed or the person signs in; the sign-in button is offered when the session is what is missing.
-      function workshopRefusalToast(kind, needed) {
+      // A read the page makes by itself when it opens (get / list / status ...): a role that cannot read it is told by the notes of the page, never by a card.
+      var WORKSHOP_READ_OP_RE = /(^|[._])(get|list|read|status|state|info|history|report|summary|snapshot|stats?|usage|check|probe|detect)(\.|_|$)/;
+
+      // The refusal of a call the person started: the session or role notes blink (no card); the card is only the last resort for an ACTION that has
+      // no note on screen. A read never makes a card.
+      function workshopRefusalAttention(kind, op, text) {
         if (typeof document === "undefined" || !document.body) return;
+        if (workshopSessionBlink(kind)) return;
+        if (kind === "role" && WORKSHOP_READ_OP_RE.test(String(op || ""))) return;
+        if (kind === "session") workshopRefusalToast("session", "", true);
+        else workshopToast(text);
+      }
+
+      function workshopRefusalToast(kind, needed, noBlink) {
+        if (typeof document === "undefined" || !document.body) return;
+        if (kind === "session" && !noBlink && workshopSessionBlink("session")) return;
         var parts = { title: workshopNoticeCoverTitle(kind), desc: workshopNoticeText(kind, needed) };
         workshopToastShow(parts, kind, true, kind === "session");
       }
 
       function workshopToast(text) {
         if (typeof document === "undefined" || !document.body || !text) return;
+        if (WORKSHOP_LOGIN_RE.test(String(text)) && workshopSessionBlink()) return; // about the session: the chip blinks, no card
         var parts = workshopNoticeParts(text);
         var refusal = !!parts.title; // a refusal stays; a plain message goes by itself
         workshopToastShow(parts, WORKSHOP_LOGIN_RE.test(String(text)) ? "session" : "role", refusal, WORKSHOP_LOGIN_RE.test(String(text)));

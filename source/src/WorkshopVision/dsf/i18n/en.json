@@ -174,6 +174,7 @@
  "vision_y_reaches_the_end_of_travel": "Y reaches the end of travel: what is nearest the edge may be left out.",
  "vision_zmin_is_above_the_z_maximum": "zmin ({zmin:.0f}) is above the Z maximum ({zmax:.0f})",
  "vision_login_required": "you need to identify yourself: sign-in with your name and PIN is required",
+ "vision_first_admin_required": "to change anything here you need the first administrator (until then the network can only look)",
  "vision_forbidden": "your user is not allowed to do this",
  "vision_service_unreachable": "could not check who you are (the workshop service does not answer): try again in a few seconds"
 }

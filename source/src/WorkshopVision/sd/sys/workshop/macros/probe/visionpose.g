@@ -2,7 +2,7 @@
 ; measuring photo (Vision page, WorkshopVision). The camera is on the gantry: Z
 ; raises/lowers it and Y centres it; X does not change what it sees.
 ;
-; Use:  M98 P"0:/sys/workshop/macros/visionpose.g" Y123.4 Z200     (Y or Z can be missing)
+; Use:  M98 P"0:/sys/workshop/macros/probe/visionpose.g" Y123.4 Z200     (Y or Z can be missing)
 ;       X123.4 too, if the camera is on the CARRIAGE (Vision page > Settings):
 ;       X moves together with Y (after raising Z / before lowering it).
 ;

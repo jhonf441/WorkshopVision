@@ -215,7 +215,7 @@
               label: "startup.service",
               help: "startup.service_tip",
               // signed out the service cannot be asked (it answers "sign in"), so it is not said to be off: the row says what is really missing, the session
-              texts: { session: "startup.service_session", missing: workshopStartupServiceKey(last.refusal, false) },
+              texts: { session: "startup.service_session", missing: workshopStartupServiceKey(last.refusal, false), na: "startup.service_role" },
             });
           }
           defs = defs.concat(last.defs || []);

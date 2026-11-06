@@ -869,7 +869,7 @@
 		"calibration_tip": "Without calibration the image cannot be turned into millimetres. Do it in Calibrate with a sheet, a board or by hand.",
 		"calibration_none": "not calibrated (go to Calibrate)",
 		"macro": "Measuring-photo macro (visionpose.g)",
-		"macro_tip": "Shipped by the plugin (0:/sys/workshop/macros/visionpose.g); it raises the gantry to take the measuring photo. If it is missing, reinstall the plugin.",
+		"macro_tip": "Shipped by the plugin (0:/sys/workshop/macros/probe/visionpose.g); it raises the gantry to take the measuring photo. If it is missing, reinstall the plugin.",
 		"macro_missing": "The measuring photo cannot be taken. Reinstall the plugin: the macro comes with it.",
 		"config_what": "The vision.json file, where calibrations, settings and templates are saved.",
 		"config_for": "Vision reads and writes it; the page never overwrites it by itself.",

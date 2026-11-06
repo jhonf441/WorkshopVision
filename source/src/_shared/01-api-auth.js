@@ -201,6 +201,10 @@
 
       // Can the current person call this operation? Without an answer from the service yet (or without users) it says yes: hiding is
       // only a courtesy, the service decides. ctx: { mode: "laser" | "cnc" | "fff", args: {...} } for the rules that depend on it.
+      function workshopAuthListed(list, op) {
+        return Object.prototype.toString.call(list) === "[object Array]" && list.indexOf(op) >= 0;
+      }
+
       function workshopCan(op, ctx) {
         ctx = ctx || {};
         var id = workshopAuthState().identity;
@@ -209,8 +213,13 @@
         if (!id.role && !id.configured) return true;
         var t = id.table;
         if ((t.stop || []).indexOf(op) >= 0) return true;
+        // A custom role (auth.whoami allow / deny, exact operation names): a denial wins, a grant adds what the base role cannot do. Without the
+        // lists (an older service, a base role) nothing changes. The service decides again on every call.
+        if (workshopAuthListed(id.deny, op)) return false;
+        var granted = workshopAuthListed(id.allow, op);
         var role = id.role || "viewer";
         var need = (t.ops || {})[op] || "admin";
+        var baseNeed = need;
         var esc = (t.escalate || {})[op]; // some operations need more when their arguments change settings
         if (esc) {
           var v = (ctx.args || {})[esc.arg];
@@ -218,7 +227,9 @@
           if (hit && WORKSHOP_AUTH_RANK[esc.role] > WORKSHOP_AUTH_RANK[need]) need = esc.role;
         }
         if (role === "viewer" && (t.camera || []).indexOf(op) >= 0) return !!(id.user && id.user.camera);
-        if (WORKSHOP_AUTH_RANK[role] === undefined || WORKSHOP_AUTH_RANK[role] < WORKSHOP_AUTH_RANK[need]) return false;
+        if (WORKSHOP_AUTH_RANK[role] === undefined) return false;
+        var escalated = need !== baseNeed; // a grant never lifts what the arguments escalated
+        if (WORKSHOP_AUTH_RANK[role] < WORKSHOP_AUTH_RANK[need] && !(granted && !escalated)) return false;
         if (role === "operator" && (t.mode_gated || []).indexOf(op) >= 0 && ctx.mode) {
           var modes = (id.user && id.user.modes) || [];
           return modes.length >= (t.modes || []).length || modes.indexOf(String(ctx.mode).toLowerCase()) >= 0;
@@ -271,10 +282,9 @@
         if (s.flight) return s.flight;
         // Only a call that fails right after a touch (the person's action: Home, a button...) may open the dialog, and never inside
         // the quiet period that follows a cancel: the action still says why it did not run (refusal toast).
-        var touched = now || Date.now() - (s.gestureAt || 0) < WORKSHOP_AUTH_GESTURE_MS;
-        // Nothing opens the dialog by itself (a poll, a refresh): it was a nuisance each time the person only wanted to look.
-        // Only a touch just before the failed call, or the "sign in" button, asks; otherwise the "not signed in" chip tells.
-        if (!touched) return Promise.resolve(false);
+        // Nothing opens the dialog by itself (a poll, a refresh, not even a touch on a locked control): only the "sign in" button asks.
+        // A refused touch makes the "not signed in" chip blink instead (workshopSessionAttention).
+        if (!now) return Promise.resolve(false);
         if (now) s.quietUntil = 0;
         // after cancelling, not even a touch brings it back: the refusal toast and the chip button tell what to do
         if (Date.now() < s.quietUntil) return Promise.resolve(false);
@@ -313,6 +323,24 @@
         return workshopAuthRefresh(workshopApiCall);
       }
 
+      // The page was in the background (another tab or window) while the person signed in or out there: the storage event can be missed (a throttled or
+      // frozen tab, a page restored from the back/forward cache), and the page kept saying "no session". When it comes back to the front the token of the
+      // browser is compared with the one this page knows, and who the service says the person is is asked again when that disagrees with the token.
+      function workshopAuthReconcile(call) {
+        var s = workshopAuthState();
+        var stored = "";
+        try {
+          stored = workshopAuthStore("localStorage").getItem(WORKSHOP_AUTH_TOKEN_KEY) || "";
+        } catch (e) {
+          stored = s.token || "";
+        }
+        var staleAnswer = !!(s.token && s.identity && s.identity.login_required);
+        if (stored !== (s.token || "") || staleAnswer) {
+          s.token = stored;
+          workshopAuthRefresh(call).catch(function () {});
+        }
+      }
+
       // Tells the service the person is still there (real use only), at most once a minute.
       function workshopAuthKeepalive(call) {
         var s = workshopAuthState();
@@ -328,6 +356,13 @@
         ["pointerdown", "keydown", "touchstart"].forEach(function (ev) {
           document.addEventListener(ev, ping, { capture: true, passive: true });
         });
+        document.addEventListener("visibilitychange", function () {
+          if (document.visibilityState === "visible") workshopAuthReconcile(call);
+        });
+        if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+          window.addEventListener("focus", function () { workshopAuthReconcile(call); });
+          window.addEventListener("pageshow", function (e) { if (e.persisted) workshopAuthReconcile(call); });
+        }
       }
 
       // A 403 reaches the pages as a clear message of their language (key plugins.WorkshopService.api.forbidden_*), not as a raw error.

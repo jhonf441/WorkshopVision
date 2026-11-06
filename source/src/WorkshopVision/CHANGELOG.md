@@ -1,5 +1,29 @@
 # WorkshopVision -- historial de versiones
 
+## 2.7.29 -- 2026-11-06
+
+- Side bar and session: the bar follows the session, the real icon with a small lock, the needed role under the name; a page follows a sign-in made in another tab
+
+## 2.7.28 -- 2026-11-07
+
+- With no users yet, the network can only look (Duet3D catalogue review, hardening): every POST of port 8095 (calibration, photos, fire-watch answers) from an address that is not the Pi answers `403 first_admin_required` until the first administrator exists; the Pi itself is not limited and a machine whose owner switched the roles off on purpose keeps the old behaviour. Needs WorkshopService 2.28.4 (it sends `network_open`).
+
+## 2.7.27 -- 2026-11-06
+
+- Python requirements pinned to exact versions (opencv-python-headless 5.0.0.93, numpy 2.5.4); README and permissions say DSF downloads them from PyPI at install time only
+
+## 2.7.26 -- 2026-11-06
+
+- Roles: the JS client honors the allow and deny lists of custom roles
+
+## 2.7.25 -- 2026-11-06
+
+- Roles y permisos: una razon por grupo, rechazos nunca en rojo, controles bloqueados visibles, secciones con candado, permisos con allow/deny
+
+## 2.7.24 -- 2026-11-06
+
+- Macros of sys/workshop/macros are now in folders (axis, zcal, focus, work, guard, laser, probe, system); install together with the service and the SD migration
+
 ## 2.7.23 -- 2026-11-05
 
 - QA batch: mode gate and shared real-mode rule

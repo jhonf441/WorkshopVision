@@ -23,5 +23,8 @@
       // The state of the service row: nobody is signed in => "session" (blue, cannot be checked), not "missing" (red: the service is off).
       function workshopStartupServiceState(list, refusal, signedOut) {
         if (list !== null) return "configured";
-        return refusal === "login_required" || signedOut ? "session" : "missing";
+        if (refusal === "login_required" || signedOut) return "session";
+        // the role is too low to check it: grey (not red "missing") and it does not count as pending: the person cannot fix it, a technician checks it
+        if (refusal === "forbidden") return "na";
+        return "missing";
       }

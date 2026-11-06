@@ -35,7 +35,12 @@
         if (down) tv.side.appendChild(tvNoticeService(tv));
         // signed out: the chip of the bar says it and the sentence below offers the sign-in; the side shows no refusal of its own
         if (tv.lastMsg && !(signedOut && !tv.lastMsg.ok) && !(down && /fetch|NetworkError|Failed/i.test(tv.lastMsg.t))) tv.side.appendChild(tvMsg(tv.lastMsg.ok ? "ok" : "err", tv.lastMsg.t));
-        if (tvView() === "viewer") return tvRenderViewerNote(tv, signedOut); // a visitor: a clear message, not an error
+        // a section above the role: ONE cover that says why (no session: blue; role too low: gray, with the role that opens it); no button, the chip has the sign-in
+        var lock = tvSectionLock(tvView(), tv.tab);
+        if (lock) {
+          tv.side.appendChild(workshopNoticeEl(signedOut ? "session" : "role", "cover", { needed: lock, action: "" }));
+          return;
+        }
         if (tv.tab === "guided") return tvRenderGuided(tv);
         if (tv.tab === "calibrate") return tvRenderCal(tv);
         if (tv.tab === "settings") return tvRenderSettings(tv);

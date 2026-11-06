@@ -148,7 +148,7 @@ def _still(maxs=900):
 
 
 def _move(y=None, z=None):
-    c = 'M98 P"0:/sys/workshop/macros/visionpose.g"' + ("" if y is None else " Y%.3f" % y) + ("" if z is None else " Z%.3f" % z)
+    c = 'M98 P"0:/sys/workshop/macros/probe/visionpose.g"' + ("" if y is None else " Y%.3f" % y) + ("" if z is None else " Z%.3f" % z)
     _free()
     _code(c)
     _still()
@@ -413,7 +413,7 @@ def _process(body, _):
             # 3) marcar (trabajo M32)
             _step(3, M("laser_calibration_marking_crosses", n=len(PAT), side=L, power=S), 35)
             pot = S * 2.55
-            lin = ['M98 P"0:/sys/workshop/macros/laserguard.g" S%g' % S, "G90", "M400"]
+            lin = ['M98 P"0:/sys/workshop/macros/guard/laserguard.g" S%g' % S, "G90", "M400"]
             for x, y in cab:
                 lin += ["G53 G1 X%.3f Y%.3f F3000 S0" % (x, y), "M400", "G91",
                         "G1 X%.3f F300 S0" % (L / 2), "G1 X%.3f S%.1f" % (-L, pot), "G1 X%.3f S0" % (L / 2),

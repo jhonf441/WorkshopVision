@@ -11,7 +11,7 @@
       // calibration (homography) saved in 0:/sys/workshop/config/vision.json.
       //
       // Actions that move the machine (Go with the pointer) ask for a double tap and
-      // use the macro that already exists (sys/workshop/macros/gotobed.g). Those that touch
+      // use the macro that already exists (sys/workshop/macros/work/gotobed.g). Those that touch
       // zones do NOT write zone files: they open WorkshopJog's editor with
       // the point loaded and the user saves.
 
@@ -281,7 +281,17 @@
         c.appendChild(h);
         return c;
       }
+      // a refusal (no session / role too low) is never a red failure: it paints the shared notice of its cause (blue session, gray role)
+      function tvRefusalKind(text) {
+        if (typeof WORKSHOP_PERMISSION_RE === "undefined" || !WORKSHOP_PERMISSION_RE.test(String(text || ""))) return "";
+        return typeof WORKSHOP_LOGIN_RE !== "undefined" && WORKSHOP_LOGIN_RE.test(String(text)) ? "session" : "role";
+      }
       function tvMsg(cls, text) {
+        var rk = cls === "err" && typeof workshopNoticeEl === "function" ? tvRefusalKind(text) : "";
+        if (rk) {
+          var parts = workshopNoticeParts(text);
+          return workshopNoticeEl(rk, "section", { text: parts.title ? parts.title + ": " + parts.desc : parts.desc, action: "" });
+        }
         var m = tvEl("div", "tv-msg " + cls);
         m.appendChild(tvIcon(cls === "ok" ? "check-circle-outline" : cls === "err" ? "alert-circle-outline" : "information-outline"));
         m.appendChild(tvEl("div", null, text));

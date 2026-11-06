@@ -51,7 +51,7 @@ def _center_mm(H, w, h):
 
 
 def _move(x=None, y=None):
-    c = 'M98 P"0:/sys/workshop/macros/visionpose.g"' + ("" if x is None else " X%.3f" % x) + ("" if y is None else " Y%.3f" % y)
+    c = 'M98 P"0:/sys/workshop/macros/probe/visionpose.g"' + ("" if x is None else " X%.3f" % x) + ("" if y is None else " Y%.3f" % y)
     CL._free()  # before each move: file job or live job (finding 8)
     CL._code(c, timeout=120)
     CL._still(120)

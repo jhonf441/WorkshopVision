@@ -49,17 +49,24 @@
           tvPaintNav(tv);
         });
         head.appendChild(pl);
-        tvSectionsFor(tvView(), TV_SECTIONS).forEach(function (gr, gi) { // the sections of the role (09-vision-roles.js)
+        tvNavSectionsFor(tvView(), TV_SECTIONS).forEach(function (gr, gi) { // every section; the ones above the role are locked (09-vision-roles.js)
           var gt = tvEl("div", "wf-nav-group tvn-group", gr.group);
           gt.setAttribute("data-group", gi);
           tv.nav.appendChild(gt);
           gr.items.forEach(function (it) {
-            var b = tvEl("button", "wf-nav-item tv-nav-item" + (tv.tab === it[0] ? " on" : ""));
+            var out = !!it[4] && workshopSignedOut();
+            var b = tvEl("button", "wf-nav-item tv-nav-item" + (tv.tab === it[0] ? " on" : "") + (it[4] ? " st-locked" + (out ? " st-locked-session" : "") : ""));
             b.type = "button";
             b.setAttribute("data-group", gi);
-            b.title = it[3];
-            b.appendChild(tvIcon(it[2], "wf-nav-icon"));
-            b.appendChild(tvEl("span", "tx", it[1]));
+            b.title = it[4] ? it[1] + ": " + (out ? i18nT("notice.notice_session_reason") : i18nT("notice.notice_role_needed", { needed: workshopNoticeRoleName(it[4]) })) : it[3];
+            var box = tvEl("span", "st-iconbox"); // the real icon always; a locked section gets a small lock on its corner (same as the side bar of the Vue pages)
+            box.appendChild(tvIcon(it[2], "wf-nav-icon"));
+            if (it[4]) box.appendChild(tvIcon(out ? "account-lock" : "lock", "st-lockmark"));
+            b.appendChild(box);
+            var txt = tvEl("span", "st-text"); // the name, and under it who may open the section; not drawn when the bar is folded
+            txt.appendChild(tvEl("span", "tx", it[1]));
+            if (it[4]) txt.appendChild(tvEl("span", "st-need", out ? i18nT("notice.need_session_tag") : workshopNoticeRoleName(it[4])));
+            b.appendChild(txt);
             b.addEventListener("click", function () { tvIrSection(tv, it[0]); });
             tv.tabButtons[it[0]] = b;
             tv.nav.appendChild(b);

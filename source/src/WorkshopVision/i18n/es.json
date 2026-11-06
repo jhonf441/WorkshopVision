@@ -869,7 +869,7 @@
 		"calibration_tip": "Sin calibrar la imagen no se convierte a milímetros. Se hace en Calibrar con una hoja, un tablero o a mano.",
 		"calibration_none": "sin calibrar (ve a Calibrar)",
 		"macro": "Macro de la foto de medición (visionpose.g)",
-		"macro_tip": "La trae el complemento (0:/sys/workshop/macros/visionpose.g) y sube el pórtico para sacar la foto de medición. Si falta, reinstala el complemento.",
+		"macro_tip": "La trae el complemento (0:/sys/workshop/macros/probe/visionpose.g) y sube el pórtico para sacar la foto de medición. Si falta, reinstala el complemento.",
 		"macro_missing": "No se puede sacar la foto de medición. Reinstala el complemento: la macro viaja con él.",
 		"config_what": "El archivo vision.json, donde se guardan las calibraciones, los ajustes y las plantillas.",
 		"config_for": "Vision lo lee y lo escribe; la página nunca lo pisa sola.",

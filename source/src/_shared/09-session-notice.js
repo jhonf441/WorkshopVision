@@ -126,15 +126,69 @@
       // A touch on something that needs a session: no card, no dialog. The sign-in chip and the session notes blink (family.css .is-attention);
       // if the chip is out of view the page first scrolls up to it. Same behaviour as vue/_shared36/session-attention.js.
       // kind = "role" blinks the role notes of the page instead (the "Solo lectura" chip and the notes that name the needed role)
+      // Where the person touched last: the notes that blink are the ones nearest to it, not every note of the page. One pair of listeners for all the
+      // plugins of the page (workshopSharedUse, 30-lifecycle.js); the touched element is kept on window so every copy of this file reads the same one.
+      (function workshopTouchStart() {
+        if (typeof window === "undefined" || typeof document === "undefined" || typeof document.addEventListener !== "function") return;
+        workshopSharedUse("session-touch", function () {
+          function remember(ev) {
+            window.__workshopLastTouch = ev && ev.target ? ev.target : null;
+          }
+          function onKey(ev) {
+            if (ev.key === "Enter" || ev.key === " ") remember({ target: document.activeElement });
+          }
+          document.addEventListener("pointerdown", remember, true);
+          document.addEventListener("keydown", onKey, true);
+          return function () {
+            document.removeEventListener("pointerdown", remember, true);
+            document.removeEventListener("keydown", onKey, true);
+          };
+        });
+      })();
+
+      function workshopCenterY(el) {
+        var r = el.getBoundingClientRect();
+        return (r.top + r.bottom) / 2;
+      }
+
+      // the smallest ancestor of the touch that holds a note, then the closest of those by height; the sign-in chip always blinks
+      function workshopNearestNote(notes, touch) {
+        if (!notes.length) return [];
+        if (notes.length === 1) return notes;
+        if (touch && typeof touch.closest === "function" && document.contains(touch)) {
+          for (var up = touch.parentElement; up; up = up.parentElement) {
+            var inside = notes.filter(function (n) {
+              return up.contains(n);
+            });
+            if (inside.length) {
+              var y = workshopCenterY(touch);
+              inside.sort(function (a, b) {
+                return Math.abs(workshopCenterY(a) - y) - Math.abs(workshopCenterY(b) - y);
+              });
+              return [inside[0]];
+            }
+          }
+        }
+        return [notes[0]];
+      }
+
       function workshopSessionBlink(kind) {
         if (typeof document === "undefined" || typeof document.querySelectorAll !== "function") return false;
         var sel = kind === "role" ? ".wf-session-chip.is-role, .wf-notice--role, .wf-reason--role, .wf-cover--role" : ".wf-session-chip:not(.is-role), .wf-notice--session, .wf-reason--session, .wf-cover--session";
-        var list = Array.prototype.slice.call(document.querySelectorAll(sel));
-        if (!list.length) return false;
-        var chip = null;
-        list.forEach(function (el) {
-          if (!chip && el.classList.contains("wf-session-chip")) chip = el;
+        var all = Array.prototype.slice.call(document.querySelectorAll(sel));
+        if (!all.length) return false;
+        var chips = all.filter(function (el) {
+          return el.classList.contains("wf-session-chip");
         });
+        var list = chips.concat(
+          workshopNearestNote(
+            all.filter(function (el) {
+              return !el.classList.contains("wf-session-chip");
+            }),
+            window.__workshopLastTouch
+          )
+        );
+        var chip = chips[0];
         if (chip && typeof chip.scrollIntoView === "function") {
           var r = chip.getBoundingClientRect();
           if (r.bottom < 0 || r.top > (window.innerHeight || document.documentElement.clientHeight)) chip.scrollIntoView({ behavior: "smooth", block: "center" });

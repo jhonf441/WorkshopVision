@@ -11,6 +11,17 @@
       var WORKSHOP_MODES = ["FFF", "Laser", "CNC"];
       var WORKSHOP_MODES_LOCAL_KEY = "workshopMachineModes";
 
+      // The mode the machine is really in: ONE rule for every JS plugin (twin of vue/_shared36/current-mode.js and of real_mode.py of the service).
+      // state.machineMode is what RRF applies; global.selectedMode is written by the select*.g macros BEFORE the M45x, so when the M45x fails it
+      // says one mode while the machine is in another. The machine is the truth: selectedMode only when the model has no known machineMode.
+      // -> "FFF" | "Laser" | "CNC", or "" when the model says nothing.
+      function workshopCurrentMode(model) {
+        var machine = model && model.state && model.state.machineMode;
+        if (WORKSHOP_MODES.indexOf(machine) >= 0) return machine;
+        var selected = model && model.global && model.global.selectedMode;
+        return WORKSHOP_MODES.indexOf(selected) >= 0 ? selected : "";
+      }
+
       // answer: { FFF, Laser, CNC } with true / false / null (null = not answered)
       function workshopModesEmpty() {
         return { FFF: null, Laser: null, CNC: null };

@@ -147,8 +147,8 @@
               // the service checks the rectangle (10 mm minimum, inside the travel of X and Y) and writes cutarea.g: it is its only writer
               tvMachine()
                 .then(function (st) {
-                  var mode = st && st.global ? st.global.selectedMode : null;
-                  if (["Laser", "CNC", "FFF"].indexOf(mode) < 0) throw new Error(i18nT('vision.no_machine_mode'));
+                  var mode = workshopCurrentMode(st);
+                  if (!mode) throw new Error(i18nT('vision.no_machine_mode'));
                   return workshopApi("machine.workarea.save", { mode: mode, rect: r }).then(function () { return mode; });
                 })
                 .then(function (modo) {

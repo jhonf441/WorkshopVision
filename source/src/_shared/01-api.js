@@ -117,7 +117,7 @@
             return workshopApiCall(op, args, opts, attempt + 1);
           });
         }
-        return fetch(url, { method: "POST", headers: h, body: cuerpo }).then(
+        return fetch(url, { method: "POST", headers: h, body: cuerpo, keepalive: !!opts.keepalive }).then( // keepalive: a request that must outlive the page (the flash off at pagehide)
           function (r) {
             return r
               .json()

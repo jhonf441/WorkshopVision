@@ -2,7 +2,7 @@
   "id": "WorkshopVision",
   "name": "Vision",
   "author": "jhonf441",
-  "version": "2.7.22",
+  "version": "2.7.23",
   "license": "GPL-3.0-or-later",
   "homepage": "https://github.com/jhonf441/WorkshopVision",
   "tags": [
@@ -57,7 +57,7 @@
     "vision_access.py"
   ],
   "dwcFiles": [
-    "js/WorkshopVision.c32118a6.js",
-    "js/WorkshopVision.c32118a6.js.gz"
+    "js/WorkshopVision.475c6a0c.js",
+    "js/WorkshopVision.475c6a0c.js.gz"
   ]
 }

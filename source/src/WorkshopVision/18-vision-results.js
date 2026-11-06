@@ -13,8 +13,9 @@
         }
         if (that === "area") {
           var g = (st && st.global) || {};
-          var a = g["cutArea" + (g.selectedMode || "")];
-          if (!a || a.length !== 4) throw new Error(i18nT('vision.mode_has_no_measured_cutting_area', { mode: g.selectedMode || "?" }));
+          var modeNow = workshopCurrentMode(st);
+          var a = g["cutArea" + modeNow];
+          if (!a || a.length !== 4) throw new Error(i18nT('vision.mode_has_no_measured_cutting_area', { mode: modeNow || "?" }));
           return [a[0], a[2], a[1], a[3]];
         }
         // active zone: its origin (the zone's G10 offset) + the material's measure

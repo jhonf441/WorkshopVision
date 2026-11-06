@@ -116,6 +116,20 @@
         return btn;
       }
 
+      // The color input of the family (A3): a swatch with the border of the family buttons, the same in the control bar, the jog and the cuts.
+      // opts = { event: "input" (default) | "change", title, compact }. onValue(hex) gets the color. Returns the <input>.
+      function workshopColorEl(value, onValue, opts) {
+        workshopHelpCss(); // the styles of the family (design/family.css) are in the page once
+        opts = opts || {};
+        var ci = document.createElement("input");
+        ci.type = "color";
+        ci.className = "wf-color" + (opts.compact ? " is-compact" : "");
+        ci.value = value;
+        if (opts.title) ci.title = opts.title;
+        ci.addEventListener(opts.event || "input", function () { onValue(ci.value); });
+        return ci;
+      }
+
       // The spec of a tip from the catalog block "helpTips" of the plugin: helpTips.<id>_title / _what / _why / _missing / _how (es and en, same keys).
       // The four rows of HelpTip.vue; a row without text is not drawn. id is a literal (tests/help-tip-js.test.js checks every id used has its five keys).
       function workshopHelpSpecOf(id) {

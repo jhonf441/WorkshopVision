@@ -6,6 +6,7 @@
       //   workshopNoticeText(kind, needed)                        the one sentence of a cause; needed = a role id ("operator"...)
       //   workshopNoticeEl(kind, variant, opts)                   N2 note (variant "section") or N4 cover (variant "cover");
       //                                                           opts = { text, title, needed, action: "sign-in" | "retry" | "", onRetry }
+      //                                                           ("sign-in" on a role cause is drawn as "Change role": workshopNoticeActionOf)
       //   workshopReasonEl(kind, text)                            N3, the reason next to a disabled control or group (text optional)
       //   workshopLockReasonEl(op, need, ctx)                     N3 decided by the access rule of the operation; null when the person may
 
@@ -92,15 +93,29 @@
         return keys[kind] ? i18nT(keys[kind]) : "";
       }
 
-      // the action of a notice: sign-in (the same dialog as the chip) or retry; the default is the one of ESTANDAR 2.2 (cover only)
-      function workshopNoticeAction(kind, variant, opts) {
-        if (opts.action !== undefined && opts.action !== null) return opts.action;
-        if (variant !== "cover") return "";
-        return kind === "session" ? "sign-in" : kind === "down" ? "retry" : "";
+      // Pure: the action of a notice (twin of noticeActionOf of notice-kind.js). The default of the standard (7c, cover only): "Sign in" for a session
+      // cause, "Retry" when the service is down, nothing for a role. A surface without a bar chip asks for "sign-in": on a role cause it is drawn as
+      // "Change role" (owner rule 2026-11-06: floating panels and locked launchers carry the way out), the same dialog that keeps the current session.
+      function workshopNoticeActionOf(kind, variant, act) {
+        var given = act === undefined || act === null ? (variant === "cover" ? (kind === "session" ? "sign-in" : kind === "down" ? "retry" : "") : "") : act;
+        if (given === "sign-in" && kind === "role") return "change-role";
+        if (given === "change-role" && kind === "session") return "sign-in";
+        return given;
       }
 
+      function workshopNoticeAction(kind, variant, opts) {
+        return workshopNoticeActionOf(kind, variant, opts.action);
+      }
+
+      // The word of the button: "Sign in", "Change role" or "Retry"
+      function workshopNoticeActionLabel(act) {
+        if (act === "retry") return i18nT("notice.notice_retry");
+        return i18nT(act === "change-role" ? "notice.notice_change_role" : "notice.notice_sign_in");
+      }
+
+      // "sign-in" and "change-role" open the ONE name + PIN dialog (workshopLogin): the session of this browser, if any, stays until the new one is accepted
       function workshopNoticeButton(act, cls, opts) {
-        var b = workshopNoticeDomEl("button", "wf-btn " + cls, act === "retry" ? i18nT("notice.notice_retry") : i18nT("notice.notice_sign_in"));
+        var b = workshopNoticeDomEl("button", "wf-btn " + cls, workshopNoticeActionLabel(act));
         b.type = "button";
         b.addEventListener("click", function () {
           if (act === "retry") {

@@ -11,6 +11,30 @@
       var WORKSHOP_MODES = ["FFF", "Laser", "CNC"];
       var WORKSHOP_MODES_LOCAL_KEY = "workshopMachineModes";
 
+      // ONE rule for "may this person switch the machine mode?" (owner 2026-11-06), twin of vue/_shared36/mode-switch.js: the mode buttons of the
+      // bar switched without a word while the Printing page asked for a session. Switching the mode is the technician's (WorkshopService
+      // dsf/permissions.py: "technician ... changes mode / head"); the macro runs through DWC, so the technician rank is asked through the
+      // operation that marks that role (RANK_OPS.technician of vue/_shared36/role-view.js), as roleAtLeast('technician') does everywhere else.
+      var WORKSHOP_MODE_SWITCH_ROLE = "technician";
+      var WORKSHOP_MODE_SWITCH_OP = "settings.set";
+
+      // "resolving" | "ok" | "session" | "role"; "ok" while nothing is known (hiding is a courtesy, the service decides)
+      function workshopModeSwitchAccess() {
+        return typeof workshopAccessState === "function" ? workshopAccessState(WORKSHOP_MODE_SWITCH_OP) : "ok";
+      }
+
+      function workshopCanSwitchMode() {
+        var a = workshopModeSwitchAccess();
+        return a === "ok" || a === "resolving";
+      }
+
+      // the sentence that says why the person may not switch the mode ("" when they may): the same one of every notice (09-notice-dom.js)
+      function workshopModeSwitchReason() {
+        var a = workshopModeSwitchAccess();
+        if (a !== "session" && a !== "role") return "";
+        return typeof workshopNoticeText === "function" ? workshopNoticeText(a, WORKSHOP_MODE_SWITCH_ROLE) : a;
+      }
+
       // The mode the machine is really in: ONE rule for every JS plugin (twin of vue/_shared36/current-mode.js and of real_mode.py of the service).
       // state.machineMode is what RRF applies; global.selectedMode is written by the select*.g macros BEFORE the M45x, so when the M45x fails it
       // says one mode while the machine is in another. The machine is the truth: selectedMode only when the model has no known machineMode.

@@ -7,6 +7,8 @@
       //   workshopCan("lights.save")     false when the role cannot call it (hide the button; the service refuses it anyway)
       //   workshopIdentity()             last auth.whoami answer ({role, user, table, ...}) or null
       //   workshopOnIdentity(fn)         fn(identity) when the person logs in, out or the role changes; returns the off function
+      //   workshopLogin()                the ONE name + PIN dialog ("Sign in" without a session, "Change role" with one: the session stays until the new one is accepted)
+      //   workshopSessionAction(op)      "sign-in" | "change-role" | "": the word of the button next to a lock
       //
       // The token is in localStorage: ONE session per browser (owner decision), so every tab follows a login or logout through the
       // storage event; it ends when the service expires it (12 h) or on logout, never with the tab. The kiosk is another browser, so
@@ -61,6 +63,12 @@
       function workshopAccessReason(op, ctx) {
         var a = workshopAccessState(op, ctx);
         return a === "session" ? "signed_out" : a === "role" ? "role" : "";
+      }
+
+      // The word of the button next to a lock: "sign-in" (nobody is signed in), "change-role" (someone is, with a role that is too low: another
+      // person signs in, the current session stays until that succeeds) or "" (nothing blocks). Both words open the ONE dialog: workshopLogin().
+      function workshopSessionAction(op, ctx) {
+        return workshopSessionActionOf(workshopAccessState(op, ctx));
       }
 
       // The session state changed without a new answer of the service (the PIN dialog opened or closed, the PIN got locked)
@@ -250,11 +258,18 @@
         });
       }
 
+      // A sign-in on a browser that still holds an accepted session is a CHANGE of person ("Change role", 2026-11-09): the session that was there is
+      // kept until the service accepts the new name and PIN; only then is it closed (with its own token, still in the headers) and the new one
+      // adopted. A refused or cancelled attempt leaves the current session as it was.
       function workshopAuthLogin(call, name, pin) {
+        var before = workshopAuthToken();
         return call("auth.login", { name: name, pin: pin }).then(function (j) {
           if (!j.ok) return j;
-          workshopAuthSetToken(j.result.token);
-          return workshopAuthRefresh(call).then(function () {
+          var closeOld = before && before !== j.result.token ? call("auth.logout", {}).then(null, function () { return null; }) : Promise.resolve(null);
+          return closeOld.then(function () {
+            workshopAuthSetToken(j.result.token);
+            return workshopAuthRefresh(call);
+          }).then(function () {
             return j;
           });
         });
@@ -275,8 +290,10 @@
         return workshopApiCall("auth.logout", {}).then(done, done);
       }
 
-      // Asks the person for name and PIN (one dialog for all the callers). Resolves true when logged in, false when cancelled.
-      // now = true when the person pressed "log in" (the dialog opens even if it was cancelled a moment ago).
+      // Asks the person for name and PIN (one dialog for all the callers: "Sign in" and "Change role" are the same dialog). Resolves true when logged
+      // in, false when cancelled. now = true when the person pressed the button (the dialog opens even if it was cancelled a moment ago).
+      // The session this browser has (if any) is NOT touched here: it is kept until workshopAuthLogin adopts the new one, so a cancelled or refused
+      // "Change role" leaves the person signed in as before.
       function workshopAuthAsk(call, now) {
         var s = workshopAuthState();
         if (s.flight) return s.flight;
@@ -288,7 +305,6 @@
         if (now) s.quietUntil = 0;
         // after cancelling, not even a touch brings it back: the refusal toast and the chip button tell what to do
         if (Date.now() < s.quietUntil) return Promise.resolve(false);
-        workshopAuthSetToken("");
         s.flight = workshopPinDialog(function (name, pin) {
           return workshopAuthLogin(call, name, pin).then(function (j) {
             if (j.ok) {
@@ -310,7 +326,8 @@
         return s.flight;
       }
 
-      // The person pressed "log in": asks now.
+      // The person pressed "Sign in" or "Change role": asks now. The ONE entry point of every button that asks for a name and a PIN (the chips, the
+      // notices, the locked launchers of the bar, the Jog and the camera).
       function workshopLogin() {
         return workshopAuthAsk(workshopApiCall, true).then(function (ok) {
           return ok;

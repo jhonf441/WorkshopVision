@@ -64,7 +64,7 @@
         return TV_RANK[need] > rank ? need : "";
       }
 
-      // ALL the sections for the bar (AWS rule: what you cannot open stays in its place, locked, with the role that opens it): every item gets a 5th
+      // ALL the sections for the bar (locked-in-place rule: what you cannot open stays in its place, locked, with the role that opens it): every item gets a 5th
       // element, the role it needs when this view cannot open it, "" otherwise. Opening a locked one shows the cover (17-vision-bars.js).
       function tvNavSectionsFor(view, all) {
         var guided = ["guided", i18nT("vision.guided_calibration"), "target", i18nT("vision.guided_calibration_tip")];

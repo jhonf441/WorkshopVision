@@ -306,11 +306,29 @@
       // Risk dialog also for the G-code the Vue pages send with machine/sendCode
       // (the action of the DWC store is wrapped once). The calls to the
       // services do not go through here any more (workshop-api.js).
+      // The machine is halted (after an Emergency stop, M112): DWC's own "Reset machine" button sends M999 to bring it back. That M999 is
+      // the standard recovery of DWC and goes out through DWC's own flow, with no risk dialog of the workshop over it (owner report
+      // 2026-11-06: the reset opened a second dialog). Outside a halt, M999 keeps its notice (the board restarts whatever it is doing).
+      function workshopMachineHalted() {
+        try {
+          var m = typeof workshopStateDwc === "function" ? workshopStateDwc() : null;
+          if (m && m.state && m.state.status) return m.state.status === "halted";
+          var w = window.__workshop;
+          var s = w && w.lastStatus;
+          return !!(s && s.state && s.state.status === "halted");
+        } catch (e) {
+          return false;
+        }
+      }
+      function workshopRiskWaived(code) {
+        return /^\s*M999\b/i.test(String(code || "")) && workshopMachineHalted();
+      }
+
       workshopHostInterceptCodes(function (code, fromInput) {
         // risk notice (see WORKSHOP_RISKS): only what comes from the workshop plugins, not DWC's console (typed by hand;
         // DWC 3.7 does not tell the origin, so there the console is asked too)
         // fail closed: if the dialog itself breaks for a risky code, the code is cancelled instead of going out unasked
-        if (!fromInput && workshopRisk(code)) {
+        if (!fromInput && workshopRisk(code) && !workshopRiskWaived(code)) {
           try {
             return workshopBeforeOfSend(code).catch(function (e) {
               return e instanceof Error ? e : new Error(String(e));
@@ -360,12 +378,23 @@
       // by mistake. w/h are the element's width/height (for the screen
       // limits); defaultLeft/defaultTop are the initial position if there is
       // not a saved one yet.
+      // The lowest top a floating panel may take: never over DWC's top bar (the menu, the state and the Emergency stop live there; owner rule
+      // 2026-11-06). MARGIN below the bar, or MARGIN when there is no bar yet (DWC still being built). The Jog adds its own zone (jogZoneEmergency).
+      function workshopFloatMinTop() {
+        if (typeof document === "undefined" || typeof document.querySelector !== "function") return MARGIN;
+        var bar = document.querySelector("header.v-app-bar") || document.querySelector(".v-app-bar");
+        if (!bar || typeof bar.getBoundingClientRect !== "function") return MARGIN;
+        var br = bar.getBoundingClientRect();
+        if (!(br.width > 0) || !(br.height > 0) || br.bottom <= 0) return MARGIN;
+        return Math.max(MARGIN, Math.ceil(br.bottom) + MARGIN);
+      }
+
       function makeDraggable(el, posKey, w, h, defaultLeft, defaultTop, onTap) {
         var saved = loadPos(posKey);
         var left = saved ? saved.left : defaultLeft;
         var top = saved ? saved.top : defaultTop;
         left = clamp(left, MARGIN, window.innerWidth - w - MARGIN);
-        top = clamp(top, MARGIN, window.innerHeight - h - MARGIN);
+        top = clamp(top, workshopFloatMinTop(), window.innerHeight - h - MARGIN);
         el.style.left = left + "px";
         el.style.top = top + "px";
 
@@ -406,7 +435,7 @@
             // camera panel) keeps respecting the screen edges
             // after changing size.
             var newLeft = clamp(startLeft + dx, MARGIN, window.innerWidth - el.offsetWidth - MARGIN);
-            var newTop = clamp(startTop + dy, MARGIN, window.innerHeight - el.offsetHeight - MARGIN);
+            var newTop = clamp(startTop + dy, workshopFloatMinTop(), window.innerHeight - el.offsetHeight - MARGIN);
             el.style.left = newLeft + "px";
             el.style.top = newTop + "px";
           }

@@ -3,16 +3,23 @@
       //        "resolving" | "pin-locked" | "signing-in" | "expired" | "signed-out" | "active"   (meaning: see the Vue file)
       //   workshopIsSignedOutState(state)        true when signing in may fix what does not work
       //   workshopAccessStateOf(state, allowed)  "resolving" | "ok" | "session" | "role"
+      //   workshopSessionActionOf(access)        "sign-in" | "change-role" | "": the word of the button next to a lock (one name + PIN dialog serves both)
+      // An accepted session stays "active" while the name + PIN dialog is open or a wrong PIN locked it: that dialog is "Change role" (another person
+      // signs in on this browser) and the current session is kept until the new sign-in succeeds, so nothing may look signed out meanwhile.
       function workshopSessionStateOf(s, now) {
         var x = s || {};
         var id = x.identity;
         if (!id) return x.unreachable ? "active" : "resolving"; // the service did not answer: nothing waits for it (workshopCan says yes)
         if (!id.configured) return "active";
+        if (x.token && !id.login_required) return "active";
         if (x.lockUntil && x.lockUntil > (now || Date.now())) return "pin-locked";
         if (x.flight) return "signing-in";
         if (x.token && id.login_required) return "expired";
-        if (!x.token) return "signed-out";
-        return "active";
+        return "signed-out";
+      }
+
+      function workshopSessionActionOf(access) {
+        return access === "session" ? "sign-in" : access === "role" ? "change-role" : "";
       }
 
       function workshopIsSignedOutState(state) {

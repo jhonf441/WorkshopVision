@@ -1,4 +1,4 @@
-      // ---- Notices about the session and about permissions (AWS style: the reason is NEXT TO the thing, no fixed card; ESTANDAR 2) ----
+      // ---- Notices about the session and about permissions (locked-in-place style: the reason is NEXT TO the thing, no fixed card; ESTANDAR 2) ----
       // The person must always know WHY something does not move, and it must look the same on every page (the look is design/family.css, nothing is painted here):
       //   1. No floating card while nobody is signed in. Each page says it itself where it matters: its bar carries ONE "Sin sesión · Iniciar sesión" chip
       //      (.wf-session-chip: PageHeader.vue draws it; a page whose bar is built by hand gets the same chip from here, workshopSessionBarChip) and every
@@ -253,9 +253,11 @@
         clearTimeout(workshopNoticeToastTimer);
         var out = typeof workshopSignedOut === "function" && workshopSignedOut();
         var opts = { bottom: 84, closable: true, kind: kind };
-        if (refusal && out) {
+        // the way out of a refusal: "Sign in" while nobody is, "Change role" when the role is what falls short (another person signs in; the session of this
+        // browser stays until that succeeds). Both are the ONE dialog (workshopLogin).
+        if (refusal && (out || kind === "role")) {
           opts.action = {
-            label: i18nT("notice.notice_sign_in"),
+            label: i18nT(out ? "notice.notice_sign_in" : "notice.notice_change_role"),
             run: function () {
               if (typeof workshopLogin === "function") workshopLogin();
             },

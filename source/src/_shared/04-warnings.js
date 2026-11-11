@@ -150,9 +150,19 @@
               return [];
             }
           }
-          function dur(ms) {
-            var s = Math.max(0, Math.round((Date.now() - ms) / 1000));
+          function fmt(s) {
             return (s >= 60 ? Math.floor(s / 60) + " min " : "") + (s % 60) + " s";
+          }
+          function dur(ms) {
+            return fmt(Math.max(0, Math.round((Date.now() - ms) / 1000)));
+          }
+          // The counter of a risk, ONE direction for every screen (owner request 2026-11-06: the bar counted up while the jog counted down):
+          // a risk that ends by itself (the service gives `until`, epoch ms like `since`, or `seconds` from `since`) counts DOWN to its end, the same
+          // number the panel that opened it shows; a risk with no end counts up since it started.
+          function counter(e) {
+            var end = e && e.until > 0 ? Number(e.until) : e && e.seconds > 0 && e.since > 0 ? Number(e.since) + Number(e.seconds) * 1000 : 0;
+            if (end > 0) return i18nT('advertencias.time_left', { time: fmt(Math.max(0, Math.round((end - Date.now()) / 1000))) });
+            return dur(e.since);
           }
           var timer = setInterval(function () {
             var r = datos();
@@ -169,7 +179,7 @@
             // full-screen element is seen: the bar goes with the
             var root = document.fullscreenElement || document.body;
             if (bar.parentNode !== root) root.appendChild(bar);
-            bar.textContent = i18nT('advertencias.active_risk_2', { list: r.map(function (e) { return workshopRiskText(e) + " (" + dur(e.since) + ")"; }).join("  |  ") });
+            bar.textContent = i18nT('advertencias.active_risk_2', { list: r.map(function (e) { return workshopRiskText(e) + " (" + counter(e) + ")"; }).join("  |  ") });
           }, 1000);
           return function () {
             clearInterval(timer);

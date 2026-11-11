@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "plugin": "WorkshopVision",
+  "namespace": "vision",
+  "prefixes": [
+    "vision"
+  ],
+  "ui": "ui:vision:open",
+  "operations": [
+    "activity.log",
+    "auth.resolve",
+    "camera.status",
+    "camera.token",
+    "lights.get",
+    "lights.zone",
+    "machine.workarea.save",
+    "modules.set",
+    "motion.release",
+    "motion.renew",
+    "motion.reserve",
+    "settings.set",
+    "vision.post"
+  ],
+  "shared": [
+    "activity.log",
+    "auth.resolve",
+    "camera.status",
+    "camera.token",
+    "lights.get",
+    "lights.zone",
+    "machine.workarea.save",
+    "modules.set",
+    "motion.release",
+    "motion.renew",
+    "motion.reserve",
+    "settings.set"
+  ],
+  "restricted": [
+    "auth.resolve"
+  ],
+  "targets": [
+    "lights:zone",
+    "vision:path"
+  ],
+  "profiles": {
+    "readonly": {
+      "title": "VisionReadOnly",
+      "capabilities": [
+        "camera.view",
+        "lights.view"
+      ]
+    },
+    "operator": {
+      "title": "VisionOperator",
+      "capabilities": [
+        "camera.view",
+        "camera.vision",
+        "lights.use",
+        "lights.view"
+      ]
+    },
+    "admin": {
+      "title": "VisionAdmin",
+      "capabilities": [
+        "camera.view",
+        "camera.vision",
+        "lights.use",
+        "lights.view",
+        "machine.workarea",
+        "processes.control"
+      ]
+    }
+  },
+  "satellite": "vision_access.py"
+}

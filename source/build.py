@@ -93,6 +93,7 @@ import zipfile
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import release_zips  # noqa: E402  (strict per-line zips: manifests, run-time guard, release check)
+import release_notes  # noqa: E402  (Added / Changed / Fixed generated from the commits, for --github-release)
 SRC = os.path.join(ROOT, "src")
 SHARED = os.path.join(SRC, "_shared")
 VUE = os.path.join(ROOT, "vue")
@@ -593,6 +594,13 @@ def changelog_section(plugin_id, version):
     return ""
 
 
+def release_body(changelog, generated):
+    """The notes of a GitHub Release: the CHANGELOG entry (may be ''), then the Added / Changed / Fixed sections generated from the commits
+    (may be ''); a plain line when there is neither. Pure (tests/test_release_notes.py reads the same shape through export_plugin_repos)."""
+    parts = [p for p in (changelog, generated.rstrip("\n") if generated else "") if p]
+    return "\n\n".join(parts) if parts else "(no changelog entry and no commit found for this version)"
+
+
 def cmd_github_release(ids, publish):
     """--github-release: one GitHub Release per plugin and version on jhonf441/<Id> with both strict zips and SHA256SUMS.txt.
     Default is a dry run: it writes the notes to dist/github-release/ and prints the gh commands. --publish runs them, only for zips compiled
@@ -611,7 +619,8 @@ def cmd_github_release(ids, publish):
             sys.exit(f"{pid}: missing {', '.join(os.path.basename(z) for z in missing)} (python build.py --dwc both {pid} --completa)")
         tag, repo = f"v{version}", f"jhonf441/{pid}"  # one repository per plugin: the tag is just the version
         notes = os.path.join(out, f"{pid}-{version}.md")
-        body = changelog_section(pid, version) or "(no changelog entry for this version)"
+        # the CHANGELOG entry when the plugin keeps one, and always the sections generated from its commits since the previous tag
+        body = release_body(changelog_section(pid, version), release_notes.notes_for(pid, version))
         with open(notes, "w", encoding="utf-8") as f:
             f.write(body + "\n\n")
             f.write(f"Which zip: `{pid}-{version}-dwc3.6.zip` for DuetWebControl / DSF 3.6.x, `{pid}-{version}-dwc3.7.zip` for 3.7.x. ")

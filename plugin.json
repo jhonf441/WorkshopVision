@@ -2,7 +2,7 @@
   "id": "WorkshopVision",
   "name": "Vision",
   "author": "jhonf441",
-  "version": "2.7.30",
+  "version": "2.7.33",
   "license": "GPL-3.0-or-later",
   "homepage": "https://github.com/jhonf441/WorkshopVision",
   "tags": [
@@ -52,12 +52,13 @@
     "message_data.py",
     "messages.py",
     "net_guard.py",
+    "permissions.json",
     "record_log.py",
     "vision.py",
     "vision_access.py"
   ],
   "dwcFiles": [
-    "js/WorkshopVision.c07aa0c1.js",
-    "js/WorkshopVision.c07aa0c1.js.gz"
+    "js/WorkshopVision.ab5996bd.js",
+    "js/WorkshopVision.ab5996bd.js.gz"
   ]
 }

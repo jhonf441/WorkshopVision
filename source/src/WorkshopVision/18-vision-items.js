@@ -131,6 +131,14 @@
         );
       }
 
+      // The cutting area only exists for Laser and CNC (FFF has none) and only for a mode the machine profile uses. Pure.
+      //   modes  workshopModes.load().state or null; -> "" when the area may be saved, else the i18n key of the reason
+      function tvAreaModeBlock(mode, modes) {
+        if (mode !== "Laser" && mode !== "CNC") return "vision.area_mode_not_for_area";
+        if (modes && modes.answered && modes.answer && !modes.answer[mode]) return "vision.area_mode_not_used";
+        return "";
+      }
+
       function tvActionsWorkbench(tv, ac, it) {
         // Material -> cutting area (2026-10-10, function 2 of the list: "detects
         // the sheet and proposes the zone and the cutting area with one tap"). The
@@ -149,13 +157,18 @@
                 .then(function (st) {
                   var mode = workshopCurrentMode(st);
                   if (!mode) throw new Error(i18nT('vision.no_machine_mode'));
-                  return workshopApi("machine.workarea.save", { mode: mode, rect: r }).then(function () { return mode; });
+                  return workshopModes.load().catch(function () { return null; }).then(function (o) {
+                    var why = tvAreaModeBlock(mode, o && o.state);
+                    if (why) throw new Error(why === "vision.area_mode_not_used" ? i18nT('vision.area_mode_not_used', { mode: mode }) : i18nT('vision.area_mode_not_for_area', { mode: mode }));
+                    return workshopApi("machine.workarea.save", { mode: mode, rect: r }).then(function () { return mode; });
+                  });
                 })
                 .then(function (modo) {
                   tvFlash(tv, i18nT('vision.cutting_area_saved', { mode: modo, x0: tvFmt(r.xmin, 1), x1: tvFmt(r.xmax, 1), y0: tvFmt(r.ymin, 1), y1: tvFmt(r.ymax, 1), m: margin }) + (Math.abs(ac.m.ang || 0) > 1 ? i18nT('vision.the_sheet_is_rotated_ang', { ang: tvFmt(ac.m.ang, 1) }) : "") + ").", true);
                 }, function (e) { tvFlash(tv, i18nT('vision.the_area_was_not_saved_v', { v: String(e.message) }), false); });
             }, i18nT('vision.confirm_saves_the_area'), i18nT('vision.saves_as_the_active_mode_s'))
           );
+          ac.acts.appendChild(tvReasonEl("workarea")); // 09-vision-access-reasons.js
         }
         // marks for registration cutting (function 3)
         ["a", "b"].forEach(function (k) {

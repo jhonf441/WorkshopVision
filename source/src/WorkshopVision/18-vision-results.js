@@ -14,6 +14,7 @@
         if (that === "area") {
           var g = (st && st.global) || {};
           var modeNow = workshopCurrentMode(st);
+          if (typeof tvAreaModeBlock === "function" && tvAreaModeBlock(modeNow, null)) throw new Error(i18nT('vision.area_mode_not_for_area', { mode: modeNow || "?" })); // FFF has no cutting area
           var a = g["cutArea" + modeNow];
           if (!a || a.length !== 4) throw new Error(i18nT('vision.mode_has_no_measured_cutting_area', { mode: modeNow || "?" }));
           return [a[0], a[2], a[1], a[3]];

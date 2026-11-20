@@ -35,6 +35,16 @@
       workshop.versions = workshop.versions || {};
       workshop.versions[PLUGIN_ID] = { version: PLUGIN_VERSION, commit: PLUGIN_COMMIT };
       console.info("[" + PLUGIN_ID + "] v" + PLUGIN_VERSION + " (" + PLUGIN_COMMIT + ")");
+
+      // The small "v1.2.3" every plugin shows in its own page bar (title = id and commit). Vue pages get the same chip from PageHeader.vue.
+      function workshopVersionChip() {
+        var c = document.createElement("span");
+        c.className = "wf-version";
+        c.textContent = "v" + PLUGIN_VERSION;
+        c.title = PLUGIN_ID + " v" + PLUGIN_VERSION + " (" + PLUGIN_COMMIT + ")";
+        c.style.cssText = "font-size:11px;opacity:0.6;white-space:nowrap;font-variant-numeric:tabular-nums;align-self:center;";
+        return c;
+      }
       workshopNotify(); // the bar (if already loaded) refreshes: a plugin arrived
       setTimeout(function () { workshopReportPlugin(false); }, 0); // started: the service forgets that it was stopped (30-lifecycle.js), once the whole file has run
 

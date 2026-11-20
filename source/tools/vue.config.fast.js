@@ -8,6 +8,7 @@ const path = require("path");
 const dwc = process.env.TALLER_DWC_SRC || path.resolve(__dirname, "..", "..", "dwc-src");
 const base = require(path.join(dwc, "vue.config.js"));
 const { merge } = require(path.join(dwc, "node_modules", "webpack-merge"));
+const StableModuleIds = require("./webpack-stable-module-ids");
 const CompressionPlugin = require(path.join(dwc, "node_modules", "compression-webpack-plugin"));
 
 const cfg = base.configureWebpack || {};
@@ -17,10 +18,12 @@ module.exports = Object.assign({}, base, {
   productionSourceMap: false,
   configureWebpack: merge(sinGz, {
     devtool: false,
+    // build slots reach node_modules through a junction: keep the module ids "./node_modules/..." (see webpack-stable-module-ids.js)
+    plugins: [new StableModuleIds()],
     cache: {
       type: "filesystem",
-      cacheDirectory: path.join(dwc, "node_modules", ".cache", "taller-webpack"),
-      buildDependencies: { config: [__filename, path.join(dwc, "vue.config.js")] },
+      cacheDirectory: path.join(dwc, ".taller-cache", "webpack"),
+      buildDependencies: { config: [__filename, path.join(__dirname, "webpack-stable-module-ids.js"), path.join(dwc, "vue.config.js")] },
     },
   }),
   chainWebpack: (config) => {

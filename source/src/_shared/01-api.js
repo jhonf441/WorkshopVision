@@ -183,7 +183,10 @@
               return workshopApi(op, args, Object.assign({}, opts, { retried: true, byPerson: byPerson }));
             });
           }
-          if (e.code === "forbidden") throw fail(workshopApiForbidden(e, j));
+          if (e.code === "forbidden") {
+            if (typeof workshopAccessForbidden === "function") workshopAccessForbidden(op); // the permission changed under the page: the answers of auth.can are asked again (09-access-reason.js)
+            throw fail(workshopApiForbidden(e, j));
+          }
           if (e.code === "confirm_required" && !opts.confirm && !opts.withoutDialog) {
             return workshopApiConfirm(e.confirm, e.message, op).then(function (ok) {
               if (!ok) throw workshopApiError("cancelled", workshopApiT("cancelled"), j);

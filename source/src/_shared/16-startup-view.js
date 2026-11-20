@@ -44,7 +44,7 @@
       // strip of a page keeps the plain reason line: the bar of the page has the chip). null when somebody is signed in.
       function workshopStartupSessionNoticeEl() {
         if (typeof workshopSignedOut !== "function" || !workshopSignedOut()) return null;
-        return workshopNoticeEl("session", "section", { text: workshopNoticeText("session"), action: "sign-in" });
+        return workshopNoticeEl("session", "section", { text: workshopNoticeText("session"), action: "sign-in", subject: i18nT("subjects_shared.startup") });
       }
 
       // The progress of the dialog: how many of the shown rows are ready, the bar and the hint. null while rows could not be checked (no session):

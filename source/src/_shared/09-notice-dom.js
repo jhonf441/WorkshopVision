@@ -5,10 +5,11 @@
       //   workshopNoticeKindOf({ reason, serviceDown, error })   "session" | "role" | "down" | "error" | ""   (reason = workshopAccessReason)
       //   workshopNoticeText(kind, needed)                        the one sentence of a cause; needed = a role id ("operator"...)
       //   workshopNoticeEl(kind, variant, opts)                   N2 note (variant "section") or N4 cover (variant "cover");
-      //                                                           opts = { text, title, needed, action: "sign-in" | "retry" | "", onRetry }
+      //                                                           opts = { text, title, needed, subject, action: "sign-in" | "retry" | "", onRetry }  (subject: what the notice is about, DESIGN 7d)
       //                                                           ("sign-in" on a role cause is drawn as "Change role": workshopNoticeActionOf)
-      //   workshopReasonEl(kind, text)                            N3, the reason next to a disabled control or group (text optional)
-      //   workshopLockReasonEl(op, need, ctx)                     N3 decided by the access rule of the operation; null when the person may
+      //   workshopReasonEl(kind, text, subject)                   N3, the reason next to a disabled control or group (text optional; subject = the name of what is locked)
+      //   workshopLockReasonEl(op, need, ctx, subject)            N3 decided by the access rule of the operation; null when the person may
+      //   workshopNoticeWithSubject(text, subject)                "{subject}: {text}"
 
       var WORKSHOP_NOTICE_ICONS = {
         session: "mdi-account-lock-outline",
@@ -115,8 +116,13 @@
 
       // "sign-in" and "change-role" open the ONE name + PIN dialog (workshopLogin): the session of this browser, if any, stays until the new one is accepted
       function workshopNoticeButton(act, cls, opts) {
-        var b = workshopNoticeDomEl("button", "wf-btn " + cls, workshopNoticeActionLabel(act));
+        var b = workshopNoticeDomEl("button", "wf-btn " + cls);
         b.type = "button";
+        // the icon of the action (2026-11-18): twin of actIcon in SessionNotice.vue
+        var icon = workshopNoticeDomEl("span", "wf-btn-icon mdi " + (act === "retry" ? "mdi-refresh" : act === "change-role" ? "mdi-account-switch-outline" : "mdi-account-lock-outline"));
+        icon.setAttribute("aria-hidden", "true");
+        b.appendChild(icon);
+        b.appendChild(workshopNoticeDomEl("span", "wf-btn-label", workshopNoticeActionLabel(act)));
         b.addEventListener("click", function () {
           if (act === "retry") {
             if (typeof opts.onRetry === "function") opts.onRetry();
@@ -135,9 +141,11 @@
         box.setAttribute("role", cover ? "status" : "note");
         box.appendChild(workshopNoticeIconEl(kind, cover ? "wf-cover-icon" : "wf-notice-icon"));
         var text = opts.text || (kind === "session" && cover ? i18nT("notice.notice_session_cover") : workshopNoticeText(kind, opts.needed));
+        if (!cover) text = workshopNoticeWithSubject(text, opts.subject); // the section note says WHAT it is about; a cover says it in its title
         var act = workshopNoticeAction(kind, variant, opts);
         if (cover) {
           var title = opts.title || workshopNoticeCoverTitle(kind);
+          if (opts.subject && !opts.title) title = title ? title + ": " + opts.subject : opts.subject;
           if (title) box.appendChild(workshopNoticeDomEl("div", "wf-cover-title", title));
           if (text) box.appendChild(workshopNoticeDomEl("div", "wf-cover-text", text));
           if (act) box.appendChild(workshopNoticeButton(act, "wf-main", opts));
@@ -150,17 +158,22 @@
         return box;
       }
 
-      function workshopReasonEl(kind, text) {
+      // The sentence led by WHAT is locked ("Phone alerts: sign-in required."): twin of the prop subject of SessionNotice.vue (DESIGN 7d)
+      function workshopNoticeWithSubject(text, subject) {
+        return subject && text ? i18nT("notice.notice_subject", { subject: subject, text: text }) : text;
+      }
+
+      function workshopReasonEl(kind, text, subject) {
         var box = workshopNoticeDomEl("div", "wf-reason wf-reason--" + kind);
         box.setAttribute("role", "note");
         box.appendChild(workshopNoticeIconEl(kind, "wf-reason-icon"));
-        box.appendChild(workshopNoticeDomEl("span", "wf-reason-text", text || workshopNoticeText(kind)));
+        box.appendChild(workshopNoticeDomEl("span", "wf-reason-text", workshopNoticeWithSubject(text || workshopNoticeText(kind), subject)));
         return box;
       }
 
-      function workshopLockReasonEl(op, need, ctx) {
+      function workshopLockReasonEl(op, need, ctx, subject) {
         var access = typeof workshopAccessState === "function" ? workshopAccessState(op, ctx) : "ok";
         var kind = access === "resolving" ? "resolving" : workshopNoticeKindOf({ reason: access === "session" ? "signed_out" : access === "role" ? "role" : "" });
         if (!kind) return null;
-        return workshopReasonEl(kind, workshopNoticeText(kind, need));
+        return workshopReasonEl(kind, workshopNoticeText(kind, need), subject);
       }

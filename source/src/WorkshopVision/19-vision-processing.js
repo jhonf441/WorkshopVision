@@ -25,6 +25,7 @@
         var state = tvEl("div", "tv-muted");
         state.style.marginTop = "6px";
         card.appendChild(state);
+        card.appendChild(tvReasonEl("processing")); // 09-vision-access-reasons.js
         card.appendChild(tvEl("div", "tv-muted", tvTx('vision.camera_processing_help', ['camera', 'workbench'])));
 
         function paint() {

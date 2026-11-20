@@ -52,7 +52,7 @@
         // On the kiosk (squeekboard) the keyboard only comes out for a touch on the field; a field that already has the focus from
         // code gets no second chance, so each touch takes the focus away and gives it back (and focusin, right after the touch, asks the keyboard helper again).
         input.addEventListener("pointerup", function () {
-          if (document.activeElement !== input) return;
+          if (input.readOnly || document.activeElement !== input) return;
           input.blur();
           input.focus();
         });
@@ -146,6 +146,15 @@
         });
         v.pin.wrap.style.position = "relative";
         v.pin.wrap.appendChild(eye);
+        // Kiosk (page on the Pi itself): the keyboard helper can only raise the FULL layout, and a PIN is digits. So the dialog draws its own number
+        // pad and the helper leaves this field alone (data-wf-own-keypad, 02-kiosk-keyboard.js). Anywhere else the browser's own numeric keyboard is used.
+        var pinHost = window.location && window.location.hostname;
+        if (pinHost === "localhost" || pinHost === "127.0.0.1") {
+          v.pin.input.setAttribute("inputmode", "none");
+          v.pin.input.setAttribute("data-wf-own-keypad", "1");
+          v.pin.input.readOnly = true; // 2026-11-12: inputmode none was not enough, the full keyboard still came up; a read-only field raises none (and takes no focus)
+          v.keypad = workshopPinKeypad(v.pin.input);
+        }
         v.msg = workshopPinEl("div", "min-height:20px;margin-top:10px;font-size:12px;color:#ef9a9a;");
         v.row = workshopPinEl("div", "display:flex;gap:8px;justify-content:flex-end;margin-top:6px;");
         v.bc = workshopPinEl("button", "background:transparent;color:#eceff1;border:0;border-radius:6px;padding:8px 16px;min-height:44px;font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;font-family:inherit;", t("cancel"));
@@ -153,11 +162,35 @@
         v.bc.type = v.bo.type = "button";
         v.row.appendChild(v.bc);
         v.row.appendChild(v.bo);
-        [v.name.wrap, v.pin.wrap, v.msg, v.row].forEach(function (x) {
-          v.box.appendChild(x);
+        [v.name.wrap, v.pin.wrap, v.keypad, v.msg, v.row].forEach(function (x) {
+          if (x) v.box.appendChild(x);
         });
         v.back.appendChild(v.box);
         return v;
+      }
+
+      // Number pad of the dialog for the kiosk: 1-9, clear, 0, backspace. The buttons never take the focus (the PIN field keeps it, and with it Enter).
+      function workshopPinKeypad(input) {
+        var grid = workshopPinEl("div", "display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;");
+        var cells = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "C", "0", "<"];
+        cells.forEach(function (c) {
+          var b = workshopPinEl("button", "min-height:52px;font-size:20px;font-weight:600;font-family:inherit;color:#eceff1;background:#37474f;border:0;border-radius:8px;cursor:pointer;", c === "<" ? "⌫" : c);
+          b.type = "button";
+          b.setAttribute("tabindex", "-1");
+          b.addEventListener("pointerdown", function (ev) {
+            ev.preventDefault();
+            var a = document.activeElement;
+            if (a && a !== document.body && a.blur) a.blur(); // the name field's keyboard goes away: only this pad is left
+          });
+          b.addEventListener("click", function () {
+            if (c === "C") input.value = "";
+            else if (c === "<") input.value = input.value.slice(0, -1);
+            else input.value += c;
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+          });
+          grid.appendChild(b);
+        });
+        return grid;
       }
 
       // Red border on both fields while the sign shows an error
@@ -171,7 +204,8 @@
 
       // The first empty field gets the focus; on the kiosk the keyboard comes out through the helper (02-kiosk-keyboard.js)
       function workshopPinFocusFirst(v) {
-        (v.name.input.value ? v.pin.input : v.name.input).focus();
+        if (!v.name.input.value) v.name.input.focus();
+        else if (!v.keypad) v.pin.input.focus(); // on the kiosk the PIN is typed on the pad: nothing to focus
       }
 
       function workshopPinDialog(login, t) {
@@ -190,7 +224,7 @@
             v.pin.input.value = "";
             v.msg.textContent = err.message || t("pinWrong");
             workshopPinPaintError(v, true);
-            v.pin.input.focus();
+            if (!v.keypad) v.pin.input.focus();
           }
           function submit() {
             if (busy) return;
@@ -223,10 +257,17 @@
           }
           function key(ev) {
             if (ev.key === "Escape") end(false);
-            else if (ev.key === "Enter") {
+            else if (v.keypad && ev.target !== v.name.input && (/^\d$/.test(ev.key) || ev.key === "Backspace")) {
+              // read-only PIN (kiosk): a physical keyboard types into it through here
+              v.pin.input.value = ev.key === "Backspace" ? v.pin.input.value.slice(0, -1) : v.pin.input.value + ev.key;
+              v.pin.input.dispatchEvent(new Event("input", { bubbles: true }));
+              ev.preventDefault();
+            } else if (ev.key === "Enter") {
               // From the name Enter goes on to the PIN; from the PIN it signs in
-              if (ev.target === v.name.input && !v.pin.input.value) v.pin.input.focus();
-              else submit();
+              if (ev.target === v.name.input && !v.pin.input.value) {
+                if (v.keypad) v.name.input.blur(); // kiosk: the pad is next, the keyboard of the name goes away
+                else v.pin.input.focus();
+              } else submit();
             }
           }
           v.bc.addEventListener("click", function () {

@@ -290,7 +290,7 @@
         var rk = cls === "err" && typeof workshopNoticeEl === "function" ? tvRefusalKind(text) : "";
         if (rk) {
           var parts = workshopNoticeParts(text);
-          return workshopNoticeEl(rk, "section", { text: parts.title ? parts.title + ": " + parts.desc : parts.desc, action: "" });
+          return workshopNoticeEl(rk, "section", { text: parts.desc, action: "", subject: parts.title || i18nT("subjects_vision.vision_panel") });
         }
         var m = tvEl("div", "tv-msg " + cls);
         m.appendChild(tvIcon(cls === "ok" ? "check-circle-outline" : cls === "err" ? "alert-circle-outline" : "information-outline"));

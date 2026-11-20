@@ -77,6 +77,7 @@
         hd.appendChild(txt);
         var right = tvEl("div", "wf-bar-right");
         hd.appendChild(right);
+        right.appendChild(workshopVersionChip());
         tv.pills = right;
         tv.chipSrv = tvPill(tv, "server");
         tv.chipCamera = tvPill(tv, "cctv");

@@ -38,7 +38,7 @@
         // a section above the role: ONE cover that says why (no session: blue; role too low: gray, with the role that opens it); no button, the chip has the sign-in
         var lock = tvSectionLock(tvView(), tv.tab);
         if (lock) {
-          tv.side.appendChild(workshopNoticeEl(signedOut ? "session" : "role", "cover", { needed: lock, action: "" }));
+          tv.side.appendChild(workshopNoticeEl(signedOut ? "session" : "role", "cover", { needed: lock, action: "", subject: i18nT("subjects_vision.vision_panel") }));
           return;
         }
         if (tv.tab === "guided") return tvRenderGuided(tv);
@@ -57,7 +57,7 @@
       // The look-only view says why with ONE reason (N3, no button: the chip of the bar has the sign-in): no session, or the role that is needed.
       function tvRenderViewerNote(tv, signedOut) {
         var note = tvViewerNote(signedOut);
-        tv.side.appendChild(workshopReasonEl(note.kind, workshopNoticeText(note.kind, note.needed)));
+        tv.side.appendChild(workshopReasonEl(note.kind, workshopNoticeText(note.kind, note.needed), i18nT("subjects_vision.vision_panel")));
       }
 
       // Without the Vision service (2026-10-10, test "what if a

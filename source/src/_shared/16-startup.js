@@ -104,7 +104,7 @@
       // the sentence that says why those buttons are off (null when the session is there)
       function workshopStartupLockedNote() {
         if (typeof workshopSignedOut !== "function" || !workshopSignedOut()) return null;
-        return workshopReasonEl("session", workshopNoticeText("session")); // by state: signed out, expired or locked PIN
+        return workshopReasonEl("session", workshopNoticeText("session"), i18nT("subjects_shared.startup")); // by state: signed out, expired or locked PIN
       }
 
       function workshopStartupButton(text, help, onClick, kind) {

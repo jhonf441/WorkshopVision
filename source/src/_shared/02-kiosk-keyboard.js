@@ -37,7 +37,32 @@
           function touched() {
             touchedAt = Date.now();
           }
+          // Native number layout (2026-11-12): the kiosk browser runs with --enable-wayland-ime --wayland-text-input-version=3 (kiosk/chromium-shim.sh),
+          // so squeekboard picks its own number layout for type="number" fields. Chromium on Wayland ignores inputmode, so a text field that
+          // declares itself numeric (inputmode numeric/decimal, or a digits-only pattern) is turned into type="number" just before it gets
+          // the focus (the touch comes first), and the number pad shows for it too. Fields that draw their own pad are left alone.
+          function numericDeclared(el) {
+            if (!el || el.tagName !== "INPUT" || el.type !== "text" || el.readOnly || el.disabled) return false;
+            if (el.getAttribute("data-wf-own-keypad")) return false;
+            var mode = String(el.getAttribute("inputmode") || "").toLowerCase();
+            if (mode === "numeric" || mode === "decimal") return true;
+            return /^\[0-9\]\*$|^\\d\*$/.test(String(el.getAttribute("pattern") || ""));
+          }
+          function toNumberField(e) {
+            var el = e.target;
+            if (!numericDeclared(el)) return;
+            try {
+              if (!el.getAttribute("step")) el.setAttribute("step", "any");
+              el.type = "number";
+            } catch (err) {
+              /* the browser refuses: the text keyboard stays */
+            }
+          }
+          touchEvents.forEach(function (ev) {
+            document.addEventListener(ev, toNumberField, { capture: true, passive: true });
+          });
           function onFocusIn(e) {
+            if (e.target && e.target.getAttribute && e.target.getAttribute("data-wf-own-keypad")) return; // the field draws its own number pad (PIN dialog)
             if (workshopOskIsText(e.target) && Date.now() - touchedAt < 700) workshopOskAsk("show");
           }
           function onFocusOut() {
@@ -54,6 +79,7 @@
           return function () {
             touchEvents.forEach(function (ev) {
               document.removeEventListener(ev, touched, { capture: true });
+              document.removeEventListener(ev, toNumberField, { capture: true });
             });
             document.removeEventListener("focusin", onFocusIn, true);
             document.removeEventListener("focusout", onFocusOut, true);

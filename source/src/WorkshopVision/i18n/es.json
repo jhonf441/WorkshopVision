@@ -1,4 +1,9 @@
 {
+	"subjects_vision": {
+		"workarea": "Área de trabajo",
+		"processing": "Procesamiento",
+		"vision_panel": "Visión"
+	},
 	"vision": {
 		"without_height": ", sin altura",
 		"camera_without_image": "cámara sin imagen",
@@ -304,6 +309,8 @@
 		"saves_as_the_active_mode_s": "Guarda como área de corte del modo activo el rectángulo que entra en este material, 2 mm adentro del borde. Pide segundo toque.",
 		"confirm_saves_the_area": "Confirmar: guarda el área",
 		"use_as_cutting_area": "Usar como área de corte",
+		"area_mode_not_for_area": "El área de corte es solo del modo Láser o CNC: la máquina está en modo {mode} ahora.",
+		"area_mode_not_used": "El perfil de la máquina no usa el modo {mode}: no se guarda el área de corte para él.",
 		"no_machine_mode": "No se conoce el modo de la máquina: sin él no se sabe de qué modo es el área.",
 		"open_the_work_zones_page_the_2": "Abri la página Zonas de trabajo: el punto queda cargado.",
 		"zone_origin": "Origen de zona",

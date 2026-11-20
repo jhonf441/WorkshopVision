@@ -180,9 +180,19 @@
         return workshopAuthState().identity;
       }
 
-      function workshopAuthSetIdentity(w) {
+      // What makes two answers of auth.whoami the same for the pages: who it is, the role and every switch of the access (users off, damaged, open network...).
+      function workshopIdentitySig(w) {
+        if (!w) return "null";
+        var u = w.user || {};
+        return JSON.stringify([w.configured, w.damaged, w.compat, w.login_required, w.users_disabled, w.network_open, w.role, w.role_name, w.allow, w.deny, [u.name, u.role, u.modes, u.camera], w.table]);
+      }
+      function workshopAuthSetIdentity(w, force) {
         var s = workshopAuthState();
+        var sig = workshopIdentitySig(w);
+        var same = !force && s.identity && sig === s.identitySig;
         s.identity = w || null;
+        s.identitySig = sig;
+        if (same) return; // the same answer again (the page asks every few seconds): nobody has to redraw
         s.listeners.slice().forEach(function (fn) {
           try {
             fn(s.identity);
@@ -215,6 +225,11 @@
 
       function workshopCan(op, ctx) {
         ctx = ctx || {};
+        // a stop is never locked; the answer of the service (auth.can, asked by the pages that explain their locks) wins over the table, except when the
+        // arguments can escalate the call (the answers are asked without them)
+        if (typeof workshopAccessIsStop === "function" && workshopAccessIsStop(op)) return true;
+        var answered = ctx.args || typeof workshopAnswer !== "function" ? null : workshopAnswer(op);
+        if (answered) return answered.allowed === true;
         var id = workshopAuthState().identity;
         if (!id || !id.table) return true;
         // users exist and nobody is signed in (role null): a VISITOR, who can only look and stop; it used to say yes to everything
@@ -249,8 +264,10 @@
       function workshopAuthRefresh(call) {
         function answered(j) {
           // the service did not answer: the session stays unknown but it is not "resolving" any more
+          var wasFailed = !!workshopAuthState().whoamiFailed;
           workshopAuthState().whoamiFailed = !(j && j.ok);
-          if (j && j.ok) workshopAuthSetIdentity(j.result);
+          workshopAuthState().whoamiAt = Date.now();
+          if (j && j.ok) workshopAuthSetIdentity(j.result, wasFailed);
           return j && j.ok ? j.result : null;
         }
         return call("auth.whoami", {}).then(answered, function () {
@@ -343,6 +360,9 @@
       // The page was in the background (another tab or window) while the person signed in or out there: the storage event can be missed (a throttled or
       // frozen tab, a page restored from the back/forward cache), and the page kept saying "no session". When it comes back to the front the token of the
       // browser is compared with the one this page knows, and who the service says the person is is asked again when that disagrees with the token.
+      // `due` (2026-11-18): the service is also asked every few seconds while the page is in view, because the access itself can change with no token
+      // involved (users or roles switched off or on, a role changed, a person removed) and a page that never asks again keeps showing the old role.
+      var WORKSHOP_AUTH_RECHECK_MS = 10000;
       function workshopAuthReconcile(call) {
         var s = workshopAuthState();
         var stored = "";
@@ -352,17 +372,69 @@
           stored = s.token || "";
         }
         var staleAnswer = !!(s.token && s.identity && s.identity.login_required);
-        if (stored !== (s.token || "") || staleAnswer) {
+        // the first whoami never got an answer (the service was still starting): the page knows nobody and, with no event coming, would never ask again
+        var unanswered = !s.identity && !s.whoamiPending;
+        var due = !s.whoamiPending && !s.flight && Date.now() - (s.whoamiAt || 0) > WORKSHOP_AUTH_RECHECK_MS;
+        if (stored !== (s.token || "") || staleAnswer || unanswered || due) {
           s.token = stored;
-          workshopAuthRefresh(call).catch(function () {});
+          s.whoamiPending = true;
+          var done = function () { s.whoamiPending = false; };
+          workshopAuthRefresh(call).then(done, done);
+        }
+      }
+
+      // How often a visible page compares its session with the browser's (a local read; the service is asked only when they disagree or nobody is known)
+      var WORKSHOP_AUTH_RECONCILE_MS = 15000;
+
+      // The counter the service publishes (plugins.WorkshopService.data.accessRev, 2026-11-18) and raises with every change of who may do what: users or roles
+      // switched on or off, a person or a role edited, a profile, a ceiling, a PIN. null when it is not there (an older service, DWC not ready).
+      function workshopAccessRevRead() {
+        try {
+          if (typeof workshopPluginsModel !== "function" || typeof workshopIdInstalled !== "function" || typeof workshopPluginData !== "function") return null;
+          var pl = workshopPluginsModel();
+          var id = workshopIdInstalled("service");
+          var p = pl && (typeof pl.get === "function" ? pl.get(id) : pl[id]);
+          var d = workshopPluginData(p);
+          return d && typeof d.accessRev === "number" ? d.accessRev : null;
+        } catch (e) {
+          return null;
+        }
+      }
+      // A different value (also a lower one: the counter starts again at 0 when the service starts) = the access changed: ask whoami now. Local read, no request.
+      var WORKSHOP_AUTH_REV_MS = 2000;
+      function workshopAuthWatchRev(call) {
+        var s = workshopAuthState();
+        var rev = workshopAccessRevRead();
+        if (rev === null) return;
+        if (s.accessRev === undefined) {
+          s.accessRev = rev;
+          return;
+        }
+        if (rev !== s.accessRev) {
+          s.accessRev = rev;
+          if (!s.flight) workshopAuthRefresh(call).catch(function () {});
         }
       }
 
       // Tells the service the person is still there (real use only), at most once a minute.
       function workshopAuthKeepalive(call) {
         var s = workshopAuthState();
-        if (s.keepalive || typeof document === "undefined") return;
-        s.keepalive = 1;
+        // its own flag: the Vue client (workshop-auth.js) registers its listeners with another one, so neither client leaves the other without its events
+        if (s.keepaliveJs || typeof document === "undefined") return;
+        s.keepaliveJs = 1;
+        // events can be missed (a plugin that loads late, a frozen tab, a failed first whoami): a light check keeps every plugin of the page on the same session
+        if (typeof setInterval === "function") {
+          var timer = setInterval(function () {
+            if (document.visibilityState === "hidden") return;
+            workshopAuthReconcile(call);
+          }, WORKSHOP_AUTH_RECONCILE_MS);
+          if (timer && typeof timer.unref === "function") timer.unref();
+          var revTimer = setInterval(function () {
+            if (document.visibilityState === "hidden") return;
+            workshopAuthWatchRev(call);
+          }, WORKSHOP_AUTH_REV_MS);
+          if (revTimer && typeof revTimer.unref === "function") revTimer.unref();
+        }
         var last = 0;
         function ping() {
           var now = Date.now();

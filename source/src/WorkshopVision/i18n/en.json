@@ -1,4 +1,9 @@
 {
+	"subjects_vision": {
+		"workarea": "Work area",
+		"processing": "Processing",
+		"vision_panel": "Vision"
+	},
 	"vision": {
 		"without_height": ", without height",
 		"camera_without_image": "camera without image",
@@ -304,6 +309,8 @@
 		"saves_as_the_active_mode_s": "Saves as the active mode's cutting area the rectangle that fits in this material, 2 mm inside the edge. Asks for a second tap.",
 		"confirm_saves_the_area": "Confirm: saves the area",
 		"use_as_cutting_area": "Use as cutting area",
+		"area_mode_not_for_area": "The cutting area is only for Laser or CNC mode: the machine is in {mode} mode now.",
+		"area_mode_not_used": "The machine profile does not use {mode} mode: the cutting area is not saved for it.",
 		"no_machine_mode": "The mode of the machine is not known: without it the area cannot be saved for a mode.",
 		"open_the_work_zones_page_the_2": "Open the Work zones page: the point is already loaded.",
 		"zone_origin": "Zone origin",

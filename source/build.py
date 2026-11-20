@@ -118,6 +118,8 @@ DWC_SRC = os.environ.get("TALLER_DWC_SRC", os.path.join(os.path.expanduser("~"),
 # the DWC 3.6 clone (webpack, Vue 2) that builds the dwc36/ side of the Vue plugins
 DWC_SRC_36 = os.environ.get("TALLER_DWC_SRC_36", os.path.join(os.path.expanduser("~"), "Projects", "dwc-src"))
 LOCK_WAIT_SECONDS = int(os.environ.get("TALLER_LOCK_WAIT", "1800"))
+# how many DWC 3.6 clones can build at once (the base clone plus <clone>-slot2.. made on demand); 1 = the old single clone
+DWC_SLOTS_36 = int(os.environ.get("TALLER_DWC_SLOTS", "4"))
 STATUS_URL = "http://localhost/machine/status" if LOCAL else "http://" + SSH_HOST.split("@")[-1] + "/machine/status"
 SOURCE_DIRS = ["src", "vue"]
 # Canonical versions file: ALWAYS on the Pi (even if built on the PC),
@@ -187,42 +189,137 @@ def modo_36():
     return "completa" if MODO["completa"] or not os.path.isfile(RAPIDA_CFG) else "rapida"
 
 
-def env_dwc_36():
+def env_dwc_36(clone=None):
     env = dict(os.environ)
     if modo_36() == "rapida":
         env["VUE_CLI_SERVICE_CONFIG_PATH"] = RAPIDA_CFG
-    env["TALLER_DWC_SRC"] = DWC_SRC_36  # tools/vue.config.fast.js and the 3.6 test hooks read the clone from here
+    elif clone and os.path.normcase(clone) != os.path.normcase(DWC_SRC_36):
+        env["VUE_CLI_SERVICE_CONFIG_PATH"] = os.path.join(ROOT, "tools", "vue.config.slot.js")  # slot: node_modules is a junction
+    env["TALLER_DWC_SRC"] = clone or DWC_SRC_36  # tools/vue.config.fast.js and the 3.6 test hooks read the clone from here
     return env
 
 
-class dwc_lock:
-    """Exclusive use of a shared DWC clone: the folder <clone>.lock is created with mkdir (atomic) and removed on exit, only if this
-    process created it. Waits (TALLER_LOCK_WAIT seconds, default 1800) when another build holds it; never removes a foreign lock."""
+def _pid_alive(pid):
+    """True when a process with this id exists (Windows: tasklist; elsewhere: signal 0)."""
+    try:
+        if os.name == "nt":
+            out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/NH"], capture_output=True, text=True).stdout
+            return str(pid) in out
+        os.kill(pid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except Exception:
+        return True
 
-    def __init__(self, clone):
-        self.path = clone.rstrip("/\\") + ".lock"
+
+class dwc_lock:
+    """Exclusive use of a DWC clone while one build runs. Each clone has a <clone>.lock folder (mkdir is atomic) holding an `owner`
+    file with this build's pid. With slots > 1 the build takes the first FREE clone of a pool (<clone>, <clone>-slot2, <clone>-slot3...),
+    so several sessions compile at the same time without touching each other's work; the extra clones are clean git worktrees of the
+    base clone that share its node_modules, created on first use. A lock is released only by the process that made it; one whose owner
+    pid is dead is reclaimed. A lock without an owner file (older build.py) is never touched: that slot is just skipped.
+    `with dwc_lock(...) as clone:` gives the path of the clone to build in. Waits TALLER_LOCK_WAIT seconds when every slot is busy."""
+
+    def __init__(self, clone, slots=1):
+        self.base = clone.rstrip("/\\")
+        self.slots = max(1, slots)
+        self.clone = self.base
+        self.path = self.base + ".lock"
         self.mine = False
+        self._warned = set()
+
+    def _slot_path(self, i):
+        return self.base if i == 1 else f"{self.base}-slot{i}"
+
+    def _owner_file(self, lock):
+        return os.path.join(lock, "owner")
+
+    def _reclaim_if_dead(self, lock):
+        try:
+            with open(self._owner_file(lock), encoding="utf-8") as f:
+                pid = int(f.read().split()[0])
+        except (OSError, ValueError, IndexError):
+            return False  # no owner recorded: not ours to judge
+        if _pid_alive(pid):
+            return False
+        try:
+            os.remove(self._owner_file(lock))
+            os.rmdir(lock)
+            print(f"  reclaimed {lock} (build {pid} is gone)")
+            return True
+        except OSError:
+            return False
+
+    def _make_slot(self, path):
+        """Create the clone of a slot (a detached worktree of the base clone + node_modules junction)."""
+        if os.path.isfile(os.path.join(path, "scripts", "build-plugin.js")):
+            return
+        if os.path.isdir(path):
+            shutil.rmtree(path, ignore_errors=True)
+        subprocess.run(["git", "-C", self.base, "worktree", "prune"], capture_output=True)
+        r = subprocess.run(["git", "-C", self.base, "worktree", "add", "--detach", path, "HEAD"], capture_output=True, text=True)
+        if r.returncode != 0:
+            raise RuntimeError(f"cannot create {path}: {(r.stdout + r.stderr).strip()}")
+        link, target = os.path.join(path, "node_modules"), os.path.join(self.base, "node_modules")
+        if os.name == "nt":
+            subprocess.run(["cmd", "/c", "mklink", "/J", link, target], capture_output=True, check=True)
+        else:
+            os.symlink(target, link, target_is_directory=True)
+        print(f"  created build slot {path}")
 
     def __enter__(self):
         import time
         t0 = time.time()
         announced = False
         while True:
-            try:
-                os.mkdir(self.path)
-                self.mine = True
-                return self
-            except FileExistsError:
-                if time.time() - t0 > LOCK_WAIT_SECONDS:
-                    sys.exit(f"{self.path} is held by another build for more than {LOCK_WAIT_SECONDS} s; not touching it")
-                if not announced:
-                    print(f"  waiting for {self.path} (another build uses this DWC clone)...")
-                    announced = True
-                time.sleep(5)
+            for i in range(1, self.slots + 1):
+                clone = self._slot_path(i)
+                lock = clone + ".lock"
+                try:
+                    os.mkdir(lock)
+                except FileExistsError:
+                    self._reclaim_if_dead(lock)
+                    continue
+                if os.path.isdir(clone) and not self._is_clean(clone):
+                    # leftovers of another build (e.g. one that died): never reuse nor clean them, tell and use the next slot
+                    os.rmdir(lock)
+                    if clone not in self._warned:
+                        self._warned.add(clone)
+                        print(f"  WARNING: {clone} has uncommitted changes (a dead build?); skipped, not cleaned. Check it with git status.")
+                    continue
+                try:
+                    with open(self._owner_file(lock), "w", encoding="utf-8") as f:
+                        f.write(f"{os.getpid()} {datetime.datetime.now().isoformat(timespec='seconds')}" + "\n")
+                    if i > 1:
+                        self._make_slot(clone)
+                except Exception as e:
+                    shutil.rmtree(lock, ignore_errors=True)
+                    print(f"  slot {clone} unusable: {e}")
+                    continue
+                self.clone, self.path, self.mine = clone, lock, True
+                return clone
+            if time.time() - t0 > LOCK_WAIT_SECONDS:
+                sys.exit(f"every DWC clone ({self.base} and {self.slots - 1} more slots) is held for more than {LOCK_WAIT_SECONDS} s; not touching them")
+            if not announced:
+                print(f"  waiting: every DWC clone slot is busy ({self.slots} slots)...")
+                announced = True
+            time.sleep(5)
+
+    def _tidy(self):
+        """Leave the clone as git has it: a DWC build rewrites src/plugins/imports.ts and drops src/plugins/<Id>/ in it."""
+        for args in (["checkout", "--", "src/plugins/imports.ts"], ["clean", "-fdq", "--", "src/plugins"]):
+            subprocess.run(["git", "-C", self.clone] + args, capture_output=True)
+
+    def _is_clean(self, clone):
+        r = subprocess.run(["git", "-C", clone, "status", "--porcelain", "--untracked-files=normal"], capture_output=True, text=True)
+        return r.returncode == 0 and not [l for l in r.stdout.splitlines() if ".taller-cache" not in l]
 
     def __exit__(self, *exc):
         if self.mine:
+            self._tidy()
             try:
+                os.remove(self._owner_file(self.path))
                 os.rmdir(self.path)
             except OSError:
                 pass
@@ -245,7 +342,12 @@ def env_dwc():
 
 
 def git(*args, check=True):
-    r = subprocess.run(["git", "-C", ROOT] + list(args), capture_output=True, text=True)
+    import time
+    for _ in range(60):  # parallel builds (build slots) share this index: wait for index.lock instead of dying
+        r = subprocess.run(["git", "-C", ROOT] + list(args), capture_output=True, text=True)
+        if "index.lock" not in r.stderr:
+            break
+        time.sleep(1)
     if check and r.returncode != 0:
         sys.exit(f"git {' '.join(args)} fallo: {(r.stdout + r.stderr).strip()}")
     return r.stdout.strip()
@@ -1006,10 +1108,11 @@ def build_js_oficial(plugin_id):
     out = os.path.join(DWC_SRC_36, "dist", f"{plugin_id}-{version}.zip")
     BUILD_MODE[plugin_id] = modo_36()
     print(f"{plugin_id} {version} ({commit}) [DWC 3.6]: compilando con DWC en {DWC_SRC_36} (modo {modo_36()})...")
-    with dwc_lock(DWC_SRC_36):
+    with dwc_lock(DWC_SRC_36, DWC_SLOTS_36) as clone:
+        out = os.path.join(clone, "dist", f"{plugin_id}-{version}.zip")
         if os.path.exists(out):
             os.remove(out)
-        r = subprocess.run(["node", "scripts/build-plugin.js", stage], cwd=DWC_SRC_36, capture_output=True, text=True, env=env_dwc_36())
+        r = subprocess.run(["node", "scripts/build-plugin.js", stage], cwd=clone, capture_output=True, text=True, env=env_dwc_36(clone))
         if r.returncode != 0 or not os.path.exists(out):
             print((r.stdout + r.stderr)[-3000:])
             sys.exit(f"{plugin_id}: fallo el build de DWC 3.6")
@@ -1136,6 +1239,8 @@ def stage_vue(plugin_id, line="3.7", guard=True):
         # the shared pieces ask their texts as plugins.<Id>.shared.<key>: the id of the plugin being built and the shared catalogs
         with open(os.path.join(stage, "dwc-src", "plugin-id.js"), "w", encoding="utf-8", newline="\n") as f:
             f.write("export const PLUGIN_ID = " + json.dumps(plugin_id) + "\n")
+        with open(os.path.join(stage, "dwc-src", "plugin-version.js"), "w", encoding="utf-8", newline="\n") as f:
+            f.write("export const PLUGIN_VERSION = " + json.dumps(load_manifest(plugin_id).get("version", "0.0.0")) + "\n")
         for lang in ("es", "en"):
             shared_f = os.path.join(shared_dir, "i18n", lang + ".json")
             own_f = os.path.join(stage, "dwc-src", "i18n", lang + ".json")
@@ -1194,10 +1299,11 @@ def build_vue_36(plugin_id):
     out = os.path.join(DWC_SRC_36, "dist", f"{plugin_id}-{version}.zip")
     BUILD_MODE[plugin_id] = modo_36()
     print(f"{plugin_id} {version} ({git_commit_label()}) [DWC 3.6]: compilando con DWC en {DWC_SRC_36} (modo {modo_36()})...")
-    with dwc_lock(DWC_SRC_36):
+    with dwc_lock(DWC_SRC_36, DWC_SLOTS_36) as clone:
+        out = os.path.join(clone, "dist", f"{plugin_id}-{version}.zip")
         if os.path.exists(out):
             os.remove(out)
-        r = subprocess.run(["node", "scripts/build-plugin.js", stage], cwd=DWC_SRC_36, capture_output=True, text=True, env=env_dwc_36())
+        r = subprocess.run(["node", "scripts/build-plugin.js", stage], cwd=clone, capture_output=True, text=True, env=env_dwc_36(clone))
         if r.returncode != 0 or not os.path.exists(out):
             print((r.stdout + r.stderr)[-3000:])
             sys.exit(f"{plugin_id}: fallo el build de DWC 3.6")
@@ -1546,10 +1652,15 @@ def main():
             # Commit of the version BEFORE building: so the bundle carries the
             # exact commit of this version (without "+changes").
             new = bump(pid, a.bump, a.message)
-            git("add", "--", manifest_path(pid), os.path.join(plugin_dir(pid), "CHANGELOG.md"))
+            bumped = [manifest_path(pid), os.path.join(plugin_dir(pid), "CHANGELOG.md")]
             if is_vue(pid) and has_36(pid):
-                git("add", "--", os.path.join(VUE, pid, "dwc36", "plugin.json"))
-            git("commit", "-q", "-m", f"{pid} v{new}: {a.message}")
+                bumped.append(os.path.join(VUE, pid, "dwc36", "plugin.json"))
+            backend_ver = os.path.join(plugin_dir(pid), "dsf", "version.py")
+            if os.path.isfile(backend_ver):
+                bumped.append(backend_ver)
+            git("add", "--", *bumped)
+            # only this plugin's files: a parallel build (build slots) may have its own staged in the same index
+            git("commit", "-q", "-m", f"{pid} v{new}: {a.message}", "--", *bumped)
         if a.dwc == "universal":
             zip_path, version = build_universal(pid)
         else:

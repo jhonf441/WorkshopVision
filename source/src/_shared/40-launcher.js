@@ -57,8 +57,8 @@
             "</svg>";
           el.style.cssText = [
             "position:fixed",
-            "width:44px",
-            "height:44px",
+            "width:var(--wf-hit, 40px)",
+            "height:var(--wf-hit, 40px)",
             "border-radius:50%",
             "display:flex",
             "align-items:center",
@@ -74,7 +74,7 @@
           ].join(";");
           document.body.appendChild(el);
           var slot = Math.max(1, Math.round(order / 10)); // one above the other, bottom right
-          makeDraggable(el, "workshopFallbackPos_" + panelId, 44, 44, window.innerWidth - 60, window.innerHeight - 8 - slot * 56, function () {
+          makeDraggable(el, "workshopFallbackPos_" + panelId, 40, 40, window.innerWidth - 60, window.innerHeight - 8 - slot * 56, function () {
             panel.toggle();
             sync();
           });

@@ -86,7 +86,10 @@
         while (tv.svg.firstChild) tv.svg.removeChild(tv.svg.firstChild);
         if (!tv.view.w) return;
         dr.k = Math.max(tv.view.w, tv.view.h) / 800 / tv.zoom.s; // relative line width (with zoom, the same on screen)
-        dr.fs = 13 * dr.k;
+        // screen px -> view units: the stage shows view.w units over clientWidth px, then the zoom scales it. dr.k assumes an 800 px stage, so on a
+        // narrower one the 13 units text (and the 0.78 of it on the ruler) fell to 6 - 10 px; the floor keeps the smallest label at 12 px on screen.
+        var perPx = tv.stage.clientWidth ? tv.view.w / tv.stage.clientWidth / tv.zoom.s : dr.k;
+        dr.fs = Math.max(13 * dr.k, 15.5 * perPx);
         if (tv.prefs.grid && tv.tab !== "calibrate") tvGrid(tv, dr.k, dr.fs);
         if (tv.prefs.rule !== false && tv.tab !== "calibrate") tvRule(tv, dr.k, dr.fs);
         dr.g = tvSvg("g", {}, tv.svg);

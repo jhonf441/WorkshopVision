@@ -129,10 +129,11 @@
         tv.side.appendChild(ft.card);
         // video (rapido, menos detalle) o foto de medicion (alta resolucion)
         ft.mode = tv.prefs.modePhoto || (tv.photoAct ? "photo" : "video");
-        var sec = tvEl("div", "tv-sec");
+        var sec = tvEl("div", "tv-sec tv-sec--pair");
         sec.style.width = "100%";
-        [["video", i18nT('vision.live_video'), "video-outline"], ["photo", i18nT('vision.measuring_photo'), "camera-iris"]].forEach(function (o) {
-          var b = tvIBtn(o[2], o[1], ft.mode === o[0] ? "on" : null, function () {
+        // two glued segments of 32 with their words only (an icon made "Live video" wrap to two lines in the side column)
+        [["video", i18nT('vision.live_video')], ["photo", i18nT('vision.measuring_photo')]].forEach(function (o) {
+          var b = tvBtn(o[1], ft.mode === o[0] ? "on" : null, function () {
             tv.prefs.modePhoto = o[0];
             tvSavePrefs(tv.prefs);
             if (o[0] === "video" && tv.photoAct) tvRevertVideo(tv);
@@ -140,6 +141,7 @@
           });
           b.style.flex = "1";
           b.style.justifyContent = "center";
+          b.setAttribute("aria-pressed", ft.mode === o[0] ? "true" : "false");
           sec.appendChild(b);
         });
         ft.card.appendChild(sec);
@@ -178,7 +180,8 @@
         var card = tvCard(i18nT('vision.detections'), "shape-outline", tv.res ? i18nT('vision.n_found', { n: items.length }) : null);
         tv.side.appendChild(card);
         if (!tv.res) {
-          card.appendChild(tvEl("div", "tv-muted", tvTx('vision.choose_what_to_look_for_under', 'workbench')));
+          // the empty state says what to do in three lines at most; the same text is in the help of the section (tvHelpDetect)
+          card.appendChild(tvEl("div", "tv-line3 tv-muted", tvTx('vision.choose_what_to_look_for_under', 'workbench')));
           return;
         }
         if (!tv.res.H) card.appendChild(tvMsg("info", i18nT('vision.the_camera_is_not_calibrated_detections')));
@@ -262,14 +265,21 @@
           if (tv.sel === it.id && it.mm) row.appendChild(tvItemActions(tv, it));
           list.appendChild(row);
         });
-        card.appendChild(tvEl("div", "tv-muted", tvTx('vision.tap_a_detection_here_or_on', 'workbench')));
+      }
+
+      // ONE help for the section Detect and measure, at its foot (FAMILIA-REDISENO 3, C4): what the cards said in paragraphs above their content
+      function tvHelpDetect(tv) {
+        return workshopHelpFoldEl({
+          rows: [
+            [i18nT('vision.live_video'), i18nT('vision.fast_to_look_and_aim')],
+            [i18nT('vision.measuring_photo'), i18nT('vision.the_camera_is_on_the_gantry')],
+            [i18nT('vision.detections'), tvTx('vision.choose_what_to_look_for_under', 'workbench') + " " + tvTx('vision.tap_a_detection_here_or_on', 'workbench')],
+          ],
+        });
       }
 
       function tvPhotoMode(tv, ft) {
-        if (ft.mode === "video") {
-          ft.card.appendChild(tvEl("div", "tv-muted", i18nT('vision.fast_to_look_and_aim')));
-          return true;
-        }
+        if (ft.mode === "video") return true; // what the video is for: in the help of the section (tvHelpDetect)
         if (tv.photoAct) {
           ft.card.appendChild(tvMsg("ok", (tv.photoInfo && tv.photoInfo.mosaic ? i18nT('vision.analyzing_a_mosaic_of_n_photos', { n: tv.photoInfo.n }) : i18nT('vision.analyzing_the_measuring_photo')) + " " + i18nT('vision.the_detections_below_are_from_this')));
           // Photo of the bed as the map's background (2026-10-10, function 7): with
@@ -293,7 +303,7 @@
           ft.card.appendChild(tvMsg("info", tv.photoBusy));
           return true;
         }
-        ft.card.appendChild(tvEl("div", "tv-muted", i18nT('vision.the_camera_is_on_the_gantry')));
+        // how the camera frames the photo: in the help of the section (tvHelpDetect); the steps below say what to do
       }
 
       function tvPhotoStep1(tv, ft) {

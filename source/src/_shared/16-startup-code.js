@@ -1,7 +1,7 @@
       // The preview of a file in the start-up assistant (2026-10-24): the lines that really run (no ";" in front) are highlighted,
       // the comments are dimmed. The same rule as workshopStartupLinesActive (16-startup-wizard.js).
       function workshopStartupCode(text) {
-        var pre = workshopStartupEl("pre", "margin:0;padding:6px 0;max-height:220px;overflow:auto;border-radius:4px;background:rgba(0,0,0,0.35);font:11px/1.35 monospace;white-space:pre-wrap;overflow-wrap:anywhere;", "");
+        var pre = workshopStartupEl("pre", "margin:0;padding:6px 0;max-height:220px;overflow:auto;border-radius:4px;background:rgba(0,0,0,0.35);font:12px/1.35 monospace;white-space:pre-wrap;overflow-wrap:anywhere;", "");
         String(text || "").split(/\r?\n/).forEach(function (line) {
           var x = line.trim();
           var active = x !== "" && x.charAt(0) !== ";";

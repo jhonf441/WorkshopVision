@@ -202,13 +202,15 @@
       }
 
       var WORKSHOP_RANGE_EDGE = "1px solid var(--c-field-edge,rgba(128,128,128,0.45))";
-      var WORKSHOP_RANGE_FIELD = "padding:2px 5px;border:" + WORKSHOP_RANGE_EDGE + ";border-radius:4px;background:var(--c-field,transparent);color:inherit;font:inherit;";
+      // a field of the picker: the radius of the family field (wf-input, 06-field-dom.js and RangePicker.vue .field: 4 px); the buttons keep the 6 px of the family buttons
+      var WORKSHOP_RANGE_FIELD = "box-sizing:border-box;min-height:var(--wf-field-h, 40px);padding:0 8px;border:" + WORKSHOP_RANGE_EDGE + ";border-radius:var(--wf-radius-control, 6px);background:var(--c-field,transparent);color:inherit;font:inherit;";
 
       function workshopRangeChip(text, on, fn) {
         var b = document.createElement("button");
         b.type = "button";
+        b.className = "wf-hit"; // seen 32 px (the scale), touched 40 (family.css .wf-hit)
         b.textContent = text;
-        b.style.cssText = "padding:2px 8px;border-radius:4px;cursor:pointer;font:inherit;font-size:12px;border:" + WORKSHOP_RANGE_EDGE + ";" +
+        b.style.cssText = "box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-height:var(--wf-size-s, 32px);padding:0 12px;border-radius:6px;cursor:pointer;font:inherit;font-size:13px;border:" + WORKSHOP_RANGE_EDGE + ";" +
           (on ? "background:#1976d2;color:#fff;border-color:#1976d2;" : "background:transparent;color:inherit;");
         b.addEventListener("click", fn);
         return b;
@@ -220,15 +222,16 @@
         btn.type = "button";
         btn.setAttribute("aria-label", i18nT('core.range_label'));
         btn.setAttribute("aria-haspopup", "dialog");
-        btn.style.cssText = "padding:4px 10px;border-radius:4px;cursor:pointer;font:inherit;border:" + WORKSHOP_RANGE_EDGE + ";background:transparent;color:inherit;";
+        btn.className = "wf-hit";
+        btn.style.cssText = "box-sizing:border-box;min-height:var(--wf-size-s, 32px);padding:2px 12px;border-radius:6px;cursor:pointer;font:inherit;border:" + WORKSHOP_RANGE_EDGE + ";background:transparent;color:inherit;";
         return btn;
       }
 
-      function workshopRangeNewPanel() {
+      function workshopRangeNewPanel(months) {
         var panel = document.createElement("div");
         panel.setAttribute("role", "dialog");
         panel.setAttribute("aria-label", i18nT('core.range_label'));
-        panel.style.cssText = "position:absolute;z-index:60;top:100%;left:0;margin-top:4px;min-width:300px;max-width:min(720px,calc(100vw - 24px));padding:12px;border-radius:6px;" +
+        panel.style.cssText = "position:absolute;z-index:60;top:100%;left:0;margin-top:4px;min-width:" + (months > 1 ? "600" : "300") + "px;max-width:min(720px,calc(100vw - 24px));padding:12px;border-radius:6px;" +
           "background:var(--c-card,#1e1e1e);color:var(--c-text,#fff);border:" + WORKSHOP_RANGE_EDGE + ";box-shadow:0 4px 16px rgba(0,0,0,0.35);";
         return panel;
       }
@@ -239,7 +242,7 @@
         tq.textContent = i18nT('core.range_quick');
         tq.style.cssText = "font-weight:600;margin-bottom:4px;";
         var qb = document.createElement("div");
-        qb.style.cssText = "display:flex;flex-wrap:wrap;gap:6px;";
+        qb.style.cssText = "display:flex;flex-wrap:wrap;gap:var(--wf-gap-hit, 8px);";
         WORKSHOP_RANGE_QUICK.forEach(function (q) {
           var on = !!value && value.type === "relative" && Number(value.amount) === q.amount && value.unit === q.unit;
           qb.appendChild(workshopRangeChip(workshopRangeShort(q.unit, q.amount), on, function () { pick({ type: "relative", amount: q.amount, unit: q.unit }); }));
@@ -272,7 +275,7 @@
         var label = i18nT(side === "from" ? 'core.range_from' : 'core.range_to');
         var t = document.createElement("span");
         t.textContent = label;
-        t.style.minWidth = "44px";
+        t.style.cssText = "flex:0 0 48px;";
         var d = document.createElement("input");
         d.type = "text";
         d.setAttribute("inputmode", "numeric");
@@ -280,7 +283,7 @@
         d.value = ab.text[side];
         d.placeholder = i18nT('core.range_format');
         d.setAttribute("aria-label", label);
-        d.style.cssText = WORKSHOP_RANGE_FIELD + "width:118px;min-height:36px;";
+        d.style.cssText = WORKSHOP_RANGE_FIELD + "width:128px;";
         d.addEventListener("input", function () {
           var iso = workshopRangeParseDayText(d.value, lang);
           ab.bad[side] = !iso;
@@ -297,7 +300,7 @@
         h.value = ab.time[side];
         h.placeholder = "HH:MM";
         h.setAttribute("aria-label", i18nT(side === "from" ? 'core.range_from_time' : 'core.range_to_time'));
-        h.style.cssText = WORKSHOP_RANGE_FIELD + "width:64px;min-height:36px;";
+        h.style.cssText = WORKSHOP_RANGE_FIELD + "width:76px;";
         h.addEventListener("input", function () { ab.time[side] = h.value; status(); });
         r.appendChild(t);
         r.appendChild(d);
@@ -321,11 +324,11 @@
           var title = new Intl.DateTimeFormat(lang, { month: "long", year: "numeric" }).format(new Date(m.year, m.month, 1));
           cal.setAttribute("aria-label", title);
           var bar = document.createElement("div");
-          bar.style.cssText = "display:flex;align-items:center;justify-content:space-between;min-height:44px;";
+          bar.style.cssText = "display:flex;align-items:center;justify-content:space-between;min-height:var(--wf-hit, 40px);";
           bar.appendChild(k === 0 ? workshopRangeNav("\u2039", i18nT('core.range_prev_month'), function () { shift(-1); }) : workshopRangeNavGap());
           var tt = document.createElement("span");
           tt.textContent = title;
-          tt.style.cssText = "flex:1;text-align:center;font-weight:600;text-transform:capitalize;";
+          tt.style.cssText = "flex:1;min-width:0;text-align:center;font-weight:600;text-transform:capitalize;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
           bar.appendChild(tt);
           bar.appendChild(k === months - 1 ? workshopRangeNav("\u203a", i18nT('core.range_next_month'), function () { shift(1); }) : workshopRangeNavGap());
           cal.appendChild(bar);
@@ -350,14 +353,14 @@
         b.type = "button";
         b.textContent = glyph;
         b.setAttribute("aria-label", label);
-        b.style.cssText = "width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:inherit;font:inherit;font-size:20px;cursor:pointer;";
+        b.style.cssText = "width:var(--wf-hit, 40px);height:var(--wf-hit, 40px);border:0;border-radius:50%;background:transparent;color:inherit;font:inherit;font-size:20px;cursor:pointer;";
         b.addEventListener("click", fn);
         return b;
       }
 
       function workshopRangeNavGap() {
         var s = document.createElement("span");
-        s.style.cssText = "width:44px;height:44px;";
+        s.style.cssText = "width:var(--wf-hit, 40px);height:var(--wf-hit, 40px);";
         return s;
       }
 
@@ -371,7 +374,7 @@
         b.setAttribute("aria-pressed", kind === "edge" ? "true" : "false");
         if (c.iso === today) b.setAttribute("aria-current", "date");
         b.tabIndex = c.iso === ab.focus ? 0 : -1;
-        b.style.cssText = "min-height:44px;border:0;font:inherit;cursor:pointer;color:inherit;background:" + (kind === "mid" ? "rgba(128,128,128,0.25)" : "transparent") + ";" +
+        b.style.cssText = "min-height:var(--wf-hit, 40px);border:0;font:inherit;cursor:pointer;color:inherit;background:" + (kind === "mid" ? "rgba(128,128,128,0.25)" : "transparent") + ";" +
           (kind === "edge" ? "background:#1976d2;color:#fff;border-radius:22px;" : "") + (c.iso === today ? "font-weight:700;text-decoration:underline;" : "");
         b.addEventListener("click", function () { choose(c.iso); });
         b.addEventListener("keydown", function (e) {
@@ -483,7 +486,7 @@
         }
         workshopRangeQuickRow(env.value, env.pick).forEach(function (n) { panel.appendChild(n); });
         var tabs = document.createElement("div");
-        tabs.style.cssText = "display:flex;gap:6px;margin:12px 0 8px;";
+        tabs.style.cssText = "display:flex;gap:var(--wf-gap-hit, 8px);margin:12px 0 8px;";
         tabs.appendChild(workshopRangeChip(i18nT('core.range_relative'), env.tab === "relative", function () { env.tab = "relative"; draw(); }));
         tabs.appendChild(workshopRangeChip(i18nT('core.range_absolute'), env.tab === "absolute", function () { env.tab = "absolute"; draw(); }));
         panel.appendChild(tabs);
@@ -518,6 +521,24 @@
           ab.keyfocus = false;
           var el = panel.querySelector('[data-iso="' + ab.focus + '"]');
           if (el) el.focus();
+        }
+      }
+
+      // two months side by side only when the panel has ~640 px to the right of the button (a 290 px panel with two months gave 19 px columns and a
+      // title cut in two lines, 2026-11-22); one month otherwise
+      function workshopRangeMonthsFor(root) {
+        if (typeof window === "undefined" || window.innerWidth < 760) return 1;
+        var left = root && root.getBoundingClientRect ? root.getBoundingClientRect().left : 0;
+        return window.innerWidth - left - 12 >= 640 ? 2 : 1;
+      }
+
+      // the panel opens to the right of the button; when it would leave the screen it opens to the left edge of the button's right side
+      function workshopRangeKeepInside(panel) {
+        if (typeof window === "undefined" || !panel.getBoundingClientRect) return;
+        var r = panel.getBoundingClientRect();
+        if (r.right > window.innerWidth - 8) {
+          panel.style.left = "auto";
+          panel.style.right = "0";
         }
       }
 
@@ -558,16 +579,18 @@
 
         function open() {
           var lang = String((typeof document !== "undefined" && document.documentElement && document.documentElement.lang) || "es").slice(0, 2);
-          panel = workshopRangeNewPanel();
+          var months = workshopRangeMonthsFor(root);
+          panel = workshopRangeNewPanel(months);
           document.addEventListener("mousedown", away, true);
           workshopRangeDraw({
             o: o, value: value, panel: panel, pick: pick, close: close, lang: lang,
-            months: typeof window !== "undefined" && window.innerWidth >= 760 ? 2 : 1,
+            months: months,
             tab: value && value.type === "absolute" ? "absolute" : "relative",
             draft: value && value.type === "relative" ? { amount: value.amount, unit: value.unit } : { amount: 1, unit: "days" },
             ab: workshopRangeNewState(value, lang)
           });
           root.appendChild(panel);
+          workshopRangeKeepInside(panel);
           paintButton();
         }
 

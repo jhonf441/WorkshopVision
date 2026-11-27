@@ -77,7 +77,7 @@
         est.ids.forEach(function (id) {
           var f = byId[id];
           if (f && (f.state === "missing" || f.state === "example") && !f.hidden && !f.withoutData) pending.push(id);
-          else lists.push(id);
+          else if (!f || f.state !== "skipped") lists.push(id); // a row the person does not use is neither ready nor pending
         });
         return { traversed: est.ids.length, lists: lists, pending: pending, skipped: est.skipped.slice(), ready: pending.length === 0 };
       }

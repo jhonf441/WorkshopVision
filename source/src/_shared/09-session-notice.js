@@ -239,6 +239,19 @@
         workshopToastShow(parts, kind, true, kind === "session");
       }
 
+      // the way out of a refusal: "Sign in" while nobody is, "Change role" when the role is what falls short (another person signs in; the session of this
+      // browser stays until that succeeds). Both are the ONE dialog (workshopLogin). null when there is no way out to offer.
+      function workshopToastAction(kind, refusal, out) {
+        if (out === undefined) out = typeof workshopSignedOut === "function" && workshopSignedOut();
+        if (!refusal || !(out || kind === "role")) return null;
+        return {
+          label: i18nT(out ? "notice.notice_sign_in" : "notice.notice_change_role"),
+          run: function () {
+            if (typeof workshopLogin === "function") workshopLogin();
+          },
+        };
+      }
+
       function workshopToast(text) {
         if (typeof document === "undefined" || !document.body || !text) return;
         if (WORKSHOP_LOGIN_RE.test(String(text)) && workshopSessionBlink()) return; // about the session: the chip blinks, no card
@@ -247,22 +260,26 @@
         workshopToastShow(parts, WORKSHOP_LOGIN_RE.test(String(text)) ? "session" : "role", refusal, WORKSHOP_LOGIN_RE.test(String(text)));
       }
 
+      // through the ONE notices center of the page when it is there (09-notices.js, 2026-11-23): same place, same clocks as every other notice
+      var WORKSHOP_SESSION_SOURCE = "WorkshopSession";
+      var workshopSessionNoticeKey = ""; // the refusal about the session in the center: stale once the person signs in
+      function workshopToastToCenter(parts, refusal, aboutSession, action) {
+        var c = typeof workshopNotices === "function" ? workshopNotices() : null;
+        if (!c) return false;
+        var key = c.post({ source: WORKSHOP_SESSION_SOURCE, id: aboutSession ? "session" : "message", level: refusal ? "refusal" : "info", title: parts.title || "", text: parts.desc || "", action: action || null, persist: refusal });
+        if (aboutSession) workshopSessionNoticeKey = key;
+        return true;
+      }
+
       function workshopToastShow(parts, kind, refusal, aboutSession) {
+        if (workshopToastToCenter(parts, refusal, aboutSession, workshopToastAction(kind, refusal))) return;
         var old = document.getElementById(WORKSHOP_NOTICE_TOAST_ID);
         if (old) old.remove();
         clearTimeout(workshopNoticeToastTimer);
         var out = typeof workshopSignedOut === "function" && workshopSignedOut();
         var opts = { bottom: 84, closable: true, kind: kind };
-        // the way out of a refusal: "Sign in" while nobody is, "Change role" when the role is what falls short (another person signs in; the session of this
-        // browser stays until that succeeds). Both are the ONE dialog (workshopLogin).
-        if (refusal && (out || kind === "role")) {
-          opts.action = {
-            label: i18nT(out ? "notice.notice_sign_in" : "notice.notice_change_role"),
-            run: function () {
-              if (typeof workshopLogin === "function") workshopLogin();
-            },
-          };
-        }
+        var action = workshopToastAction(kind, refusal, out);
+        if (action) opts.action = action;
         var box = workshopNoticeCard(WORKSHOP_NOTICE_TOAST_ID, parts, opts);
         box.setAttribute("role", refusal ? "alert" : "status");
         if (aboutSession) box.setAttribute("data-workshop-login", "1"); // about the session: stale once the person signs in
@@ -297,7 +314,8 @@
           chipIcon.setAttribute("aria-hidden", "true");
           chip.appendChild(chipIcon);
           var chipText = document.createElement("span");
-          chipText.textContent = workshopSessionParts().title + " · " + workshopApiT("signInAction");
+          // the plugin's own catalog, one language (the service catalog has no api.signInAction, so the English fallback gave "Sin sesión · Sign in", 2026-11-23)
+          chipText.textContent = i18nT("notice.notice_bar_chip");
           chip.appendChild(chipText);
           chip.addEventListener("click", function () {
             if (typeof workshopLogin === "function") workshopLogin();
@@ -321,6 +339,10 @@
         if (!out) {
           var t = document.getElementById(WORKSHOP_NOTICE_TOAST_ID);
           if (t && t.getAttribute("data-workshop-login")) t.remove();
+          if (workshopSessionNoticeKey && typeof window !== "undefined" && window.__workshopNotices) {
+            window.__workshopNotices.close(workshopSessionNoticeKey);
+            workshopSessionNoticeKey = "";
+          }
         }
       }
 

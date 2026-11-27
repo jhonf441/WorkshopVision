@@ -73,7 +73,8 @@
 
       // The text and the button of the step the person is on.
       function tvGuidedNow(tv, g, plan, box) {
-        var row = tvEl("div", "tv-acts");
+        // "Refresh" is a lone button: the width of its words, not the whole column (.tv-acts--fit)
+        var row = tvEl("div", plan.now === "image" ? "tv-acts tv-acts--fit" : "tv-acts");
         if (plan.blocked) box.appendChild(tvMsg(plan.blocked === "no_camera" ? "err" : "info", i18nT("vision.guided_blocked_" + plan.blocked)));
         if (plan.now === "image") {
           row.appendChild(tvIBtn("refresh", i18nT('vision.refresh'), "small", function () { tvRefreshState(tv).then(function () { tvRenderSide(tv); }); }));

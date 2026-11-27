@@ -48,7 +48,6 @@
       function tvRenderFollow(tv) {
         var c1 = tvCard(i18nT('vision.measure_live'), "ruler-square-compass");
         tv.side.appendChild(c1);
-        c1.appendChild(tvEl("div", "tv-muted", i18nT('vision.analyzes_the_video_nonstop_about_once')));
         var r1 = tvEl("div", "tv-acts");
         r1.appendChild(tvIBtn(tv.live ? "pause" : "play", tv.live ? i18nT('vision.stop_the_live_video') : i18nT('vision.analyze_live'), tv.live ? "on" : "primary", function () {
           if (tv.photoAct) tvRevertVideo(tv);
@@ -68,7 +67,7 @@
         if (!tv.follow.on) {
           var it = tvSelItem(tv);
           if (!it || (it.kind !== "piece" && it.kind !== "rect") || !it.mm) {
-            c2.appendChild(tvEl("div", "tv-muted", i18nT('vision.tap_a_part_in_the_image')));
+            c2.appendChild(tvEl("div", "tv-line3 tv-muted", i18nT('vision.tap_a_part_in_the_image')));
           } else {
             c2.appendChild(tvEl("div", null, i18nT('vision.chosen_name_at_xy', { name: tvNamePiece(tv, it), x: tvFmt(it.mm.c[0], 1), y: tvFmt(it.mm.c[1], 1) })));
             c2.appendChild(tvIBtn("play", i18nT('vision.track_this_part'), "primary", function () { tvFollowBegin(tv, it); }));
@@ -99,7 +98,6 @@
 
         var c3 = tvCard(i18nT('vision.head'), "crosshairs");
         tv.side.appendChild(c3);
-        c3.appendChild(tvEl("div", "tv-muted", i18nT('vision.marks_in_the_video_where_the')));
         var r3 = tvEl("div", "tv-acts");
         r3.appendChild(tvIBtn("crosshairs", i18nT('vision.head'), tv.prefs.head ? "on" : null, function () {
           tv.prefs.head = !tv.prefs.head;
@@ -125,6 +123,14 @@
           var pz = tv.cab.points || {};
           c3.appendChild(tvEl("div", null, i18nT('vision.head') + " X" + tvFmt(tv.cab.x, 1) + " Y" + tvFmt(tv.cab.y, 1) + " Z" + tvFmt(tv.cab.z, 1) + (pz.laser ? " · laser X" + tvFmt(pz.laser.x, 1) + " Y" + tvFmt(pz.laser.y, 1) : "") + (tv.prefs.headProbe && pz.probe ? " · BLTouch X" + tvFmt(pz.probe.x, 1) + " Y" + tvFmt(pz.probe.y, 1) : "")));
         }
+        // ONE help for the section Live, at its foot (FAMILIA-REDISENO 3, C4): the paragraphs that sat above the buttons of the cards
+        tv.side.appendChild(workshopHelpFoldEl({
+          rows: [
+            [i18nT('vision.measure_live'), i18nT('vision.analyzes_the_video_nonstop_about_once')],
+            [i18nT('vision.track_a_part'), i18nT('vision.tap_a_part_in_the_image')],
+            [i18nT('vision.head'), i18nT('vision.marks_in_the_video_where_the')],
+          ],
+        }));
       }
 
       // ---- step by step: from the bed to the part ready to use ----
@@ -145,7 +151,8 @@
         var st = tvEl("div", "tv-steps");
         c.appendChild(st);
         steps.forEach(function (p, i) {
-          var d = tvEl("div", "tv-step" + (done[i] ? " hecho" : i === now ? " ahora" : ""));
+          // done / now: the classes the stylesheet paints (the old Spanish names "hecho" / "ahora" were never painted)
+          var d = tvEl("div", "tv-step" + (done[i] ? " done" : i === now ? " now" : ""));
           d.appendChild(tvEl("div", "n", done[i] ? "✓" : String(i + 1)));
           var b = tvEl("div", "b");
           b.appendChild(tvEl("div", "tt", p[0]));

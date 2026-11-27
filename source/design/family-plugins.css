@@ -1,0 +1,170 @@
+/* THE design family of the workshop plugins, PLUGINS part (2026-11-22): the rules that only the plugins use and the service page does not (side menu
+   and second level tabs, category filter, color input, state dot, toast of a refusal, popover, guide fold, compact page bar). It is loaded
+   AFTER design/family.css (vue/_shared36/theme.css imports both; the JS pages get both in 05-family-css.js); none of these rules fights a rule of the
+   core at the same specificity on the same element, so the order between the two files does not change a pixel.
+   ONE canonical file, copied by tools/build-family.js to vue/_shared36/family-plugins.css. The service page never loads it. */
+html:has(.theme--light) .wf-popover { --wf-surface: #fff; --wf-text: #212121; }
+html:has(.v-theme--light) .wf-popover { --wf-surface: #fff; --wf-text: #212121; }
+/* state = a dot + the word, no border; a data pill (counter, "T1") = a 1 px border */
+.wf-state { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; }
+.wf-state::before, .wf-dot { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: rgba(128, 128, 128, 0.6); }
+.wf-dot { display: inline-block; }
+.wf-state.ok::before, .wf-dot.ok { background: var(--wf-ok); }
+.wf-state.warn::before, .wf-dot.warn { background: var(--wf-warn); }
+.wf-state.err::before, .wf-dot.err { background: var(--wf-err); }
+.wf-state.info::before, .wf-dot.info { background: var(--wf-info); }
+.wf-state.info { background-color: transparent !important; border-color: transparent !important; }
+
+/* ================= section menu (side bar) ================= */
+:is(.sidetabs, .wf-nav) { border-right-color: var(--wf-line); }
+:is(.sidetabs, .wf-nav) :is(.st-group, .wf-nav-group) { margin-top: 6px; border-top: 1px solid var(--wf-line); color: inherit; opacity: 0.65; font-size: 12px; font-weight: 600; }
+:is(.sidetabs, .sidetabs .st-scroll, .wf-nav)::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, 0.45); border-radius: 2px; }
+@supports not selector(::-webkit-scrollbar) { :is(.sidetabs, .sidetabs .st-scroll, .wf-nav) { scrollbar-color: rgba(128, 128, 128, 0.45) transparent; } }
+:is(.sidetabs, .wf-nav) .st-group[data-group='0'] { margin-top: 0; border-top: 0; }
+:is(.sidetabs, .wf-nav) :is(button.st-item, .wf-nav-item) { position: relative; min-height: var(--wf-size-s); color: inherit; opacity: 0.8; font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; border-left: 2px solid transparent; border-radius: 0; background: transparent; }
+:is(.sidetabs, .wf-nav) :is(button.st-item, .wf-nav-item):hover { opacity: 1; background: var(--wf-hover-bg); }
+:is(.sidetabs, .wf-nav) :is(.st-icon, .wf-nav-icon) { color: var(--wf-icon) !important; font-size: 18px; }
+:is(.sidetabs, .wf-nav) :is(button.st-item, .wf-nav-item):is(.st-on, .on) { opacity: 1; font-weight: 600; background: transparent; border-left-color: var(--wf-sec-now); }
+:is(.sidetabs, .wf-nav) .st-item.st-off { opacity: 0.35; }
+/* a section above the person's role: stays in its place, dimmed, with a lock and the role that opens it (blue while nobody is signed in) */
+:is(.sidetabs, .wf-nav) .st-item.st-locked { opacity: 0.7; }
+:is(.sidetabs, .wf-nav) .st-lockmark { border-radius: 50%; background: var(--wf-surface); }
+/* the JS bars (Vision, Camera, zones) share the pieces of the Vue side bar: the icon box with the lock mark and the text column (name, and under it who may open it) */
+.wf-nav .st-iconbox { position: relative; flex: none; display: inline-flex; }
+.wf-nav .st-lockmark { position: absolute; right: -6px; bottom: -5px; font-size: 12px; line-height: 1; }
+.wf-nav .st-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.wf-nav.collapsed .st-text { display: none; }
+:is(.sidetabs, .wf-nav) .st-item.st-locked .st-lockmark { color: var(--wf-n-role); }
+:is(.sidetabs, .wf-nav) .st-item.st-locked-session .st-lockmark { color: var(--wf-n-session); }
+.st-need { max-width: 100%; overflow: hidden; text-overflow: ellipsis; padding: 1px 8px; border: 1px solid color-mix(in srgb, var(--wf-n-role) 45%, transparent); border-radius: 10px; background: var(--wf-n-role-bg); color: var(--wf-n-role-text); font-size: 12px; line-height: 1.5; white-space: nowrap; }
+.st-locked-session .st-need { border-color: color-mix(in srgb, var(--wf-n-session) 45%, transparent); background: var(--wf-n-session-bg); color: var(--wf-n-session-text); }
+:is(.sidetabs, .wf-nav) .st-fold:hover { background: var(--wf-hover-bg); }
+:is(.sidetabs, .wf-nav) .st-pinned { color: inherit; opacity: 1; }
+:is(.sidetabs, .wf-nav) .st-badge { background: transparent; color: inherit; border: 1px solid var(--wf-line-strong); }
+:is(.sidetabs, .wf-nav).st-collapsed .st-group { border-top: 1px solid var(--wf-line); font-size: 0; line-height: 0; }
+/* the JS bars (.wf-nav) fold to a row by the width of the window; the Vue bar (.sidetabs) by the width of its layout (FASE4: @container, see SideTabs.vue) */
+@media (max-width: 900px) {
+	.wf-nav, .wf-nav.st-collapsed { gap: 0 14px; border-right: 0; border-bottom: 1px solid var(--wf-line); }
+	.wf-nav :is(button.st-item, .wf-nav-item), .wf-nav.st-collapsed :is(button.st-item, .wf-nav-item) { border-left: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 6px 2px; }
+	.wf-nav :is(button.st-item, .wf-nav-item):is(.st-on, .on) { border-bottom-color: var(--wf-sec-now); }
+	.wf-nav.collapsed .st-text { display: flex; }
+}
+@container wf-sidetabs (max-width: 899.98px) {
+	.sidetabs, .sidetabs.st-collapsed { gap: 0 14px; border-right: 0; border-bottom: 1px solid var(--wf-line); }
+	.sidetabs :is(button.st-item, .wf-nav-item), .sidetabs.st-collapsed :is(button.st-item, .wf-nav-item) { border-left: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 6px 2px; }
+	.sidetabs :is(button.st-item, .wf-nav-item):is(.st-on, .on) { border-bottom-color: var(--wf-sec-now); }
+}
+
+/* ================= second level tabs: text, a thin line, the open one in 600 with a 2 px line; they wrap, never scroll ================= */
+.wf-tabs { display: flex; flex-wrap: wrap; gap: 0 18px; border-bottom: 1px solid var(--wf-line); }
+.wf-tab { position: relative; display: inline-flex; align-items: center; gap: 7px; min-height: var(--wf-size-s); margin-bottom: -1px; padding: 8px 2px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: inherit; opacity: 0.75; font: inherit; font-size: 14px; font-weight: 400; text-transform: none; letter-spacing: 0; cursor: pointer; }
+.wf-tab:hover { opacity: 1; }
+.wf-tab:is(.on, [aria-selected='true']) { opacity: 1; font-weight: 600; border-bottom-color: var(--wf-sec-now); }
+.wf-tab :is(.v-icon, .mdi) { color: var(--wf-icon); font-size: 16px; }
+
+/* ================= color input (A3): a swatch with the family border, the same everywhere (workshopColorEl in 19-help-dom.js) ================= */
+.wf-color { box-sizing: border-box; width: var(--wf-size-s); height: var(--wf-size-s); padding: 2px; border: 1px solid var(--wf-control-line); border-radius: 6px; background: transparent; cursor: pointer; }
+.wf-color::-webkit-color-swatch-wrapper { padding: 0; }
+.wf-color::-webkit-color-swatch { border: 0; border-radius: 4px; }
+.wf-color::-moz-color-swatch { border: 0; border-radius: 4px; }
+.wf-color:focus-visible { outline: 2px solid var(--wf-info); outline-offset: 2px; }
+.wf-color.is-compact { width: var(--wf-size-s); height: var(--wf-size-s); padding: 4px; }
+
+/* ================= the ONE colored label: quick filters by category (e.g. Service > API operations) =================
+   Tinted pill with a colored outline; solid in its color when chosen. Valid for any page that filters by category; nothing else is a colored label. */
+.wf-cat { --wf-cat: #1976d2; display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border: 1px solid color-mix(in srgb, var(--wf-cat) 55%, transparent); border-radius: 999px; background: color-mix(in srgb, var(--wf-cat) 14%, transparent); color: inherit; font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; }
+.wf-cat:hover { background: color-mix(in srgb, var(--wf-cat) 26%, transparent); }
+.wf-cat:is(.on, [aria-pressed='true'], [aria-selected='true']) { background: var(--wf-cat); border-color: var(--wf-cat); color: #fff; font-weight: 600; }
+/* N5 the card of a refusal: always a dark window (it hangs from <body>), so the cause colors are the dark ones */
+/* .wf-toast: the fallback card of 09-session-notice.js for a bundle without the notices center (09-notices.js draws .wf-notices) */
+.wf-toast { position: fixed; left: 50%; transform: translateX(-50%); z-index: 2147483645; width: min(560px, 92vw); box-sizing: border-box; display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 12px; background: #1e272c; color: #eceff1; border: 1px solid rgba(255, 255, 255, 0.12); border-left: 4px solid var(--wf-n-c); border-radius: 8px; font: 12px/1.4 Roboto, Helvetica, Arial, sans-serif; box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5); }
+.wf-toast--session { --wf-n-c: #1e88e5; } .wf-toast--role { --wf-n-c: #90a4ae; } .wf-toast--down { --wf-n-c: #fb8c00; } .wf-toast--error { --wf-n-c: #e53935; }
+.wf-toast-icon { flex: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--wf-n-c) 18%, transparent); color: var(--wf-n-c); }
+.wf-toast-body { flex: 1 1 auto; min-width: 0; }
+.wf-toast-title { font: 600 13px/1.3 Roboto, Helvetica, Arial, sans-serif; color: #fff; }
+.wf-toast-desc { color: #cfd8dc; overflow-wrap: anywhere; }
+.wf-toast-close { position: relative; flex: none; width: var(--wf-size-s); height: var(--wf-size-s); border: 0; background: transparent; color: #cfd8dc; font: 400 20px/1 Roboto, Arial, sans-serif; cursor: pointer; }
+.wf-toast .wf-btn { min-height: var(--wf-size-s); font-weight: 600; font-size: 12px; }
+/* the narrow form of the side bar (SideTabs.vue < 640 px of container, 2026-11-23): the "Section: X" picker and the sheet with the list */
+.sidetabs .st-pick { border: 1px solid var(--wf-control-line); border-radius: 6px; background: var(--wf-surface); color: inherit; }
+.sidetabs .st-pick-name { font-weight: 600; }
+.sidetabs .st-pick-word { font-size: 12px; color: var(--wf-text-2, inherit); }
+.st-sheet-item:disabled { opacity: 0.6; }
+.st-sheet-item.st-sheet-on { border-left-color: var(--wf-badge); font-weight: 600; }
+.st-sheet-text small, .st-sheet-group { font-size: 12px; color: var(--wf-text-2, inherit); }
+.st-sheet-group { font-weight: 600; }
+/* the top layer of the page (45-layers.js): a card opened from a floating panel or from its dialog (both 2147483646-7) must be over them; appended last to <body> it wins the tie (note 4, 2026-11-23) */
+.wf-popover { position: fixed; z-index: 2147483647; box-sizing: border-box; padding: 12px 16px; border: 1px solid var(--wf-line); border-radius: 8px; background: var(--wf-surface); color: var(--wf-text); font: 13px/1.4 Roboto, Helvetica, Arial, sans-serif; overflow-wrap: anywhere; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); }
+.wf-guide { margin-top: 8px; font-size: 13px; }
+.wf-guide > summary { position: relative; cursor: pointer; font-size: 13px; font-weight: 600; opacity: 0.85; min-height: var(--wf-size-s); }
+.wf-guide[open] > summary { margin-bottom: 6px; }
+/* what is touched: 44 px */
+.wf-guide > summary { display: flex; align-items: center; }
+/* ===== HOVER END ===== */
+/* FASE5 the touch area of 40 px on the plugin-only controls (the scale: design/family.css) */
+:is(.sidetabs, .wf-nav) :is(button.st-item, .wf-nav-item)::after, .wf-tab::after, .wf-toast-close::after, .wf-guide > summary::after { content: ''; position: absolute; left: 50%; top: 50%; width: max(100%, var(--wf-hit)); height: max(100%, var(--wf-hit)); transform: translate(-50%, -50%); }
+/* FASE5 Vuetify on the scale (the service page draws no Vuetify control): a primary .v-btn is m 36, every .v-btn and .v-tab gets the 40 px area */
+.workshop-theme .v-btn:is(.primary, .bg-primary, .v-btn--main):not(.v-btn--icon):not(.v-btn--fab):not(.v-btn--text):not(.v-btn--outlined) { min-height: var(--wf-size-m); }
+.workshop-theme .v-btn:not(.v-btn--icon):not(.v-btn--fab)::after, .workshop-theme .v-tabs .v-tab::after { content: ''; position: absolute; left: 50%; top: 50%; width: max(100%, var(--wf-hit)); height: max(100%, var(--wf-hit)); transform: translate(-50%, -50%); }
+/* Vuetify pieces the service page never draws (no v-tabs, v-data-table or selection controls there): here, so the service CSS stays under its cap */
+.workshop-theme .v-tabs { height: auto !important; border-bottom: 1px solid var(--wf-line); background: transparent !important; }
+.workshop-theme .v-tabs :is(.v-slide-group__content, .v-tabs-bar__content) { flex-wrap: wrap; }
+.workshop-theme .v-tabs :is(.v-tabs-bar, .v-slide-group__wrapper) { color: inherit !important; caret-color: inherit !important; background: transparent !important; height: auto !important; }
+.workshop-theme .v-tabs :is(.v-slide-group__prev, .v-slide-group__next, .v-tabs-slider-wrapper, .v-tab__slider) { display: none !important; }
+.workshop-theme .v-tabs .v-tab { position: relative; min-height: var(--wf-size-s); padding: 8px 2px; margin-right: 18px; border-bottom: 2px solid transparent; border-radius: 0; text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 400; opacity: 0.75; color: inherit !important; }
+.workshop-theme .v-tabs .v-tab .v-icon:not(.text-error):not(.error--text) { color: var(--wf-icon) !important; font-size: 16px; }
+.workshop-theme .v-tabs .v-tab:is(.v-tab--selected, .v-tab--active) { opacity: 1; font-weight: 600; border-bottom-color: var(--wf-sec-now); }
+.workshop-theme :is(.v-table, .v-data-table) { background: transparent; }
+.help-tip-row > .v-input--selection-controls { margin-top: 0; padding-top: 0; }
+.workshop-theme .v-input--selection-controls .v-input__slot { min-height: var(--wf-hit); align-items: center; }
+.workshop-theme .v-input--selection-controls .v-input__slot > .v-label { min-height: var(--wf-hit); }
+/* FASE5 the pieces of the redesign (FAMILIA-REDISENO.md 3-4, 2026-11-23), plugins only (the service draws its own kit):
+   .wf-card-head  the head of a card: icon 20 in the color of the section, title 16/600, at the right state, age and actions; a 4 % tint of the section
+   .wf-group      a group INSIDE a card (no grey sub-card): title 13/600 with a divider above
+   .wf-row        a row of 48: name 14/500 + one line 12 | the control at the right (ActionRow.vue)
+   .wf-stats / .wf-stat   figures in a grid of 160 minimum: the value 22/600, its label 12
+   .wf-table      a compact table: rows of 40, th 12/600 in sentence case
+   .wf-chip       a data chip of 24 (xs): outline, 12/500, never clickable (a clickable one is a .wf-btn of 32)
+   .wf-seg        segments: a row of 32 px buttons glued together, the chosen one filled */
+.wf-card-head { display: flex; align-items: center; gap: 8px; min-height: 40px; margin: -4px -4px 8px; padding: 4px 8px; border-radius: 8px; background: color-mix(in srgb, var(--wf-sec-now, var(--wf-badge)) 4%, transparent); }
+.wf-card-head-icon { flex: none; font-size: var(--wf-icon-l) !important; width: var(--wf-icon-l); height: var(--wf-icon-l); color: var(--wf-sec-now, var(--wf-icon)) !important; }
+.wf-card-head-title { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 16px; font-weight: 600; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wf-card-head-right { flex: none; display: inline-flex; align-items: center; gap: var(--wf-gap-hit); font-size: 12px; }
+.wf-card-head-age { opacity: 0.7; font-size: 12px; }
+.wf-group + .wf-group, .wf-group-divided { border-top: 1px solid var(--wf-line); margin-top: 12px; padding-top: 12px; }
+.wf-group-title { margin: 0 0 8px; font-size: 13px; font-weight: 600; }
+.wf-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; min-height: var(--wf-row); padding: 4px 0; }
+.wf-row + .wf-row { border-top: 1px solid var(--wf-line); }
+.wf-row-name { font-size: 14px; font-weight: 500; line-height: 1.3; }
+.wf-row-text { font-size: 12px; line-height: 1.35; opacity: 0.75; }
+.wf-row-control { display: inline-flex; align-items: center; gap: var(--wf-gap-hit); justify-self: end; }
+@container (max-width: 420px) { .wf-row { grid-template-columns: minmax(0, 1fr); } .wf-row-control { justify-self: start; } }
+.wf-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.wf-stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 12px; border: 1px solid var(--wf-line); border-radius: 8px; }
+.wf-stat-value { font-size: 22px; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.wf-stat-label { font-size: 12px; opacity: 0.75; }
+.wf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.wf-table th { height: 32px; padding: 0 8px; text-align: left; font-size: 12px; font-weight: 600; text-transform: none; letter-spacing: 0; opacity: 0.75; border-bottom: 1px solid var(--wf-line); }
+.wf-table td { height: 40px; padding: 0 8px; border-bottom: 1px solid var(--wf-line); }
+.wf-chip { display: inline-flex; align-items: center; gap: 4px; min-height: var(--wf-size-xs); padding: 0 8px; box-sizing: border-box; border: 1px solid var(--wf-control-line); border-radius: 999px; font-size: 12px; font-weight: 500; line-height: 1; white-space: nowrap; }
+.wf-seg { display: inline-flex; flex-wrap: wrap; gap: 0; }
+.wf-seg > :is(button, .wf-btn, .v-btn) { min-height: var(--wf-size-s); margin: 0 !important; border-radius: 0; }
+.wf-seg > :first-child { border-radius: var(--wf-radius-control) 0 0 var(--wf-radius-control); }
+.wf-seg > :last-child { border-radius: 0 var(--wf-radius-control) var(--wf-radius-control) 0; }
+.wf-seg > :not(:first-child) { margin-left: -1px !important; }
+.wf-seg > [aria-pressed='true'], .wf-seg > .is-on { background: var(--wf-accent, #1976d2) !important; border-color: var(--wf-accent, #1976d2) !important; color: #fff !important; }
+/* the page bar is compact by default (FAMILIA-REDISENO.md 3): 48 px, badge 32, the lead line is not drawn (still read by a screen reader); a long phrase goes to the help of the page */
+.page-header.wf-bar .wf-lead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* touch-area gaps measured by the arnes (front-power, 2026-11-24): a check or switch row has no box, so the row itself is 40 high; Vuetify 2 hides
+   the ::after of a v-btn-toggle segment (display: none) and the family area needs it back; the clickable icon of a field (the eye of a password) is
+   24 px seen and 40 touched (Vuetify draws the glyph with ::before, so its ::after is free) */
+.workshop-theme .v-btn-toggle > .v-btn.v-btn::after { display: block; }
+.workshop-theme .v-input__icon .v-icon.v-icon--link { position: relative; }
+.workshop-theme .v-input__icon .v-icon.v-icon--link::after { content: ''; position: absolute; left: 50%; top: 50%; width: var(--wf-hit); height: var(--wf-hit); transform: translate(-50%, -50%); opacity: 0; background: none; }
+/* F2 (ux review 2026-11-24, criteria C3): the label of a dense outlined field sits ABOVE the box, outside it, 13/500, never floating inside the border:
+   the field makes room above (20 px) and the notch Vuetify cuts in the border for a floating label is closed. Vuetify writes the place of the label
+   in line (left / right / position) and moves it with a transform, hence the !important on those three. A field without a label is untouched. */
+.workshop-theme .v-text-field--outlined.v-input--dense:not(.v-textarea):has(.v-label) { margin-top: 20px; }
+.workshop-theme .v-text-field--outlined.v-input--dense:not(.v-textarea) .v-input__slot .v-label { top: -22px !important; left: 0 !important; transform: none !important; max-width: 100%; font-size: 13px; font-weight: 500; line-height: 18px; color: inherit; opacity: 0.85; }
+.workshop-theme .v-text-field--outlined.v-input--dense:not(.v-textarea) fieldset > legend { width: 0 !important; padding: 0 !important; }
+

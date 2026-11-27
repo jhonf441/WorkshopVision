@@ -57,10 +57,12 @@
       function tvStartHeader(tv, iv) {
         tv.root.innerHTML = "";
         iv.page = tvEl("div", "tv-page workshop-theme");
+        tv.page = iv.page; // carries data-group: the colour of the group of the open section (tvPaintGroup, 11-vision-nav.js)
         tv.root.appendChild(iv.page);
-        // ---- the page bar of the family (wf-bar): badge with the icon of the menu, title, one line that says what the page is for,
-        // and on the right the state of the server, the camera and the calibration, the switch for the Workbench map and the start-up chip ----
-        var hd = tvEl("div", "wf-bar tv-hd");
+        // ---- the page bar of the family (wf-bar), COMPACT (FAMILIA-REDISENO 3: 48 px, badge 32, one line): badge with the icon of the menu, the title,
+        // and on the right the state of the server, the camera and the calibration, the switch for the Workbench map and the start-up chip. The line
+        // that says what the page is for is not drawn (.page-header of the family: still read by a screen reader) and is the title's tooltip ----
+        var hd = tvEl("div", "wf-bar page-header tv-hd");
         iv.page.appendChild(hd);
         // start-up card (16-startup.js): redrawn when what it shows changes (see refreshEstado)
         tv.startup = tvStartupCreate(function () { return tv.state; });
@@ -72,25 +74,42 @@
         var bt = tvEl("div", "wf-title", i18nT('vision.menu_caption'));
         bt.setAttribute("role", "heading"); // QA-11: the page title was a plain div (no headings in the page)
         bt.setAttribute("aria-level", "1");
+        bt.title = i18nT('vision.measure_with_the_gantry_camera');
         txt.appendChild(bt);
         txt.appendChild(tvEl("div", "wf-lead", i18nT('vision.measure_with_the_gantry_camera')));
         hd.appendChild(txt);
         var right = tvEl("div", "wf-bar-right");
         hd.appendChild(right);
-        right.appendChild(workshopVersionChip());
-        tv.pills = right;
+        // version and the three states go in ONE row (.tv-states: on a phone it is a single line that cuts the words, never wraps)
+        var states = tvEl("div", "tv-states");
+        right.appendChild(states);
+        states.appendChild(workshopVersionChip());
+        tv.pills = states;
         tv.chipSrv = tvPill(tv, "server");
         tv.chipCamera = tvPill(tv, "cctv");
         tv.chipCal = tvPill(tv, "ruler-square");
+        // phone only (CSS): the one summary chip, last in the row (11-vision-nav.js, tvPaintSummary)
+        tv.chipSum = tvEl("button", "wf-state tv-sum");
+        tv.chipSum.type = "button";
+        tv.chipSum.style.display = "none";
+        tv.chipSumTxt = tvEl("span", "tv-state-txt", "");
+        tv.chipSumMore = tvEl("b", "tv-sum-more", "");
+        tv.chipSum.appendChild(tv.chipSumTxt);
+        tv.chipSum.appendChild(tv.chipSumMore);
+        tv.chipSum.addEventListener("click", function () { if (!workshopHostPush("/")) window.location.href = "/"; });
+        states.appendChild(tv.chipSum);
         // Camera switch for the Zones map, in plain view (request
         // 2026-10-10: "I don't see that option" -- it was at the bottom of Calibrate).
         // WorkshopJog reads mapa.use / mapa.opacity from sys/workshop/config/vision.json.
-        tv.btnZones = tvEl("span", "tv-toggle");
+        // a real button (it was a span: the keyboard never reached it). Note 9 (2026-11-23, ux), on the scale of FAMILIA-REDISENO: a chip of the BAR
+        // only (.tv-bar-sw: 28 px to the eye, 40 px to the finger); the switches inside the cards are rows of 36
+        tv.btnZones = tvEl("button", "tv-toggle tv-bar-sw");
+        tv.btnZones.type = "button";
         tv.btnZones.title = i18nT('vision.puts_this_camera_s_video_under');
-        // 2026-10-10: "it is not clear when it is active and when not": besides the
-        // switch, the text says Yes/No and the whole button is painted.
+        // 2026-10-10: "it is not clear when it is active and when not": besides the switch, the text says Yes/No. The word goes right next to the
+        // track and never shrinks; on a narrow bar only the name gets an ellipsis
+        tv.btnZones.appendChild(tvEl("span", "tv-bar-sw-name", i18nT('vision.in_work_zones')));
         tv.btnZones.appendChild(tvEl("span", "sw"));
-        tv.btnZones.appendChild(tvEl("span", null, i18nT('vision.in_work_zones')));
         tv.btnZonasEst = tvEl("b", "est", i18nT('vision.no'));
         tv.btnZones.appendChild(tv.btnZonasEst);
         tv.btnZones.addEventListener("click", function () {

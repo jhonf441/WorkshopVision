@@ -19,7 +19,7 @@
       var TV_OFFCUTS_FILE = "0:/sys/workshop/data/scraps.json";
       var TV_PIECES_FILE = "0:/sys/workshop/data/vision-parts.json"; // biblioteca de piezas (2026-10-10)
       var TV_PREFS_KEY = "workshopVisionPrefs";
-      var TV_ARM_MS = 3000;
+      var TV_ARM_MS = 4000; // = WORKSHOP_ARM_MS (src/_shared/00-arm.js); tests/arm-ms.test.js keeps them equal
 
       var TV_KINDS = [
         ["piece", i18nT('vision.part'), "#76ff03", i18nT('vision.material_outline_position_length_x_width')],
@@ -149,9 +149,10 @@
         if (parent) parent.appendChild(e);
         return e;
       }
-      // Button; with confirmLabel it asks for a second tap within 3 s (moves or deletes).
+      // Button; with confirmLabel it asks for a second tap within TV_ARM_MS (moves or deletes).
       function tvBtn(label, cls, onClick, confirmLabel, tip) {
-        var b = tvEl("button", "wf-btn tv-btn tvb" + (/(^| )primary( |$)/.test(cls || "") ? " wf-main" : "") + (cls ? " " + cls : ""), label);
+        // the main action of a card is the family's main button: filled and 36 px high (the others 32, FAMILIA-REDISENO 2)
+        var b = tvEl("button", "wf-btn tv-btn tvb" + (/(^| )primary( |$)/.test(cls || "") ? " wf-main wf-btn--main" : "") + (cls ? " " + cls : ""), label);
         b.type = "button";
         if (tip) b.title = tip;
         // the main action without a session: disabled, and the reason is its tooltip (always there, not a toast)
@@ -272,13 +273,19 @@
         }
         return b;
       }
+      // A card with the head of the family (.wf-card-head, FAMILIA-REDISENO 3): icon 20 in the colour of the section, title 16/600 and, at the right,
+      // the state or the age of what it shows (extra); the head is tinted 4 % with that colour. No explanation above the content.
       function tvCard(title, icon, extra) {
         var c = tvEl("div", "tv-card wf-card");
-        var h = tvEl("h3");
-        if (icon) h.appendChild(tvIcon(icon));
-        h.appendChild(document.createTextNode(title));
-        if (extra) h.appendChild(tvEl("span", "n", extra));
-        c.appendChild(h);
+        var head = tvEl("div", "wf-card-head");
+        if (icon) head.appendChild(tvIcon(icon, "wf-card-head-icon"));
+        head.appendChild(tvEl("h3", "wf-card-head-title", title));
+        if (extra) {
+          var right = tvEl("span", "wf-card-head-right tv-head-right");
+          right.appendChild(tvEl("span", "wf-card-head-age n", extra));
+          head.appendChild(right);
+        }
+        c.appendChild(head);
         return c;
       }
       // a refusal (no session / role too low) is never a red failure: it paints the shared notice of its cause (blue session, gray role)

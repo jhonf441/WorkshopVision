@@ -96,7 +96,7 @@
 
       // Pure: the action of a notice (twin of noticeActionOf of notice-kind.js). The default of the standard (7c, cover only): "Sign in" for a session
       // cause, "Retry" when the service is down, nothing for a role. A surface without a bar chip asks for "sign-in": on a role cause it is drawn as
-      // "Change role" (owner rule 2026-11-06: floating panels and locked launchers carry the way out), the same dialog that keeps the current session.
+      // "Change role" (project rule 2026-11-06: floating panels and locked launchers carry the way out), the same dialog that keeps the current session.
       function workshopNoticeActionOf(kind, variant, act) {
         var given = act === undefined || act === null ? (variant === "cover" ? (kind === "session" ? "sign-in" : kind === "down" ? "retry" : "") : "") : act;
         if (given === "sign-in" && kind === "role") return "change-role";

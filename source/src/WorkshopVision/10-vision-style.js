@@ -5,18 +5,22 @@
       // no border), v-card-text grey for secondary text, grey--text for help text.
       ".tv-page{padding:0;color:#fff;font-size:14px;font-family:Roboto,sans-serif;--tv-card:#1e1e1e;--tv-sombra:0 3px 1px -2px rgba(0,0,0,.2),0 2px 2px 0 rgba(0,0,0,.14),0 1px 5px 0 rgba(0,0,0,.12);--tv-sec:rgba(255,255,255,.7);--tv-faint:#9e9e9e;--tv-interna:rgba(128,128,128,.09);--tv-line:rgba(255,255,255,.12);--tv-outline:rgba(255,255,255,.23);--tv-field:rgba(255,255,255,.3);--tv-hover:rgba(128,128,128,.12)}" +
       ".theme--light .tv-page{--tv-card:#fff;--tv-sec:rgba(0,0,0,.6);--tv-faint:#666;--tv-line:rgba(0,0,0,.12);--tv-outline:rgba(0,0,0,.23);--tv-field:rgba(0,0,0,.23)}" +
-      ".tv-turns{display:inline-block;animation:tv-turns 0.9s linear infinite}@keyframes tv-turns{to{transform:rotate(360deg)}}" +
+      ".tv-turns{display:inline-block;animation:tv-turns 1.5s linear infinite}@keyframes tv-turns{to{transform:rotate(360deg)}}" +
       ".tv-ic{font-size:18px;line-height:1;vertical-align:middle}" +
-      ".tv-sec{display:inline-flex;background:transparent;border:1px solid var(--tv-outline,#455a64);border-radius:6px;padding:2px;gap:2px}" +
-      ".tv-sec .tvb{border:none;background:transparent;border-radius:6px;padding:6px 12px;display:inline-flex;align-items:center;gap:6px;color:#b0bec5}" +
-      ".tv-sec .tvb.on{background:#1976d2;color:#fff}.tv-sec .tvb:hover:not(.on){background:var(--tv-hover,#263238)}" +
+      // segments (FAMILIA-REDISENO 2): 32 px buttons glued together, the chosen one filled; no frame around them
+      ".tv-sec{display:inline-flex;flex-wrap:wrap;background:transparent;border:0;border-radius:0;padding:0;gap:0}" +
+      ".tv-sec .tvb{min-height:var(--wf-size-s,32px);border:1px solid var(--wf-control-line,#8c8c8c);background:transparent;border-radius:0;padding:0 12px;display:inline-flex;align-items:center;gap:6px;color:inherit;margin:0}" +
+      ".tv-sec .tvb:first-child{border-radius:var(--wf-radius-control,6px) 0 0 var(--wf-radius-control,6px)}.tv-sec .tvb:last-child{border-radius:0 var(--wf-radius-control,6px) var(--wf-radius-control,6px) 0}.tv-sec .tvb+.tvb{margin-left:-1px}" +
+      ".tv-sec .tvb.on{background:var(--wf-accent,#1976d2);border-color:var(--wf-accent,#1976d2);color:#fff}.tv-sec .tvb:hover:not(.on){background:var(--tv-hover,#263238)}" +
+      // glued segments: the 40 px touch area grows up and down only (sideways it would cover the neighbour)
+      ".tv-sec .tvb::after{left:0;width:100%;transform:translateY(-50%)}" +
       ".tv-lbl{font-size:12px;font-weight:600;margin:10px 0 4px;opacity:.85}" + // titulito de un grupo (Vigilancia de fuego)
       // cuenta regresiva antes de pausar por fuego/humo (2026-10-12): relleno de aviso, texto blanco
       ".tv-count{background:#bf360c;color:#fff;border-radius:6px;padding:8px 10px;margin:6px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:600}" +
-      ".tv-count .tvb{background:transparent;border:1px solid #fff;color:#fff;min-height:32px}" +
+      ".tv-count .tvb{background:transparent;border:1px solid #fff;color:#fff;min-height:var(--wf-size-s,32px)}" +
       ".tv-hist{font-size:12px;margin-top:4px}.tv-hist>div{padding:3px 0;border-bottom:1px solid rgba(255,255,255,.08)}.tv-hist>div.f{cursor:pointer}" +
       ".theme--light .tv-hist>div{border-bottom-color:rgba(0,0,0,.08)}" +
-      ".tv-toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:inherit;user-select:none;min-height:32px;box-sizing:border-box;padding:4px 10px;border-radius:6px;border:1px solid var(--tv-outline,#455a64);background:transparent}" +
+      ".tv-toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:inherit;user-select:none;min-height:var(--wf-size-m,36px);box-sizing:border-box;padding:4px 10px;border-radius:6px;border:1px solid var(--tv-outline,#455a64);background:transparent}" +
       ".tv-toggle .sw{width:30px;height:16px;border-radius:8px;background:#455a64;position:relative;flex:none;transition:background .2s}" +
       ".tv-toggle .sw:after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#eceff1;transition:left .2s}" +
       ".tv-toggle.on .sw{background:#2e7d32}.tv-toggle.on .sw:after{left:16px}" +
@@ -28,7 +32,7 @@
       ".tv-notice{border-top-color:#e65100}" +
       ".tv-check{display:flex;align-items:center;gap:8px;cursor:pointer;margin:4px 0 8px}.tv-pre{white-space:pre-line;font-size:13px;margin-bottom:6px}" +
       ".tv-lib-it .tv-in,.tv-acts .tv-in{width:auto;flex:1 1 140px;min-width:0}" +
-      ".tv-steps{display:flex;flex-direction:column;gap:8px}.tv-step{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--tv-line);border-radius:6px;padding:8px 10px}" +
+      ".tv-steps{display:flex;flex-direction:column;gap:0}.tv-step{display:flex;gap:10px;align-items:flex-start;border:0;border-bottom:1px solid var(--tv-line);border-radius:0;padding:8px 0}" +
       ".tv-step .n{flex:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;background:rgba(255,255,255,.1)}" +
       ".tv-step.done .n{background:#2e7d32;color:#fff}.tv-step.now{border-color:#1976d2;background:rgba(25,118,210,.08)}.tv-step.now .n{background:#1976d2;color:#fff}.tv-step .b{flex:1;min-width:0}.tv-step .tt{font-weight:500}" +
       ".tv-lib{display:flex;flex-direction:column;gap:6px}.tv-lib-it{display:flex;align-items:center;gap:8px;border:1px solid var(--tv-line);border-radius:6px;padding:6px 8px}.tv-lib-it svg{flex:none;width:44px;height:44px}.tv-lib-it .b{flex:1;min-width:0}" +
@@ -42,7 +46,7 @@
       // almost all the leftover; when it reaches its height cap, the rest goes to the options
       ".tv-left{flex:1000 1 0;min-width:0}.tv-side{flex:1 1 clamp(260px,26%,380px);min-width:260px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-content:start;align-items:start}" +
       ".tv-main.only .tv-left{display:none}.tv-main.only .tv-side{flex:1 1 100%;max-width:none;display:block;column-width:360px;column-gap:10px}.tv-main.only .tv-side>*{break-inside:avoid;margin:0 0 10px}" +
-      ".tv-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 4px}" +
+      ".tv-bar{display:flex;flex-wrap:wrap;gap:var(--wf-gap-hit,8px);align-items:center;margin:8px 0 4px}" +
       // buttons (DESIGN.md 2, "Panel / pagina JS"): secondary = outlined, main = filled blue,
       // text button = no border. Over the image (.tv-ov, .tv-pad, full screen) they stay filled grey.
       ".tv-ov .tvb,.tv-pad .tvb,.tv-left.tv-full .tvb{background:#455a64;border-color:#455a64;color:#eceff1}" +
@@ -84,22 +88,22 @@
       ".tv-msg{font-size:13px;padding:4px 0;margin:6px 0;line-height:1.4;white-space:pre-line;display:flex;gap:8px;align-items:flex-start;color:var(--tv-sec)}" +
       ".tv-msg .tv-ic{font-size:18px;margin-top:-1px;color:var(--wf-icon)}.tv-msg.ok .tv-ic{color:var(--wf-ok)}.tv-msg.err .tv-ic{color:var(--wf-err)}" +
       ".tv-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin:6px 0}" +
-      ".tv-stat{background:var(--tv-interna);border-radius:8px;padding:6px 9px}.tv-stat .k{font-size:11px;color:var(--tv-faint)}.tv-stat .v{font-size:16px;font-weight:500;font-variant-numeric:tabular-nums}" +
+      ".tv-stat{background:var(--tv-interna);border-radius:8px;padding:6px 9px}.tv-stat .k{font-size:12px;color:var(--tv-faint)}.tv-stat .v{font-size:16px;font-weight:500;font-variant-numeric:tabular-nums}" +
       ".tv-steps{display:flex;flex-direction:column;gap:2px}" +
       ".tv-step{display:flex;gap:10px;padding:6px 0}.tv-step .num{width:22px;height:22px;border-radius:50%;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;background:#455a64;color:#fff}" +
       ".tv-step.done .num{background:#2e7d32}.tv-step .bd{flex:1;min-width:0}.tv-step .tt{font-weight:500;margin-bottom:4px}" +
       // detecciones
-      ".tv-filt{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}" +
-      ".tv-item{border-left:4px solid #888;padding:7px 10px;margin:6px 0;background:var(--tv-interna);border-radius:6px;cursor:pointer}" +
-      ".tv-item:hover{background:var(--tv-hover)}.tv-item.sel{background:rgba(25,118,210,.18);outline:1px solid var(--wf-n-session-text,#90caf9)}" +
+      ".tv-filt{display:flex;flex-wrap:wrap;gap:var(--wf-gap-hit,8px);margin-bottom:8px}" +
+      ".tv-item{border-left:3px solid #888;padding:6px 10px;margin:0;min-height:var(--wf-row,48px);box-sizing:border-box;background:transparent;border-radius:0;border-bottom:1px solid var(--tv-line);cursor:pointer}" +
+      ".tv-item:hover{background:var(--tv-hover)}.tv-item.sel{background:rgba(25,118,210,.16);outline:0}" +
       ".tv-item .t{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tv-sec)}.tv-item .big{font-size:16px;font-weight:500;color:inherit;margin:2px 0;font-variant-numeric:tabular-nums}" +
       ".tv-item .v{font-size:12px;color:var(--tv-sec);line-height:1.45;white-space:pre-line}" +
-      ".tv-acts{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:5px;margin-top:8px}.tv-acts .tvb{justify-content:center}" +
+      ".tv-acts{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:var(--wf-gap-hit,8px);margin-top:8px}.tv-acts .tvb{justify-content:center}" +
       ".tv-list{max-height:56vh;overflow:auto;padding-right:2px}" +
-      ".tv-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:5px 0}" +
-      ".tv-in{background:var(--tv-card);color:inherit;border:1px solid var(--tv-field);border-radius:4px;padding:5px 7px;min-height:32px;box-sizing:border-box;font-size:13px;width:80px}" +
+      ".tv-row{display:flex;flex-wrap:wrap;gap:var(--wf-gap-hit,8px);align-items:center;margin:8px 0}" +
+      ".tv-in{background:var(--tv-card);color:inherit;border:1px solid var(--tv-field);border-radius:4px;padding:5px 7px;min-height:var(--wf-size-m,36px);box-sizing:border-box;font-size:13px;width:80px}" +
       ".tv-in:focus,.tv-sel:focus{outline:none;border-color:#1976d2}" +
-      ".tv-sel{background:var(--tv-card);color:inherit;border:1px solid var(--tv-field);border-radius:4px;padding:5px;min-height:32px;box-sizing:border-box;font-size:13px}" +
+      ".tv-sel{background:var(--tv-card);color:inherit;border:1px solid var(--tv-field);border-radius:4px;padding:5px;min-height:var(--wf-size-m,36px);box-sizing:border-box;font-size:13px}" +
       ".tv-prm{display:grid;grid-template-columns:1fr minmax(100px,170px);gap:5px 10px;align-items:center;font-size:12px}" +
       ".tv-tbl{width:100%;border-collapse:collapse;font-size:13px}.tv-tbl td,.tv-tbl th{padding:4px 6px;border-bottom:1px solid var(--tv-line);text-align:left}.tv-tbl th{color:var(--tv-sec);font-size:12px;font-weight:500}" +
       ".tv-ind{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px}.tv-ind .tv-ic{font-size:18px}" +
@@ -126,7 +130,7 @@
       ".theme--light .tv-info>span.warn{color:#b26a00}" +
       ".theme--light .tv-step .num{background:#546e7a;color:#fff}" +
       ".theme--light .tv-step.done .num{background:#2e7d32}" +
-      ".theme--light .tv-item.sel{background:#e3f2fd;outline-color:#1976d2}" +
+      ".theme--light .tv-item.sel{background:#e3f2fd}" +
       ".theme--light .tv-prog{background:#e0e0e0}" +
       ".theme--light .tv-ov .tv-sec{background:rgba(16,22,26,.78);border-color:rgba(255,255,255,.1)}" +
       ".theme--light .tv-ov .tv-sec .tvb{color:#b0bec5}" +
@@ -139,41 +143,43 @@
       ".tv-pad{position:absolute;right:8px;top:50%;transform:translateY(-50%);padding:8px;flex-direction:column;gap:6px;line-height:1.35;color:#eceff1;font-size:12px;width:184px}" +
       ".tv-pad .h{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px}.tv-pad .h .tv-ic{color:var(--wf-n-down-text,#ffe082);font-size:16px}" +
       ".tv-pad .pos{color:#b0bec5;font-variant-numeric:tabular-nums}" +
-      ".tv-pad .dp{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}" +
+      ".tv-pad .dp{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--wf-gap-hit,8px)}" +
       ".tv-pad .tvb{justify-content:center;padding:4px 6px}" +
-      ".tv-pad .steps{display:flex;gap:3px;align-items:center}.tv-pad .steps .tvb{flex:1;padding:3px 4px;font-size:12px}" +
-      ".tv-pad .zz{display:grid;grid-template-columns:1fr 1fr;gap:4px}.tv-pad .zz .tvb{font-size:12px}" +
-      ".tv-pad .err{color:#ef9a9a}.tv-pad .tv-muted{font-size:11px}" +
+      ".tv-pad .steps{display:flex;gap:var(--wf-gap-hit,8px);align-items:center}.tv-pad .steps .tvb{flex:1;padding:3px 4px;font-size:12px}" +
+      ".tv-pad .zz{display:grid;grid-template-columns:1fr 1fr;gap:var(--wf-gap-hit,8px)}.tv-pad .zz .tvb{font-size:12px}" +
+      ".tv-pad .err{color:#ef9a9a}.tv-pad .tv-muted{font-size:12px}" +
       // own full screen (2026-10-10: the browser's failed): the image column covers the whole window
       ".tv-left.tv-full{position:fixed;inset:0;z-index:1500;max-width:none !important;background:#0d1114;padding:10px 12px;overflow:hidden;color:#eceff1;display:flex;flex-direction:column}" +
       ".tv-left.tv-full .tv-stage{margin:0 auto;border-radius:0;border:none;flex:none;width:100%}" +
-      ".tv-pad .h{cursor:move;touch-action:none;user-select:none}.tv-pad .h .tvb{margin-left:auto;min-height:28px;padding:2px 6px}" +
-      ".tv-pad .seguro{display:flex;gap:5px;align-items:flex-start;font-size:11px;color:#a5d6a7;line-height:1.35}.tv-pad .seguro .tv-ic{font-size:14px}" +
-      ".tv-pad .data{font-size:11px;color:#b0bec5;line-height:1.35}.tv-pad .data b{color:#eceff1;font-weight:500}.tv-pad .data .more{color:#a5d6a7}.tv-pad .data .minus{color:var(--wf-n-down-text,#ffb74d)}" +
+      ".tv-pad .h{cursor:move;touch-action:none;user-select:none}.tv-pad .h .tvb{margin-left:auto;min-height:var(--wf-size-s,32px);padding:2px 6px}" +
+      ".tv-pad .seguro{display:flex;gap:5px;align-items:flex-start;font-size:12px;color:#a5d6a7;line-height:1.35}.tv-pad .seguro .tv-ic{font-size:14px}" +
+      ".tv-pad .data{font-size:12px;color:#b0bec5;line-height:1.35}.tv-pad .data b{color:#eceff1;font-weight:500}.tv-pad .data .more{color:#a5d6a7}.tv-pad .data .minus{color:var(--wf-n-down-text,#ffb74d)}" +
       // Viewer work bar (2026-10-11, "arrange all the function buttons",
       // same style as the Workbench bar): square buttons with icon on top and
       // short name below, in blocks of the same function; the rarely used in small menus
-      ".tv-dock{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:6px;padding:4px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;position:relative;line-height:1}" +
+      ".tv-dock{display:flex;flex-wrap:wrap;align-items:center;gap:var(--wf-gap-hit,8px);margin-top:8px;padding:4px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;position:relative;line-height:1}" +
       ".tv-dock>*{flex:none}.tv-dock>.gap{flex:1 1 0;min-width:0}" +
-      ".tv-ib{min-width:42px;min-height:44px;margin:0;padding:4px 4px 3px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#455a64;color:#eceff1;border:1px solid rgba(255,255,255,.3);border-radius:7px;cursor:pointer;touch-action:manipulation;position:relative;font:inherit;line-height:1;box-sizing:border-box}" +
-      ".tv-ib .tv-ic{font-size:20px;pointer-events:none}.tv-ib .cap{font-size:10px;line-height:1.05;white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums}" +
+      ".tv-ib{min-width:var(--wf-size-s,32px);min-height:var(--wf-size-s,32px);margin:0;padding:0 10px;display:inline-flex;flex-direction:row;align-items:center;justify-content:center;gap:6px;background:#455a64;color:#eceff1;border:1px solid rgba(255,255,255,.3);border-radius:7px;cursor:pointer;touch-action:manipulation;position:relative;font:inherit;line-height:1;box-sizing:border-box}" +
+      ".tv-ib .tv-ic{font-size:var(--wf-icon-m,18px);pointer-events:none}.tv-ib .cap{font-size:12px;font-weight:500;line-height:1;white-space:nowrap;pointer-events:none;font-variant-numeric:tabular-nums}" +
+      // touched over 40 px: a lone button over a 40 x 40 area; inside a glued group (.tv-pair) the area grows up and down only
+      ".tv-ib::after{content:'';position:absolute;left:50%;top:50%;width:max(100%,var(--wf-hit,40px));height:max(100%,var(--wf-hit,40px));transform:translate(-50%,-50%)}.tv-pair .tv-ib::after{left:0;width:100%;transform:translateY(-50%)}" +
       ".tv-ib:hover:not(:disabled){filter:brightness(1.2)}.tv-ib:disabled{opacity:.45;cursor:default}" +
-      ".tv-ib.half{min-width:34px}" +
+      ".tv-ib.half{min-width:var(--wf-size-s,32px);padding:0}" +
       ".tv-ib.on,.tv-ib.prim{background:#1976d2;border-color:var(--wf-n-session-text,#90caf9);color:#fff}" +
       ".tv-ib.live{background:var(--wf-armed,#ff8f00);border-color:var(--wf-n-down-text,#ffe082);color:#212121}" +
       ".tv-ib.open{background:#37474f;border-color:var(--wf-n-session-text,#90caf9)}" +
-      ".tv-ib .dots{position:absolute;top:3px;right:3px;display:flex;gap:1px;pointer-events:none}.tv-ib .dots i{width:6px;height:6px;border-radius:50%;display:block}" +
-      ".tv-pair{display:inline-flex;border:1px solid rgba(255,255,255,.3);border-radius:8px;overflow:hidden;background:#455a64}" +
-      ".tv-pair .tv-ib{border:0;border-radius:0}.tv-pair .tv-ib+.tv-ib{border-left:1px solid rgba(255,255,255,.18)}" +
-      ".tv-dock.without-names .cap{display:none}.tv-dock.without-names .tv-ib{min-width:38px;min-height:36px}.tv-dock.without-names .tv-ib.half{min-width:32px}" +
+      ".tv-ib .dots{position:absolute;top:2px;right:2px;display:flex;gap:1px;pointer-events:none}.tv-ib .dots i{width:6px;height:6px;border-radius:50%;display:block}" +
+      ".tv-pair{display:inline-flex;border:1px solid rgba(255,255,255,.3);border-radius:var(--wf-radius-control,6px);background:#455a64}" +
+      ".tv-pair .tv-ib{border:0;border-radius:0}.tv-pair .tv-ib:first-child{border-radius:5px 0 0 5px}.tv-pair .tv-ib:last-child{border-radius:0 5px 5px 0}.tv-pair .tv-ib:only-child{border-radius:5px}.tv-pair .tv-ib+.tv-ib{border-left:1px solid rgba(255,255,255,.18)}" +
+      ".tv-dock.without-names .cap{display:none}.tv-dock.without-names .tv-ib{width:var(--wf-size-s,32px);min-width:var(--wf-size-s,32px);min-height:var(--wf-size-s,32px);padding:0}" +
       // bar menus: they open upward stuck to their button; tapping outside or Esc closes them
       ".tv-dpop{position:absolute;z-index:8;display:none;background:var(--tv-card);border:1px solid var(--tv-line);border-radius:6px;padding:8px 10px;box-shadow:0 6px 20px rgba(0,0,0,.55);font-size:12px;color:#eceff1;width:max-content;max-width:min(340px,calc(100% - 8px));line-height:1.35;box-sizing:border-box}" +
       ".tv-dpop h4{margin:0 0 6px;font-size:13px;font-weight:600;color:var(--wf-n-session-text,#90caf9)}" +
       ".tv-dpop .dsec{margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,.1)}" +
-      ".tv-dpop .dlbl{font-size:11px;color:#b0bec5;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}" +
-      ".tv-dpop .drow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.tv-dpop .tv-muted{font-size:11px;margin-top:4px}" +
-      ".tv-dpop .it{display:flex;gap:9px;align-items:flex-start;padding:6px 8px;border-radius:6px;cursor:pointer;min-height:32px;box-sizing:border-box}.tv-dpop .it:hover{background:var(--tv-hover)}" +
-      ".tv-dpop .it .tv-dot{margin-top:3px}.tv-dpop .it .n{font-size:13px;color:#eceff1}.tv-dpop .it .d{font-size:11px;color:#b0bec5}" +
+      ".tv-dpop .dlbl{font-size:12px;color:#b0bec5;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}" +
+      ".tv-dpop .drow{display:flex;flex-wrap:wrap;gap:var(--wf-gap-hit,8px);align-items:center}.tv-dpop .tv-muted{font-size:12px;margin-top:4px}" +
+      ".tv-dpop .it{display:flex;gap:9px;align-items:flex-start;padding:6px 8px;border-radius:6px;cursor:pointer;min-height:var(--wf-hit,40px);box-sizing:border-box}.tv-dpop .it:hover{background:var(--tv-hover)}" +
+      ".tv-dpop .it .tv-dot{margin-top:3px}.tv-dpop .it .n{font-size:13px;color:#eceff1}.tv-dpop .it .d{font-size:12px;color:#b0bec5}" +
       ".tv-dpop .footer{display:flex;gap:6px;justify-content:flex-end;border-top:1px solid rgba(255,255,255,.08);margin-top:4px;padding-top:6px}" +
       ".tv-info .tv-dot{width:8px;height:8px;margin-right:3px;vertical-align:baseline}" +
       ".theme--light .tv-dock{background:rgba(0,0,0,.03);border-color:rgba(0,0,0,.1)}" +
@@ -188,31 +194,74 @@
       "@media (max-width:700px){.tv-side{flex:1 1 100%}.tv-ov.br{max-width:100%;left:8px}}" +
       // ---- the family (src/_shared/05-family-css.js) draws the bar, menu, cards, buttons and states; below, what is Vision's own ----
       ".tv-page{--wf-badge:#ad1457;--wf-sec:#ad1457}" +
+      // the colour of the group of the open section (FAMILIA-REDISENO 3): the line on top of the cards, the open entry of the bar, the icon and
+      // the 4 % tint of the head of every card. Measure = the colour of Vision, Job = green, Camera = blue grey (10-vision-state.js sets data-group)
+      ".tv-page[data-group='1']{--wf-sec:#689f38}.tv-page[data-group='2']{--wf-sec:#607d8b}" +
       ".tv-page h3{margin:0 0 8px 0;font-size:16px;font-weight:600;letter-spacing:0;color:inherit;display:flex;align-items:center;gap:8px}" +
       ".tv-page h3 .tv-ic{color:var(--wf-icon);font-size:20px}.tv-page h3 .n{margin-left:auto;font-size:12px;color:var(--tv-faint);font-weight:400}" +
+      // the head of a card is the family's (.wf-card-head, tvCard): its title is not a flex row of its own
+      ".tv-page .wf-card-head .wf-card-head-title{display:block;margin:0;white-space:normal}.tv-head-right{color:var(--tv-faint)}" +
+      // a card that tells a state (the service does not answer): the icon in the colour of that state, ONE text of 13 px of three lines at most and the
+      // rest folded under "See details"
+      ".tv-notice{--wf-sec:var(--wf-warn,#fb8c00)}.tv-line3{font-size:13px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}" +
+      ".tv-more{margin-top:8px;font-size:13px}.tv-more>summary{position:relative;display:inline-flex;align-items:center;gap:6px;min-height:var(--wf-size-s,32px);cursor:pointer;list-style:none;color:var(--wf-c-info-text,#64b5f6);font-weight:500}" +
+      ".tv-more>summary::-webkit-details-marker{display:none}.tv-more>summary::after{content:'';position:absolute;left:0;right:0;top:50%;height:max(100%,var(--wf-hit,40px));transform:translateY(-50%)}" +
+      ".tv-more>summary:focus-visible{outline:2px solid var(--wf-focus,#90caf9);outline-offset:2px}.tv-more>div{margin-top:4px;line-height:1.45;color:var(--tv-sec)}.tv-more>div>*+*{margin-top:6px}" +
       ".tv-hd .tv-toggle{margin:0}" +
+      // version + states: one group (the bar lays its children as before); a lone button of an actions row is as wide as its words; two segments
+      // of a card sit side by side and share the width
+      ".tv-states{display:contents}.tv-state-txt{min-width:0}.tv-states .tv-sum{display:none!important}" +
+      ".tv-acts.tv-acts--fit{display:flex;flex-wrap:wrap}.tv-acts.tv-acts--fit .tvb{flex:0 0 auto;width:auto}" +
+      ".tv-sec.tv-sec--pair{display:flex;flex-wrap:nowrap}.tv-sec.tv-sec--pair .tvb{flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;justify-content:center}" +
+      // note 17 (phone): the bar is TWO rows: badge, title and the start-up chip, then ONE line of version and states (words cut with an ellipsis)
+      "@media (max-width:639.98px){.tv-hd .wf-bar-right{display:contents}.tv-hd .wf-bar-txt{flex:0 0 auto;order:1}.tv-hd .wf-bar-right>:last-child{order:2;flex:1 1 0;min-width:64px;max-width:max-content;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.tv-hd .wf-bar-right>.tv-bar-sw,.tv-hd .wf-bar-right>.wf-help{order:4}" +
+      ".tv-states{order:3;display:flex;flex:1 1 100%;flex-wrap:nowrap;align-items:center;gap:8px;min-width:0;overflow:hidden}" +
+      ".tv-states>*{flex:0 1 auto;min-width:0}.tv-states>:first-child{flex:none}.tv-states .wf-state{overflow:hidden}" +
+      ".tv-state-txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
+      // the three states and the version fold into the one summary chip (the version is in Settings > Plugins)
+      ".tv-states>.wf-state,.tv-states>.wf-version{display:none!important}.tv-states .tv-sum{display:inline-flex!important;position:relative;flex:0 0 auto;max-width:100%;min-height:var(--wf-size-s,32px);align-items:center;gap:6px;background:transparent;border:0;color:inherit;font:inherit;cursor:pointer}" +
+      ".tv-states .tv-sum[style*='display: none']{display:none!important}.tv-sum::after{content:'';position:absolute;left:0;right:0;top:50%;height:max(100%,var(--wf-hit,40px));transform:translateY(-50%)}.tv-sum-more{flex:none;font-weight:600}}" +
       ".tv-nav{position:sticky;top:64px;flex:none;width:190px;display:flex;flex-direction:column;padding:0 4px 8px 0}" +
       ".tvn-head{display:flex;align-items:center;justify-content:space-between}.tv-nav.collapsed .tvn-head{flex-direction:column-reverse;justify-content:center}" +
       ".tvn-pin{width:auto!important;min-width:32px;padding:0 8px;display:inline-flex;align-items:center;gap:4px;font-size:12px}.tvn-pin.pinned{opacity:1}" +
-      ".tvn-fold{align-self:flex-end;background:transparent;border:none;color:inherit;opacity:.7;cursor:pointer;height:32px;width:32px;border-radius:6px}.tvn-fold:hover{background:rgba(128,128,128,.12);opacity:1}" +
-      ".tvn-group{padding:12px 12px 4px}.tvn-group[data-group='0']{margin-top:0;border-top:0}" +
-      ".tv-nav-item{display:flex;align-items:center;gap:10px;width:100%;min-height:40px;padding:6px 12px;text-align:left;cursor:pointer}.tv-nav-item .tx{line-height:1.25}" +
-      "@media (pointer:coarse),(max-width:599px){.tv-nav-item{min-height:44px}}" +
+      ".tvn-fold{position:relative;align-self:flex-end;background:transparent;border:none;color:inherit;opacity:.7;cursor:pointer;height:var(--wf-size-s,32px);width:var(--wf-size-s,32px);border-radius:6px}.tvn-fold::after{content:'';position:absolute;left:50%;top:50%;width:max(100%,var(--wf-hit,40px));height:max(100%,var(--wf-hit,40px));transform:translate(-50%,-50%)}.tvn-fold:hover{background:rgba(128,128,128,.12);opacity:1}" +
+      ".tvn-group{padding:12px 12px 4px;font-size:12px}.tvn-group[data-group='0']{margin-top:0;border-top:0}" +
+      ".tv-nav-item{display:flex;align-items:center;gap:10px;width:100%;min-height:var(--wf-size-s,32px);padding:4px 12px;margin:4px 0;text-align:left;cursor:pointer}.tv-nav-item .tx{line-height:1.25}" +
       ".tv-nav.collapsed{width:52px}.tv-nav.collapsed .tx,.tv-nav.collapsed .tvn-group{display:none}.tv-nav.collapsed .tv-nav-item{justify-content:center;padding:6px 0}" +
       "@media (max-width:900px){.tv-body{flex-direction:column}.tv-nav,.tv-nav.collapsed{position:static;width:100%;flex-direction:row;flex-wrap:wrap;padding:0 0 4px}.tvn-group,.tvn-fold{display:none}.tv-nav-item,.tv-nav.collapsed .tv-nav-item{width:auto;justify-content:flex-start;padding:6px 8px}.tv-nav.collapsed .tx{display:inline}}" +
+      // note 17 (2026-11-23): under 640 px of window the bar is ONE "Section: X" button (11-vision-nav-pick.js) that opens the list in a sheet
+      ".tvn-pick{display:none}" +
+      "@media (max-width:639.98px){.tv-nav.tv-nav>:not(.tvn-pick){display:none}.tvn-pick.tvn-pick{position:relative;display:flex;align-items:center;gap:10px;width:100%;min-height:var(--wf-size-s,32px);padding:0 12px;border:1px solid var(--wf-control-line,#8c8c8c);border-radius:6px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}" +
+      ".tvn-pick-name{flex:1 1 auto;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tvn-pick-word{font-size:12px;opacity:.8}" +
+      ".tvn-pick.tvn-pick::after{content:'';position:absolute;left:0;right:0;top:50%;height:max(100%,var(--wf-hit,40px));transform:translateY(-50%)}}" +
+      ".tvn-pick-veil{z-index:2147483640}.tvn-pick-list{display:flex;flex-direction:column;overscroll-behavior:contain;padding:4px 0}" +
+      ".tvn-pick-item{display:flex;align-items:center;gap:10px;width:100%;min-height:var(--wf-hit,40px);padding:4px 12px;border:none;border-left:2px solid transparent;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}" +
+      ".tvn-pick-item.on{border-left-color:var(--wf-sec,#ad1457);font-weight:600}.tvn-pick-item:focus-visible{outline:2px solid var(--wf-focus,#90caf9);outline-offset:-2px}" +
+      ".tvn-pick-text{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}.tvn-pick-text small{font-size:12px;opacity:.8}" +
       ".tv-left.tv-full{border:0;border-radius:0}" +
-      ".tv-acc{padding:0;overflow:hidden}.tv-acc-h .tv-ic.m{color:var(--wf-icon);font-size:20px}.tv-acc-h .tag{border:0;padding:0;height:auto;line-height:1.4;color:var(--tv-sec)}" +
-      ".tv-acc-h{display:flex;align-items:center;gap:10px;min-height:48px;box-sizing:border-box;padding:10px 16px;cursor:pointer;user-select:none}.tv-acc-h:hover{background:var(--tv-hover)}" +
+      ".tv-acc{padding:0;overflow:hidden}.tv-acc-h .tv-ic.m{color:var(--wf-sec-now,var(--wf-icon));font-size:var(--wf-icon-l,20px)}.tv-acc-h .tag{border:0;padding:0;height:auto;line-height:1.4;color:var(--tv-sec)}" +
+      ".tv-acc-h{display:flex;align-items:center;gap:8px;min-height:var(--wf-hit,40px);box-sizing:border-box;padding:4px 12px;cursor:pointer;user-select:none;background:color-mix(in srgb,var(--wf-sec-now,var(--wf-badge)) 4%,transparent)}.tv-acc-h:hover{background:var(--tv-hover)}" +
       ".tv-acc-h .tt{font-size:16px;font-weight:600;letter-spacing:0}.tv-acc-h .ss{font-size:12px;color:var(--tv-sec)}.tv-acc-h .tag{margin-left:auto;font-size:12px;white-space:nowrap}" +
       ".tv-acc-b{padding:0 16px 16px 16px;border-top:1px solid var(--tv-line)}.tv-acc-b>:first-child{margin-top:10px}" +
       ".tv-tchip.on .tv-dot{box-shadow:none}" +
-      ".tv-step.now{background:transparent;border-top:2px solid var(--wf-sec)}.tv-step.done .n{background:var(--wf-ok)}.tv-step.now .n{background:var(--wf-accent)}" +
+      ".tv-step.now{background:transparent;border-top:0}.tv-step.now .tt{font-weight:600}.tv-step.done .n{background:var(--wf-ok)}.tv-step.now .n{background:var(--wf-accent)}" +
       ".tv-info>span{background:transparent;border:1px solid var(--tv-line)}" +
       ".tv-stat,.tv-delta div{background:transparent;border:1px solid var(--tv-line);border-radius:8px}" +
       ".tv-toggle.on,.theme--light .tv-toggle.on{background:transparent;border-color:var(--wf-ok)}.tv-toggle.on .est{color:inherit}" +
+      // note 9 (2026-11-23), C6 of the design criteria, on the scale of FAMILIA-REDISENO: the switch of the page bar is a chip (control border, 32 x 18
+      // track and the word), 28 px high with an invisible 40 px touch area (::before centred; the bar keeps 12 px between its chips, so no area
+      // overlaps the "?" or the session chip). Its own class: the bar belongs to the family and the switches of the cards are rows of 36
+      ".tv-toggle.tv-bar-sw{position:relative;flex:0 1 auto;max-width:100%;min-width:0;min-height:28px;height:28px;padding:0 12px;gap:6px;border-radius:16px;border:1px solid var(--wf-control-line,#8c8c8c);background:transparent;color:inherit;font-family:inherit;font-size:12px;font-weight:500;line-height:1;white-space:nowrap;opacity:1}" +
+      ".tv-toggle.tv-bar-sw.on{border-color:var(--wf-ok)}.tv-toggle.tv-bar-sw::before{content:'';position:absolute;left:0;right:0;top:50%;height:max(100%,var(--wf-hit,40px));transform:translateY(-50%)}" +
+      ".tv-bar-sw-name{min-width:0;overflow:hidden;text-overflow:ellipsis}.tv-toggle.tv-bar-sw .sw,.tv-toggle.tv-bar-sw .est{flex:none}" +
+      ".tv-toggle.tv-bar-sw .sw{width:32px;height:18px;border-radius:9px}.tv-toggle.tv-bar-sw .sw:after{top:3px;left:3px;width:12px;height:12px}.tv-toggle.tv-bar-sw.on .sw:after{left:17px}" +
+      ".tv-toggle.tv-bar-sw:focus-visible{outline:2px solid var(--wf-focus,#1976d2);outline-offset:2px}" +
       // the buttons of the family, painted for what floats over the image (dark, filled), and the variants of Vision
       ".tvb.warn{color:#ef6c00;border-color:#ef6c00}.tvb.small{padding:3px 8px;font-size:12px}.tvb.ghost{border-color:transparent;color:var(--wf-info)}.tvb.big{padding:8px 14px}" +
-      ".tv-sec .tvb.on{background:rgba(128,128,128,.22);font-weight:600}.tv-ov .tv-sec .tvb.on{background:#1976d2;color:#fff}" +
       ".tvb.on{background:rgba(128,128,128,.18);border-color:var(--wf-icon);font-weight:600}" +
-      ".tv-sec .tvb{border-color:transparent}"
+      // the chosen segment is filled with the accent (as the family segments); its neighbours keep the control border (they are glued, 1 px shared)
+      ".tv-sec .tvb.on{background:var(--wf-accent,#1976d2);border-color:var(--wf-accent,#1976d2);color:#fff;font-weight:600}.tv-sec .tvb{white-space:nowrap}" +
+      // a group of tools wider than a phone wraps inside its frame instead of pushing the page under the control bar
+      ".tv-pair{flex-wrap:wrap;max-width:100%}" +
+      "@media (max-width:900px){.tv-body{align-items:stretch}}"
       ;

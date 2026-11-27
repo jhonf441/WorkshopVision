@@ -10,7 +10,7 @@
       //   workshopLogin()                the ONE name + PIN dialog ("Sign in" without a session, "Change role" with one: the session stays until the new one is accepted)
       //   workshopSessionAction(op)      "sign-in" | "change-role" | "": the word of the button next to a lock
       //
-      // The token is in localStorage: ONE session per browser (owner decision), so every tab follows a login or logout through the
+      // The token is in localStorage: ONE session per browser (project decision), so every tab follows a login or logout through the
       // storage event; it ends when the service expires it (12 h) or on logout, never with the tab. The kiosk is another browser, so
       // another session. The id of the browser is in localStorage too (not a secret: it only tells the audit which browser did it).
       // The typed length of each PIN is also kept (01-api-pin.js) only to submit by itself when that many digits are typed: it tells
@@ -348,6 +348,59 @@
       function workshopLogin() {
         return workshopAuthAsk(workshopApiCall, true).then(function (ok) {
           return ok;
+        });
+      }
+
+      // ---- Sign in, then do what the person asked for (owner 2026-11-23, note 10: "after the PIN the panel does not open, I have to tap again") ----
+      //   workshopLoginThen(isReady, run, waitMs)  the name + PIN dialog; once the PIN is accepted, run() as soon as isReady() says yes.
+      // Right after the PIN the permissions of the new person (auth.can, the role) may not have arrived yet and the panel still looks locked: so a
+      // "no" is asked again on each change of session and every 200 ms, up to waitMs (3 s). PIN cancelled, or still not ready after the wait: nothing
+      // runs. isReady may do the work itself and say whether it did (then run is left out). Returns a promise of true when it ran.
+      var WORKSHOP_LOGIN_THEN_MS = 3000;
+      var WORKSHOP_LOGIN_THEN_POLL_MS = 200;
+
+      function workshopRunWhenReady(isReady, run, waitMs) {
+        var ready = function () {
+          try {
+            return !!isReady();
+          } catch (e) {
+            return false;
+          }
+        };
+        return new Promise(function (resolve) {
+          if (ready()) {
+            if (run) run();
+            resolve(true);
+            return;
+          }
+          var done = false;
+          var off = null;
+          var poll = null;
+          var timer = null;
+          function finish(ok) {
+            if (done) return;
+            done = true;
+            if (typeof off === "function") off();
+            clearInterval(poll);
+            clearTimeout(timer);
+            if (ok && run) run();
+            resolve(!!ok);
+          }
+          function check() {
+            if (ready()) finish(true);
+          }
+          off = typeof workshopOnSessionChange === "function" ? workshopOnSessionChange(check) : null;
+          poll = setInterval(check, WORKSHOP_LOGIN_THEN_POLL_MS);
+          timer = setTimeout(function () { finish(ready()); }, waitMs > 0 ? waitMs : WORKSHOP_LOGIN_THEN_MS);
+        });
+      }
+
+      function workshopLoginThen(isReady, run, waitMs) {
+        var asked = workshopLogin();
+        return asked.then(function (ok) {
+          return ok ? workshopRunWhenReady(isReady, run, waitMs) : false;
+        }, function () {
+          return false;
         });
       }
 

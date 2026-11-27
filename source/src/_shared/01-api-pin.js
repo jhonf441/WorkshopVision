@@ -33,11 +33,11 @@
       }
 
       function workshopPinField(label, type, mode) {
-        var wrap = workshopPinEl("label", "display:block;margin-top:12px;font-size:11px;font-weight:500;letter-spacing:0.4px;text-transform:uppercase;color:#b0bec5;");
+        var wrap = workshopPinEl("label", "display:block;margin-top:12px;font-size:12px;font-weight:500;letter-spacing:0.4px;text-transform:uppercase;color:#b0bec5;");
         wrap.appendChild(document.createTextNode(label));
         var input = workshopPinEl(
           "input",
-          "display:block;width:100%;box-sizing:border-box;margin-top:4px;padding:8px 12px;font-size:16px;min-height:44px;" +
+          "display:block;width:100%;box-sizing:border-box;margin-top:4px;padding:6px 12px;font-size:16px;min-height:var(--wf-field-h, 40px);" +
             "background:#263238;color:#eceff1;border:1px solid rgba(255,255,255,0.23);border-radius:4px;outline:none;text-transform:none;letter-spacing:normal;font-family:inherit;"
         );
         input.type = type;
@@ -100,6 +100,7 @@
         v.back = workshopPinEl("div", "position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,0.55);display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto;");
         v.back.setAttribute("data-tp-panel", "1");
         v.back.setAttribute("data-tp-pin", "1"); // its own touches do not count as the person's action (01-api-auth.js)
+        if (typeof workshopVeilClear === "function") workshopVeilClear(v.back); // never over an emergency stop
         v.box = workshopPinEl(
           "div",
           "background:#1e272c;color:#eceff1;border:1px solid rgba(255,255,255,0.12);border-radius:8px;margin:auto 0;font-family:Roboto,Helvetica,Arial,sans-serif;" +
@@ -132,7 +133,7 @@
         v.pin.input.setAttribute("enterkeyhint", "go");
         v.pin.input.style.paddingRight = "48px";
         // Eye to see the PIN being typed (own PIN, own screen)
-        var eye = workshopPinEl("button", "position:absolute;right:2px;bottom:0;width:44px;height:44px;background:transparent;border:0;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;");
+        var eye = workshopPinEl("button", "position:absolute;right:2px;bottom:0;width:var(--wf-hit, 40px);height:var(--wf-hit, 40px);background:transparent;border:0;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;");
         eye.type = "button";
         eye.setAttribute("tabindex", "-1");
         eye.appendChild(workshopPinIcon(WORKSHOP_PIN_EYE, 20, "#b0bec5"));
@@ -157,8 +158,10 @@
         }
         v.msg = workshopPinEl("div", "min-height:20px;margin-top:10px;font-size:12px;color:#ef9a9a;");
         v.row = workshopPinEl("div", "display:flex;gap:8px;justify-content:flex-end;margin-top:6px;");
-        v.bc = workshopPinEl("button", "background:transparent;color:#eceff1;border:0;border-radius:6px;padding:8px 16px;min-height:44px;font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;font-family:inherit;", t("cancel"));
-        v.bo = workshopPinEl("button", "background:var(--wf-accent, #1976d2);color:#fff;border:0;border-radius:6px;padding:8px 20px;min-height:44px;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;font-family:inherit;", t("pinEnter"));
+        v.bc = workshopPinEl("button", "position:relative;background:transparent;color:#eceff1;border:0;border-radius:6px;padding:6px 16px;min-height:var(--wf-size-s, 32px);font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;font-family:inherit;", t("cancel"));
+        v.bo = workshopPinEl("button", "position:relative;background:var(--wf-accent, #1976d2);color:#fff;border:0;border-radius:6px;padding:6px 20px;min-height:var(--wf-size-m, 36px);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;cursor:pointer;font-family:inherit;", t("pinEnter"));
+        v.bc.className = "wf-hit"; // seen s 32 / m 36, touched 40 (the scale, family.css .wf-hit)
+        v.bo.className = "wf-hit";
         v.bc.type = v.bo.type = "button";
         v.row.appendChild(v.bc);
         v.row.appendChild(v.bo);

@@ -110,6 +110,7 @@
           var background = document.createElement("div");
           background.setAttribute("data-tp-panel", "1"); // tema claro (03-theme.js)
           background.style.cssText = "position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;padding:16px;";
+          if (typeof workshopVeilClear === "function") workshopVeilClear(background); // never over an emergency stop
           var box = document.createElement("div");
           box.setAttribute("role", "alertdialog");
           // same look as the dialogs of DWC (the plugin install wizard): flat dark card, 20 px title, text buttons
@@ -225,7 +226,7 @@
       // Reads "plugins.<Id>.data.x" (or another path) in a state
       function workshopReadPath(root, path) {
         var v = root;
-        var parts = String(path || "").split(".");
+        var parts = String(path || "").replace(/\[(\d+)\]/g, ".$1").split("."); // move.axes[0].homed = move.axes.0.homed
         for (var k = 0; k < parts.length; k++) {
           if (v === null || v === undefined) return undefined;
           if (k === 1 && parts[0] === "plugins" && WORKSHOP_ID_KEY[parts[1]]) v = workshopPluginOf(v, WORKSHOP_ID_KEY[parts[1]]);
@@ -307,7 +308,7 @@
       // (the action of the DWC store is wrapped once). The calls to the
       // services do not go through here any more (workshop-api.js).
       // The machine is halted (after an Emergency stop, M112): DWC's own "Reset machine" button sends M999 to bring it back. That M999 is
-      // the standard recovery of DWC and goes out through DWC's own flow, with no risk dialog of the workshop over it (owner report
+      // the standard recovery of DWC and goes out through DWC's own flow, with no risk dialog of the workshop over it (user report
       // 2026-11-06: the reset opened a second dialog). Outside a halt, M999 keeps its notice (the board restarts whatever it is doing).
       function workshopMachineHalted() {
         try {
@@ -378,7 +379,7 @@
       // by mistake. w/h are the element's width/height (for the screen
       // limits); defaultLeft/defaultTop are the initial position if there is
       // not a saved one yet.
-      // The lowest top a floating panel may take: never over DWC's top bar (the menu, the state and the Emergency stop live there; owner rule
+      // The lowest top a floating panel may take: never over DWC's top bar (the menu, the state and the Emergency stop live there; project rule
       // 2026-11-06). MARGIN below the bar, or MARGIN when there is no bar yet (DWC still being built). The Jog adds its own zone (jogZoneEmergency).
       function workshopFloatMinTop() {
         if (typeof document === "undefined" || typeof document.querySelector !== "function") return MARGIN;

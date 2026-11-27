@@ -36,7 +36,9 @@ function workshopSidebarReserve(push, collapsed, closed, viewport, railW, openW,
   if (collapsed && closed === "arrow") return 0;
   var width = collapsed ? railW : Math.min(openW, viewport - 24);
   var reserve = width + gap;
-  var minPage = collapsed ? 300 : 480; // what must be left for the page itself
+  // what must be left for the page itself: with the rail, 256 px, so a 320 px phone (iPhone SE) still makes room for the closed bar (owner, 2026-11-23,
+  // note 16: "the option to make room for the bar must work on very small screens"); the open bar on a phone floats over the page
+  var minPage = collapsed ? 256 : 480;
   if (viewport >= 1264) {
     // DWC lays its cards out in three columns from this width and keeps its 256 px menu next to them: squeezed by the bar the cards
     // overlap and get cut (QA U-11 at 1280 with the bar open), so what is left for the content must still hold three columns.

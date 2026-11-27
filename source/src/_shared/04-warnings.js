@@ -63,6 +63,7 @@
           var background = document.createElement("div");
           background.setAttribute("data-tp-panel", "1");
           background.style.cssText = "position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:16px;";
+          if (typeof workshopVeilClear === "function") workshopVeilClear(background); // never over an emergency stop
           var box = document.createElement("div");
           box.setAttribute("role", "alertdialog");
           // same look as the dialogs of DWC (the plugin install wizard): flat dark card, 20 px title, text buttons
@@ -156,7 +157,7 @@
           function dur(ms) {
             return fmt(Math.max(0, Math.round((Date.now() - ms) / 1000)));
           }
-          // The counter of a risk, ONE direction for every screen (owner request 2026-11-06: the bar counted up while the jog counted down):
+          // The counter of a risk, ONE direction for every screen (user request 2026-11-06: the bar counted up while the jog counted down):
           // a risk that ends by itself (the service gives `until`, epoch ms like `since`, or `seconds` from `since`) counts DOWN to its end, the same
           // number the panel that opened it shows; a risk with no end counts up since it started.
           function counter(e) {

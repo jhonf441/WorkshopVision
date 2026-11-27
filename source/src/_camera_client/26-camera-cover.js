@@ -4,7 +4,7 @@
       // camera off they fail and used to stay blank. On their error a message is laid over them (a fixed box that follows the element)
       // and, when the key arrives later (the person signed in), they are loaded again.
       //
-      // 2026-10-26 (owner report, DWC 3.7 demo: "going to Timelapse and captures, Preview, then to another tab leaves a blank panel that says
+      // 2026-10-26 (user report, DWC 3.7 demo: "going to Timelapse and captures, Preview, then to another tab leaves a blank panel that says
       // The camera does not answer"): the box lives on <body>, outside the view that owns the image, and it used to be cleaned by a timer
       // that ran once per second for ever, so it outlived the view, lagged behind scrolling and stayed over an image that was hidden but not
       // removed. Now:

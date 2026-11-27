@@ -31,6 +31,15 @@
           bar = null;
         }
 
+        // C13.9 (nothing covers a stop, owner 2026-11-23): the bar sits UNDER DWC's top bar (its Emergency stop lives there; at top 30 px a long
+        // text covered it on a phone) and keeps clear of the control bar on the right (workshopVeilBox, src/_shared/45-layers.js)
+        function place() {
+          if (!bar) return;
+          var box = typeof workshopVeilBox === "function" ? workshopVeilBox() : { top: 64, right: 0 };
+          bar.style.top = box.top + 8 + "px";
+          bar.style.maxWidth = "calc(100vw - 32px - " + 2 * box.right + "px)";
+        }
+
         function paint(c) {
           if (!c) {
             if (bar && bar.querySelector("button").style.display === "none") return; // cancelled message: it goes away by itself
@@ -42,12 +51,13 @@
             bar.id = "workshop-fire-count";
             bar.setAttribute("role", "alert");
             // debajo de la barra roja de riesgo activo (04-warnings.js), relleno de aviso
-            bar.style.cssText = "position:fixed;top:30px;left:50%;transform:translateX(-50%);z-index:2147483646;background:#bf360c;color:#fff;font:600 13px Roboto,sans-serif;padding:6px 8px 6px 14px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.5);max-width:calc(100vw - 32px);display:flex;gap:10px;align-items:center;flex-wrap:wrap;";
+            bar.style.cssText = "position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:2147483646;background:#bf360c;color:#fff;font:600 13px Roboto,sans-serif;padding:6px 8px 6px 14px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.5);max-width:calc(100vw - 32px);display:flex;gap:10px;align-items:center;flex-wrap:wrap;";
             var txt = document.createElement("span");
             bar.appendChild(txt);
             var b = document.createElement("button");
             b.type = "button";
-            b.style.cssText = "background:transparent;color:#fff;border:1px solid #fff;border-radius:6px;padding:4px 12px;min-height:32px;font:600 12px Roboto,sans-serif;cursor:pointer;";
+            // cancelling a pause or an emergency stop that the camera is about to make is a critical choice: 48 px (FAMILIA-REDISENO 2, l)
+            b.style.cssText = "background:transparent;color:#fff;border:1px solid #fff;border-radius:6px;padding:4px 12px;min-height:48px;font:600 12px Roboto,sans-serif;cursor:pointer;";
             b.addEventListener("click", function () {
               b.disabled = true;
               b.textContent = i18nT('fireNotice.cancelling');
@@ -66,6 +76,7 @@
           }
           var root = document.fullscreenElement || document.body; // visible tambien en pantalla completa
           if (bar.parentNode !== root) root.appendChild(bar);
+          place();
           var bt = bar.querySelector("button");
           if (bt.disabled || bt.style.display === "none") return; // it was already cancelled: leave the message
           bar.firstChild.textContent =

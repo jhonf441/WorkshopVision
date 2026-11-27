@@ -1,5 +1,43 @@
 # WorkshopVision -- historial de versiones
 
+## 2.11.0 -- 2026-11-24
+
+- Redesign on the family scale: compact page bar, group colour, card heads, rows instead of grey sub-cards, one help per section, tools 32 / fields 36 / touch area 40, 8 px gaps
+- Fire countdown bar sits under DWC's top bar and clear of the control bar (nothing covers a stop); its cancel is 48 px
+- Work bar shows tool names only when they add no row
+
+## 2.10.2 -- 2026-11-23
+
+- optional files are never requested when absent
+
+## 2.10.1 -- 2026-11-23
+
+- select arrows, one focus ring per field, shared family stylesheet split
+
+## 2.10.0 -- 2026-11-22
+
+- One common page bar and equal fields
+
+## 2.9.3 -- 2026-11-22
+
+- Rebuild with shared update: start-up card split into modules, neutral Spanish texts, service texts resynced, unused .wf-index rule dropped
+
+## 2.9.2 -- 2026-11-22
+
+- Tuteo in texts (no voseo in es.json). Calibration markers 12 px.
+
+## 2.9.1 -- 2026-11-22
+
+- Visual review round: single hover and focus for inputs and controls (family styles), 44 px switch and checkbox rows, range picker field 44 px. Map labels never under 12 px on screen.
+
+## 2.9.0 -- 2026-11-21
+
+- Style unification: messages revealed on screen with the shared pieces, role notices with the family sentence, 44 px controls and rail, nothing under 12 px; the 15 s Go to Z window stays as the documented exception.
+
+## 2.8.12 -- 2026-11-21
+
+- Help card readable (own text color and font), one session notice per page, no repeated asks for missing optional files; Jog pendant press feedback and tap-again confirmations; Vision silent on closed connection
+
 ## 2.8.11 -- 2026-11-18
 
 - accessRev: the page asks whoami at once when the service says the access changed
@@ -42,7 +80,7 @@
 
 ## 2.8.1 -- 2026-11-11
 
-- Owner report 2026-11-11: shutdown without session, kiosk PIN pad, hive confirm color, wheel release and Z keys, version in every page bar
+- User report 2026-11-11: shutdown without session, kiosk PIN pad, hive confirm color, wheel release and Z keys, version in every page bar
 
 ## 2.8.0 -- 2026-11-11
 

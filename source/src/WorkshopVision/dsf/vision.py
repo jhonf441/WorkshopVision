@@ -1983,16 +1983,20 @@ class Handler(BaseHTTPRequestHandler):
             body = messages.localize(body, self._lang())  # every message in the language of whoever asked
             body = json.dumps(body, ensure_ascii=False).encode("utf-8")
             ctype = "application/json; charset=utf-8"
-        self.send_response(code)
-        self.send_header("Content-Type", ctype)
-        self.send_header("Content-Length", str(len(body)))
-        self._cors()
-        self.send_header("Cache-Control", "no-store")
-        for k, v in (headers or {}).items():
-            self.send_header(k, v)
-            self.send_header("Access-Control-Expose-Headers", k)
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.send_response(code)
+            self.send_header("Content-Type", ctype)
+            self.send_header("Content-Length", str(len(body)))
+            self._cors()
+            self.send_header("Cache-Control", "no-store")
+            for k, v in (headers or {}).items():
+                self.send_header(k, v)
+                self.send_header("Access-Control-Expose-Headers", k)
+            self.end_headers()
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError):
+            # the browser closed the connection while we answered: nobody is left to read it, so no second answer (the 503 of the caller) and no trace
+            self.close_connection = True
 
     def _cors(self):
         """CORS only for the own DWC (the Origin whose host is the host asked, any port); nobody else may read."""

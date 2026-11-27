@@ -2,7 +2,7 @@
   "id": "WorkshopVision",
   "name": "Vision",
   "author": "jhonf441",
-  "version": "2.8.11",
+  "version": "2.11.0",
   "license": "GPL-3.0-or-later",
   "homepage": "https://github.com/jhonf441/WorkshopVision",
   "tags": [
@@ -36,6 +36,7 @@
   ],
   "data": {},
   "sdFiles": [
+    "sys/workshop/macros/macros.WorkshopVision.json",
     "sys/workshop/macros/probe/visionpose.g"
   ],
   "dsfFiles": [
@@ -58,7 +59,7 @@
     "vision_access.py"
   ],
   "dwcFiles": [
-    "js/WorkshopVision.b92e7a2d.js",
-    "js/WorkshopVision.b92e7a2d.js.gz"
+    "js/WorkshopVision.bbf70bc9.js",
+    "js/WorkshopVision.bbf70bc9.js.gz"
   ]
 }

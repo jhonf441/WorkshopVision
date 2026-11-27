@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Release notes generated from the commits of a plugin: sections Added / Changed / Fixed (owner's request, 2026-11-07: the releases
+"""Release notes generated from the commits of a plugin: sections Added / Changed / Fixed (request, 2026-11-07: the releases
 carried no notes of what changed). Used by export_plugin_repos.py --releases and build.py --github-release; on its own it only prints.
 
     python tools/release_notes.py <Id> [--since <ref>] [--until <ref>] [--version <v>]      print the notes of <Id> (nothing is published)

@@ -132,7 +132,7 @@
         return e;
       }
 
-      var WORKSHOP_EXCHANGE_BTN = "border:0;border-radius:6px;padding:8px 14px;min-height:44px;font-size:14px;cursor:pointer;color:#fff;";
+      var WORKSHOP_EXCHANGE_BTN = "position:relative;border:0;border-radius:6px;padding:6px 14px;min-height:var(--wf-size-s, 32px);font-size:14px;cursor:pointer;color:#fff;";
 
       function workshopExchangeLists(box, view) {
         view.warnings.forEach(function (w) {
@@ -158,6 +158,7 @@
         return new Promise(function (resolve) {
           var back = workshopExchangeEl("div", "position:fixed;inset:0;z-index:2147483647;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;");
           back.setAttribute("data-workshop-exchange", "1");
+          if (typeof workshopVeilClear === "function") workshopVeilClear(back); // never over an emergency stop
           var box = workshopExchangeEl(
             "div",
             "background:#1e272c;color:#eceff1;border:1px solid rgba(255,255,255,0.12);border-left:4px solid #1976d2;border-radius:6px;max-width:520px;width:100%;max-height:100%;overflow:auto;padding:14px 16px;font-size:13px;line-height:1.45;font-family:Roboto,Helvetica,Arial,sans-serif;box-shadow:0 8px 30px rgba(0,0,0,0.5);"
@@ -171,6 +172,7 @@
           box.appendChild(workshopExchangeEl("div", "color:#b0bec5;margin-top:10px;", view.note));
           var buttons = workshopExchangeEl("div", "display:flex;gap:8px;justify-content:flex-end;margin-top:12px;");
           var cancel = workshopExchangeEl("button", WORKSHOP_EXCHANGE_BTN + "background:#455a64;", view.cancelLabel);
+          cancel.className = (cancel.className ? cancel.className + " " : "") + "wf-hit"; // seen s 32, touched 40 (the scale)
           cancel.type = "button";
           cancel.setAttribute("data-exchange", "cancel");
           buttons.appendChild(cancel);
@@ -186,7 +188,8 @@
             end(false);
           });
           if (!view.blockers.length) {
-            var ok = workshopExchangeEl("button", WORKSHOP_EXCHANGE_BTN + "background:#1976d2;font-weight:600;", view.applyLabel);
+            var ok = workshopExchangeEl("button", WORKSHOP_EXCHANGE_BTN + "background:#1976d2;font-weight:600;min-height:var(--wf-size-m, 36px);", view.applyLabel);
+            ok.className = (ok.className ? ok.className + " " : "") + "wf-hit"; // the main one m 36, touched 40
             ok.type = "button";
             ok.setAttribute("data-exchange", "apply");
             ok.addEventListener("click", function () {

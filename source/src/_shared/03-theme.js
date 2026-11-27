@@ -163,13 +163,31 @@
           return white;
         }
 
-        function pass(el) {
+        // The pass runs in three phases over a whole list (2026-11-23: "[Violation] 'requestAnimationFrame' handler took 122 ms" in the Jog):
+        // writing the original style of one element and then reading the computed style of the next forced the browser to recalculate the
+        // styles once per element. Now: (1) every element gets its original style back, (2) all the computed styles are read in one go
+        // (one recalculation), (3) the light colours are written. The parents come before their children (document order), so the
+        // background behind each element (__tpEff) and the text it inherits (__tpTx) are known when the child is read.
+        function prepare(el) {
           updateOriginal(el);
-          // leer los colores originales
           if (el.__tpOut !== undefined) {
             if (el.__tpOrig == null) el.removeAttribute("style");
             else el.setAttribute("style", el.__tpOrig);
           }
+        }
+
+        // the text colour the element really ends up with: its own, or (when it only inherits it) the new one of its parent
+        // A child that declares its own colour in line (color:#fff of the Jog header buttons) keeps it even when it equals the parent's
+        // (front-jog, 2026-11-23: the buttons came out white on the light panel)
+        var OWN_COLOR = /(^|;)\s*color\s*:/i;
+        function inheritedText(el, raw) {
+          var p = el.parentElement;
+          var own = el.__tpOrig != null ? el.__tpOrig : el.getAttribute("style");
+          if (p && p.__tpRawColor === raw && p.__tpTx && !OWN_COLOR.test(own || "")) return p.__tpTx;
+          return parse(raw);
+        }
+
+        function compute(el) {
           var cs = getComputedStyle(el);
           var base = backgroundOf(el);
           var nuevo = {};
@@ -195,7 +213,8 @@
             }
           }
           el.__tpEff = eff;
-          var tx = parse(cs.color);
+          var raw = cs.color;
+          var tx = inheritedText(el, raw);
           if (lum(eff) > 0.6) {
             var nt = tx && text(tx);
             if (nt) nuevo.color = css(nt);
@@ -204,6 +223,8 @@
             // went dark): it goes back to white
             nuevo.color = "#ffffff";
           }
+          el.__tpRawColor = raw;
+          el.__tpTx = nuevo.color ? parse(nuevo.color === "#ffffff" ? "rgb(255,255,255)" : nuevo.color) : tx;
           ["top", "right", "bottom", "left"].forEach(function (s) {
             if (!parseFloat(cs["border-" + s + "-width"])) return;
             var bc = parse(cs["border-" + s + "-color"]), nbc = bc && edge(bc);
@@ -211,19 +232,31 @@
           });
           // shadows designed for a dark background: softer ones
           if (cs.boxShadow && cs.boxShadow !== "none" && /rgba\(0, 0, 0, 0\.[5-9]/.test(cs.boxShadow)) nuevo["box-shadow"] = "0 4px 14px rgba(0,0,0,0.18)";
-          var claves = Object.keys(nuevo);
-          if (!claves.length) {
-            el.__tpOut = el.getAttribute("style");
-            return;
-          }
-          claves.forEach(function (k) { el.style.setProperty(k, nuevo[k], "important"); });
+          return nuevo;
+        }
+
+        function write(el, nuevo) {
+          Object.keys(nuevo).forEach(function (k) { el.style.setProperty(k, nuevo[k], "important"); });
           el.__tpOut = el.getAttribute("style");
+        }
+
+        function passAll(list) {
+          list.forEach(prepare);
+          var changes = list.map(compute);
+          list.forEach(function (el, i) { write(el, changes[i]); });
         }
 
         function arbol(root, fn) {
           fn(root);
           var all = root.getElementsByTagName("*");
           for (var i = 0; i < all.length; i++) fn(all[i]);
+        }
+        // the root and all its elements in document order (parents first)
+        function treeList(root, out) {
+          out.push(root);
+          var all = root.getElementsByTagName("*");
+          for (var i = 0; i < all.length; i++) out.push(all[i]);
+          return out;
         }
         function esPanel(el) {
           if (!el || el.nodeType !== 1 || el.parentElement !== document.body) return false;
@@ -265,12 +298,16 @@
           var items = pending;
           pending = [];
           if (!claro) return;
-          items = items.filter(function (el, i) {
-            if (!el.isConnected || items.indexOf(el) !== i) return false;
+          var seen = new Set(items);
+          items = Array.from(seen).filter(function (el) {
+            if (!el.isConnected) return false;
             // if an ancestor also changed, it is already passed with it
-            return !items.some(function (o) { return o !== el && o.contains(el); });
+            for (var p = el.parentElement; p; p = p.parentElement) if (seen.has(p)) return false;
+            return true;
           });
-          items.forEach(function (el) { arbol(el, pass); });
+          var list = [];
+          items.forEach(function (el) { treeList(el, list); });
+          if (list.length) passAll(list);
         }
 
         function apply() {
@@ -278,10 +315,13 @@
           if (now === claro && !now) return;
           claro = now;
           document.documentElement.classList.toggle("tp-bright", claro);
+          var list = [];
           paneles().forEach(function (p) {
             watch(p);
-            arbol(p, claro ? pass : restore);
+            if (claro) treeList(p, list);
+            else arbol(p, restore);
           });
+          if (list.length) passAll(list);
         }
         api.applyChanges = apply;
 
@@ -302,7 +342,7 @@
               m.addedNodes.forEach(function (n) {
                 if (!esPanel(n)) return;
                 watch(n);
-                if (claro) arbol(n, pass);
+                if (claro) passAll(treeList(n, []));
               });
             });
           }).observe(document.body, { childList: true });

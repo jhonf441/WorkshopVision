@@ -1,5 +1,5 @@
 {
-  "_comment": "Intended differences between the DWC 3.7 and 3.6 sources of the Vue plugins, read by tools/lines-diff.js. Each entry lists what exists only on one side (only37 = vue/<Id>/dwc-src and vue/_shared, only36 = vue/<Id>/dwc36 and vue/_shared36); a trailing * is a prefix. The key * applies to every plugin. An entry of a plugin that matches nothing any more fails tests/lines-divergence.test.js (the lines converged: delete it). Anything not listed here is drift and fails the test. Porting the 3.7 fixes to 3.6 is an owner decision (docs/DWC-LINES.md, section Out of sync today).",
+  "_comment": "Intended differences between the DWC 3.7 and 3.6 sources of the Vue plugins, read by tools/lines-diff.js. Each entry lists what exists only on one side (only37 = vue/<Id>/dwc-src and vue/_shared, only36 = vue/<Id>/dwc36 and vue/_shared36); a trailing * is a prefix. The key * applies to every plugin. An entry of a plugin that matches nothing any more fails tests/lines-divergence.test.js (the lines converged: delete it). Anything not listed here is drift and fails the test. Porting the 3.7 fixes to 3.6 is an project decision (docs/DWC-LINES.md, section Out of sync today).",
   "*": {
     "manifest": {
       "only37": [

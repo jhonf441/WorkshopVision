@@ -10,7 +10,7 @@
 
 Page `/Plugins/Vision` ("Vision (camera)"). Measures with the bridge camera: finds parts, holes and circles, shows dimensions over the video, keeps a library of known parts, compares the bed before and after cutting, aligns a design with 2 marks and cuts on top of them, calibrates the camera (pixels to millimetres), and watches for fire and smoke during laser jobs. It has its own backend (`vision.py`, OpenCV, port 8095) and depends on the System service.
 
-Version documented: 2.7.x on DWC 3.6.3.
+Version documented: 2.11.x on DWC 3.6.
 
 ## 1. Requirements
 
@@ -18,16 +18,16 @@ Version documented: 2.7.x on DWC 3.6.3.
 
 ## 2. Install
 
-1. Install WorkshopService. 2. Stop nothing: DWC > Settings > Plugins > Install `WorkshopVision-<ver>.zip` (it has a backend; its Python dependencies are installed by DSF). Start. 3. Reload DWC; *Plugins > Vision (camera)* appears. 4. Verify: header chips "OpenCV <ver>", fps, "camera without image" (orange) or "calibrated + height" (green), switch "In Work zones: Yes" and the start-up chip ("1 steps pending" until calibrated).
+1. Install WorkshopService. 2. Stop nothing: DWC > Settings > Plugins > Install `WorkshopVision-<ver>.zip` (it has a backend; its Python dependencies are installed by DSF). Start. 3. Reload DWC; *Plugins > Vision (camera)* appears. 4. Verify: header chips "OpenCV <ver>", fps, "camera without image" (orange) or "calibrated + height" (green), switch "In Work zones: Yes" and the start-up chip (it counts what is still to do, for example "1 step pending" until everything is set up) and the version chip ("v2.11.0").
 
 ## 3. Functions
 
-The page is "Vision (camera)" (side menu: Plugins > Vision). Its side bar has three groups: "Measure" (Step by step, Detect and measure, Live, Saved parts), "Job" (Before and after, Cut on marks) and "Camera" (Calibrate the camera (guided), Calibrate, Settings). Names show when the bar is open, icons only when collapsed with the double arrow. The camera image is at the left and the card of the chosen tool at the right. Red rectangles mark the control described.
+The page is "Vision (camera)" (side menu: Plugins > Vision). Its side bar has three groups: "Measure" (Step by step, Detect and measure, Live, Saved parts), "Job" (Before and after, Cut on marks) and "Camera" (Calibrate the camera (guided), Calibrate, Settings). Names show when the bar is open, icons only when collapsed with the double arrow; "Pin" keeps the bar open when you choose a section. The camera image is at the left and the card of the chosen tool at the right. Red rectangles mark the control described.
 
 ### Page header
 
 #### Engine, speed and calibration chips
-- What: "OpenCV 5.0.0" (the detection engine), the frames per second of the camera ("18 fps"), "calibrated + height" or "camera without image" and, when something is missing, "N steps pending".
+- What: the version of the plugin ("v2.11.0"), "OpenCV 5.0.0" (the detection engine), the frames per second of the camera ("18 fps"), "calibrated + height" or "camera without image" and, when something is missing, the start-up chip "N steps pending" (press it to see each step).
 - Where: header, right (any picture).
 - How: read only.
 
@@ -50,7 +50,7 @@ Picture 1: Detect and measure: the video with rulers in bed millimetres, the car
 - Watch out: the measuring photo changes the camera mode for a few seconds.
 
 #### Detections list and filters
-- What: the parts and holes found in the image ("4 found"): chips All, Part, Hole; each card shows size, position X Y, rotation, shape, area and perimeter (for example "Part 1: 49.8x37.3, X 324.17 Y 400, rotation 89.87 deg"). Detections also appear in the Workbench map, layer Vision.
+- What: the parts and holes found in the image ("4 found"): chips All, Part, Hole; each card shows size, position X Y, rotation, shape, area and perimeter (for example "Part 1: 49.8x37.3, X 340 Y 412.5, rotation 89.87 deg"). Detections also appear in the Workbench map, layer Vision.
 - Where: card "Detections" (picture 1 and picture 2).
 - How: press a chip to filter; tap a detection (here or on the image) to see its actions (set as mark A / B, save as part...).
 
@@ -69,13 +69,13 @@ Picture 1: Detect and measure: the video with rulers in bed millimetres, the car
 Picture 2: the detections list, "See live" under the image and the dimension buttons (red rectangles).
 
 #### Image bar and See live
-- What: under the video a bar says "Image from 20:09:14 - 800x600" (the time of the analyzed image); "See live" goes back to the live video.
+- What: under the video a bar says "Image from <time> - 800x600" (the time of the analyzed image); "See live" goes back to the live video.
 - Where: bottom left of the image (red rectangle, picture 2).
 - How: press "See live".
 
 #### Tool bar of the image
-- What: under the video: View / Measure / Area / Zone / Move tools, zoom, grid, ruler, "Find", head, Live, Analyze, Save and Settings; a footer shows the size, analysis time and scale (for example "19.28 px/mm, 1 px = 0.05 mm") and what is searched (Part, Holes).
-- Where: below the image (scroll down; not in the picture).
+- What: under the video: View / Measure / Area / Zone / Move tools, zoom, view, grid, ruler, "Find", head, Live, Analyze, Save, Settings and Full screen; a footer shows the size, analysis time and scale (for example "8 px/mm, 1 px = 0.13 mm") and what is searched (Part, Holes).
+- Where: below the image.
 - How: choose a tool and press Analyze; tap a detection.
 
 #### Advanced: detection parameters
@@ -157,7 +157,7 @@ Picture 8: "Calibration assistant": the method buttons (red rectangles).
 
 #### Second height and Check
 - What: "Second height": to measure and take photos at any Z, calibrate again with the gantry 50 mm or more higher or lower (the laser crosses do it on their own). "Check": measure something of known size in Detect and measure: the difference is the real error; the button "Go to Detect and measure" jumps there.
-- Where: steps 3 and 4 of the assistant (picture 8, lower half).
+- Where: steps 3 and 4 of the assistant (picture 8).
 - How: calibrate at the second height, then measure a ruler.
 
 ### Settings
@@ -173,7 +173,7 @@ Picture 9: the Settings cards "Camera processing" and "Fire and smoke watch" (re
 - Watch out: turning it off also stops the timelapse and the fire watch.
 
 #### Fire and smoke watch
-- What: switch "Watch during laser jobs": while a laser job runs the camera looks at the bed about twice per second; a flame or dense smoke for a few seconds is logged in Activity, notified to the phone and, after a countdown that can be cancelled, does what you choose in "On detection": "Just warn" (default), "Pause the job" or "Emergency stop". A fold "How it works and its limits" explains what it cannot detect.
+- What: switch "Watch during laser jobs": while a laser job runs the camera looks at the bed about twice per second; a flame or dense smoke for a few seconds is logged in Activity, notified to the phone and, after a countdown that can be cancelled, does what you choose in "On detection": "Just warn", "Pause the job" (default once you switch the watch on) or "Emergency stop". A fold "How it works and its limits" explains what it cannot detect.
 - Where: card "Fire and smoke watch" (red rectangles, picture 9).
 - How: 1. Turn the switch on. 2. Choose the action. 3. Read "How it works and its limits".
 - Watch out: it is an aid, not a fire protection system. Technician role.
@@ -204,8 +204,8 @@ Picture 10: sensitivity, the last detection and the photo exposure (red rectangl
 - How: choose the mode and the values, press "Save".
 
 #### Light for the photo, Camera and Work zones map
-- What: "Light for the photo": choose which lights turn on only during the photo (the usual work light; extra zones of Lights appear here). "Camera": which camera Vision looks at, chosen from the list of cameras of the system (only the ones the relay serves; the main one by default). The same camera is the video of the camera layer of the work zones map. "Work zones map": the video shows under the map (its opacity is chosen on the map itself, in Layers, and is kept per screen).
-- Where: right column of Settings (picture 9, top right; picture 10, top right).
+- What: "Light for the photo" (only when the Lights plugin is installed): choose which lights turn on only during the photo (the usual work light; extra zones of Lights appear here). "Camera": which camera Vision looks at, chosen from the list of cameras of the system (only the ones the relay serves; the main one by default). The same camera is the video of the camera layer of the work zones map. "Work zones map": the video shows under the map (its opacity is chosen on the map itself, in Layers, and is kept per screen).
+- Where: right column of Settings ("Camera" and "Work zones map": picture 9, right; "Work zones map": picture 10, top right).
 - How: change the value and press its "Save".
 - Watch out: the camera is read by the system, not by the browser.
 
@@ -214,8 +214,8 @@ Picture 10: sensitivity, the last detection and the photo exposure (red rectangl
 | Setting | Meaning | Default | If wrong |
 |---|---|---|---|
 | Processing the camera | Service receives frames | automatic | Off: no timelapse, no fire watch |
-| Watch fire and smoke during laser | 2 looks per second while lasing | Yes | Off: no automatic fire warning |
-| On detection | Only warn / pause the job / emergency stop | Only warn | Emergency stop on a false alarm kills a job |
+| Watch fire and smoke during laser | 2 looks per second while lasing | No (off until you switch it on) | Off: no automatic fire warning |
+| On detection | Only warn / pause the job / emergency stop | Pause the job | Emergency stop on a false alarm kills a job |
 | Sensitivity | Low / Medium / High | Medium | High: false alarms on bright material |
 | Measurement photo resolution | Pixels | 2048x1536 | Changing it needs a new calibration |
 | Minimum Z for photos | Head height limit for mosaic photos | 60 mm | Too low: head too near the part |

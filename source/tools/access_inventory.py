@@ -138,7 +138,7 @@ PLUGINS = {
     "WorkshopActivity": ("activity", ["activity", "notifications"]),
     "WorkshopPrinting": ("printing", ["bedcal", "bedestimates", "bedzones", "gcodelib", "jobs", "layerrecipes", "pelletlayers", "pid"]),
     "WorkshopPower": ("power", ["energy", "meter", "power"]),
-    "WorkshopPiHealth": ("pihealth", ["health"]),
+    "WorkshopPiHealth": ("pihealth", ["health", "journal"]),
     "WorkshopCamera": ("camera", ["camera"]),
     "WorkshopControlBar": ("controlbar", []),
     "WorkshopJog": ("jog", ["jog"]),

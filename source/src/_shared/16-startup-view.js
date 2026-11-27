@@ -26,6 +26,8 @@
         example: { text: "var(--wf-n-down-text, #ffb74d)", background: "rgba(230,81,0,0.20)", edge: "rgba(255,183,77,0.35)" },
         missing: { text: "#ef9a9a", background: "rgba(198,40,40,0.22)", edge: "rgba(239,154,154,0.35)" },
         session: { text: "var(--wf-n-session-text, #90caf9)", background: "var(--wf-n-session-bg, rgba(30,136,229,0.10))", edge: "var(--wf-n-session, #1e88e5)" },
+        unchecked: { text: "#b0bec5", background: "rgba(120,144,156,0.18)", edge: "rgba(176,190,197,0.40)" },
+        skipped: { text: "#90a4ae", background: "rgba(120,144,156,0.18)", edge: "rgba(144,164,174,0.35)" },
         na: { text: "#b0bec5", background: "rgba(69,90,100,0.30)", edge: "rgba(176,190,197,0.25)" },
       };
 
@@ -37,7 +39,7 @@
       // the chip of a card: a card that could not be checked says "No session" with the words of every session cover (no startup key of its own:
       // the generic startup texts are mirrored by every plugin catalog)
       function workshopStartupChipText(state) {
-        return state === "session" ? workshopNoticeCoverTitle("session") : i18nT("startup.chip_" + state);
+        return state === "session" ? workshopNoticeCoverTitle("session") : i18nT("startup.chip_" + state); // "unchecked" has its own chip: "Not checked"
       }
 
       // The dialog has no page bar with the sign-in chip: signed out, ONE notice at the top carries the sentence and the sign-in button (the compact
@@ -50,12 +52,12 @@
       // The progress of the dialog: how many of the shown rows are ready, the bar and the hint. null while rows could not be checked (no session):
       // "0 of 1 ready" said that something was missing on the machine when only the session was.
       function workshopStartupProgressEl(res) {
-        if (res.session) return null;
+        if (res.session || res.unchecked) return null; // "0 of 4 ready" would say that something is missing when only the reading failed
         var lists = res.total - res.pending;
         var prog = workshopStartupEl("div", "display:flex;flex-direction:column;gap:8px;");
         var line = workshopStartupEl("div", "display:flex;align-items:baseline;justify-content:space-between;gap:8px;");
         line.appendChild(workshopStartupEl("span", "font-weight:600;font-size:15px;", res.ready ? i18nT("startup.modal_all_ready") : i18nT("startup.modal_progress", { a: lists, b: res.total })));
-        line.appendChild(workshopStartupEl("span", "font-size:12px;color:" + (res.ready ? "#a5d6a7" : "var(--wf-n-down-text, #ffb74d)") + ";", res.ready ? i18nT("startup.summary_ready") : i18nT("startup.summary_pending", { n: res.pending, total: res.total })));
+        line.appendChild(workshopStartupEl("span", "font-size:12px;color:" + (res.ready ? "#a5d6a7" : "var(--wf-n-down-text, #ffb74d)") + ";", res.ready ? (res.skipped ? i18nT("startup.summary_skipped", { n: res.skipped }) : i18nT("startup.summary_ready")) : i18nT("startup.summary_pending", { n: res.pending, total: res.total })));
         prog.appendChild(line);
         var pista = workshopStartupEl("div", "height:8px;border-radius:4px;background:rgba(255,255,255,0.10);overflow:hidden;");
         var pct = res.total ? Math.round((lists / res.total) * 100) : 100;
@@ -68,8 +70,9 @@
       // The head of the compact strip: the colour of its dot and its sentence. Nothing could be checked without a session: the session blue and the
       // sentence of every session notice, not the orange of a step to do.
       function workshopStartupStripHead(res) {
-        var color = res.ready ? WORKSHOP_STARTUP_POINT.configured : res.pending ? WORKSHOP_STARTUP_POINT.example : WORKSHOP_STARTUP_POINT.session;
-        var text = res.ready ? i18nT("startup.summary_ready") : res.pending ? i18nT("startup.summary_pending", { n: res.pending, total: res.total }) : workshopNoticeText("session");
+        var lone = res.unchecked && !res.session; // nothing to do and the only doubt is a reading that failed (not the session)
+        var color = res.ready ? WORKSHOP_STARTUP_POINT.configured : res.pending ? WORKSHOP_STARTUP_POINT.example : lone ? WORKSHOP_STARTUP_POINT.unchecked : WORKSHOP_STARTUP_POINT.session;
+        var text = res.ready ? (res.skipped ? i18nT("startup.summary_ready") + ". " + i18nT("startup.summary_skipped", { n: res.skipped }) : i18nT("startup.summary_ready")) : res.pending ? i18nT("startup.summary_pending", { n: res.pending, total: res.total }) : lone ? i18nT("startup.summary_unchecked", { n: res.unchecked }) : workshopNoticeText("session");
         return { color: color, text: i18nT("startup.title") + " - " + text };
       }
 
@@ -81,8 +84,9 @@
         box.style.cssText = quiet
           ? "display:inline-flex;align-items:center;box-sizing:border-box;margin:0;padding:4px;border-radius:50%;cursor:pointer;border:0;background:transparent;"
           : "display:inline-flex;align-items:center;gap:6px;box-sizing:border-box;margin:0;padding:2px 10px 2px 8px;border-radius:16px;font-size:12px;line-height:1.5;cursor:pointer;white-space:nowrap;border:1px solid rgba(128,128,128,0.4);background:transparent;";
-        icon.style.color = res.ready ? "#66bb6a" : res.pending ? "var(--wf-n-down-text, #ffb74d)" : "var(--wf-n-session-text, #90caf9)";
-        text.textContent = quiet ? "" : i18nT("startup.chip_pending", { n: res.pending }); // same words as the chip of the Vue pages (StartupPanel)
-        var what = res.ready ? i18nT("startup.strip_ready") : res.pending ? i18nT("startup.strip_pending", { n: res.pending }) : workshopNoticeText("session");
+        var lone = res.unchecked && !res.session;
+        icon.style.color = res.ready ? "#66bb6a" : res.pending ? "var(--wf-n-down-text, #ffb74d)" : lone ? WORKSHOP_STARTUP_POINT.unchecked : "var(--wf-n-session-text, #90caf9)";
+        text.textContent = quiet ? "" : i18nT(res.pending === 1 ? "startup.chip_pending_one" : "startup.chip_pending", { n: res.pending }); // same words as the chip of the Vue pages (StartupPanel)
+        var what = res.ready ? i18nT("startup.strip_ready") : res.pending ? i18nT(res.pending === 1 ? "startup.strip_pending_one" : "startup.strip_pending", { n: res.pending }) : lone ? i18nT("startup.summary_unchecked", { n: res.unchecked }) : workshopNoticeText("session");
         box.title = i18nT("startup.title") + " - " + what + " - " + (res.pending ? i18nT("startup.strip_setup") : i18nT("startup.strip_open"));
       }

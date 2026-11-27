@@ -1,5 +1,5 @@
       // ---- Other plugins: is it there? ----
-      // Rule of the owner: a plugin that refers to another one shows nothing about it (no button, link, text, card or hint: hidden,
+      // Project rule: a plugin that refers to another one shows nothing about it (no button, link, text, card or hint: hidden,
       // not disabled) while the other one is not installed or not enabled in DWC. The answer is workshopPluginActive(key) of
       // src/_shared/13-presence.js (the same for every plugin; it never looks at the routes). A text that names the other plugin comes in two
       // variants, "key" and "key_no_<plugin>" (the second says what cannot be done here without naming it, or is left out): tvTx picks.

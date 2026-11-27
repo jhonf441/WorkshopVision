@@ -1,14 +1,44 @@
       function tvPill(tv, icon) {
         var p = tvEl("span", "wf-state");
-        var t = tvEl("span", null, "...");
+        var t = tvEl("span", "tv-state-txt", "...");
         p.appendChild(t);
         p.set = function (cls, text, tip) {
           p.className = "wf-state" + (cls ? " " + cls : "");
           t.textContent = text;
           p.title = tip || "";
+          p.tvCls = cls || "";
+          p.tvText = text;
+          p.tvSeen = true;
+          tvPaintSummary(tv);
         };
         tv.pills.appendChild(p);
+        tv.pillList = (tv.pillList || []).concat([p]);
         return p;
+      }
+
+      // Phone bar (< 640 px, CSS shows only this chip): the three states in ONE chip with the WORST state in whole words and "+N" for the other
+      // states that are not fine; everything fine = "All ready". A state is a word and a dot, never only a colour. Tapping it goes to Home, where the
+      // whole list is. The wide bar keeps the three pills and hides this chip.
+      var TV_SUM_RANK = { err: 3, warn: 2, "": 1, ok: 0 };
+      function tvSummaryOf(pills) {
+        var seen = (pills || []).filter(function (p) { return p.tvSeen && p.style.display !== "none"; });
+        var bad = seen.filter(function (p) { return p.tvCls !== "ok"; });
+        if (!seen.length) return null;
+        if (!bad.length) return { cls: "ok", text: i18nT('vision.all_ready'), more: 0 };
+        var worst = bad.reduce(function (a, p) { return TV_SUM_RANK[p.tvCls] > TV_SUM_RANK[a.tvCls] ? p : a; });
+        var t = String(worst.tvText || "");
+        return { cls: worst.tvCls, text: t.charAt(0).toUpperCase() + t.slice(1), more: bad.length - 1 };
+      }
+      function tvPaintSummary(tv) {
+        if (!tv.chipSum) return;
+        var s = tvSummaryOf(tv.pillList);
+        tv.chipSum.style.display = s ? "" : "none";
+        if (!s) return;
+        tv.chipSum.className = "wf-state tv-sum" + (s.cls ? " " + s.cls : "");
+        tv.chipSumTxt.textContent = s.text;
+        tv.chipSumMore.textContent = s.more ? i18nT('vision.states_more', { n: s.more }) : "";
+        tv.chipSumMore.style.display = s.more ? "" : "none";
+        tv.chipSum.title = s.more ? i18nT('vision.states_open_home') : "";
       }
 
       function tvPaintZones(tv) {
@@ -24,6 +54,8 @@
         tv.nav.innerHTML = "";
         tv.nav.className = "wf-nav tv-nav";
         tv.nav.classList.toggle("collapsed", !!tv.prefs.navCollapsed);
+        var pick = tvNavPick(tv.nav, ".tv-nav-item", ".tx", i18nT('vision.section_pick')); // a phone: one "Section: X" button instead of the bar (11-vision-nav-pick.js)
+        tv.nav.appendChild(pick.el);
         // the pin (only while the bar is open): pinned keeps the bar as it is when a section is chosen; otherwise it folds to its icons
         var head = tvEl("div", "tvn-head");
         var pin = tvEl("button", "tvn-fold tvn-pin" + (tv.prefs.navPinned ? " pinned" : ""));
@@ -72,6 +104,17 @@
             tv.nav.appendChild(b);
           });
         });
+        pick.paint();
+        tvPaintGroup(tv);
+      }
+
+      // the group of the open section (0 Measure, 1 Job, 2 Camera) on the page: its colour paints the cards and the open entry (10-vision-style.js)
+      function tvPaintGroup(tv) {
+        if (!tv.page) return;
+        var gi = 0;
+        var id = tv.tab === "guided" ? "calibrate" : tv.tab; // the guided calibration is a way into Calibrate
+        TV_SECTIONS.forEach(function (g, i) { g.items.forEach(function (it) { if (it[0] === id) gi = i; }); });
+        tv.page.setAttribute("data-group", String(gi));
       }
 
       function tvModeMeasure(tv) {

@@ -123,6 +123,10 @@
       function tvFlash(tv, t, ok) {
         tv.lastMsg = { t: t, ok: ok !== false };
         tvRenderSide(tv);
+        // the result of a button far down the side panel: bring it into view, mark it and say it (src/_shared/20-reveal.js)
+        var shown = tv.side && tv.side.querySelector ? tv.side.querySelector(".tv-msg, .wf-notice") : null;
+        if (shown && typeof workshopRevealResult === "function") workshopRevealResult(shown);
+        if (shown && typeof workshopSay === "function") workshopSay(String(t || ""));
       }
 
       function tvGoPointer(tv, x, y) {

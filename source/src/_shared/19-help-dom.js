@@ -3,7 +3,8 @@
       // Standard: DESIGN.md 7b and informes/estandar-sesion-y-ayuda/AYUDAS.md. A JS plugin never draws its own help button: it asks for one of these elements.
       //   workshopHelpTipEl(spec)                        P1: the "?" button that opens a card; spec = { title, what, why, ifMissing, how } (texts ALREADY translated)
       //   workshopFieldEl(label, helpSpec, control, id)  a field with its label OUTSIDE the control and the "?" next to the LABEL (never inside the control)
-      //   workshopGuideEl(title, rows)                   P3: the "How it works" fold of a section, rows = [[label, text], ...]
+      //   workshopHelpFoldEl(spec)                       the fold "What it is and how to use it" (help 1 of 2); workshopGuideEl(title, rows) is the same fold with rows
+      //   workshopHelpLineEl(text)                       the short help in line (help 2 of 2)
       //   workshopNoteEl(kind, text)                     P4: an always visible note, kind "info" or "warn"
       // Same DOM and class names as the Vue pieces (button.help-tip, dl.help-tip-list, .wf-popover, .wf-field, .wf-field-label, .wf-guide, .wf-note).
       // One card open at a time; it opens under the button, is kept inside the window, and closes with a tap outside or Esc. Nothing is read from the machine.
@@ -33,18 +34,41 @@
         o.off();
       }
 
-      // Under the button, inside the window (never wider than it)
+      // the px the control bar takes on the right (it publishes them to the notices center): the card, on the top layer, must never cover its STOP
+      function workshopHelpRightInset() {
+        var c = typeof window !== "undefined" ? window.__workshopNotices : null;
+        return c && typeof c.getInset === "function" ? Number(c.getInset("right")) || 0 : 0; // an old center without getInset: no inset
+      }
+
+      // Under the button, inside the window (never wider than it) and left of the control bar
       function workshopHelpPlace(btn, card) {
         var r = btn.getBoundingClientRect();
-        var w = window.innerWidth || 1024;
+        var w = (window.innerWidth || 1024) - workshopHelpRightInset();
+        card.style.maxWidth = Math.max(160, Math.min(380, w - 16)) + "px";
         var h = window.innerHeight || 768;
         var cw = card.offsetWidth || 380;
         var ch = card.offsetHeight || 120;
         var left = Math.max(8, Math.min(r.left, w - cw - 8));
-        var top = r.bottom + 4;
-        if (top + ch > h - 8) top = Math.max(8, r.top - ch - 4);
+        var below = r.bottom + 4;
+        var above = Math.max(8, r.top - ch - 4);
+        var top = below + ch > h - 8 ? above : below;
+        // never over a STOP / E-STOP of a floating panel (C13.9): the other side of the button, or the side of the stops
+        var stops = workshopHelpStops();
+        var hits = function (t) { return stops.some(function (s) { return left < s.right && left + cw > s.left && t < s.bottom && t + ch > s.top; }); };
+        if (hits(top)) top = top === below ? above : below;
+        if (hits(top)) {
+          var s0 = stops[0];
+          left = s0.left - cw - 8 >= 8 ? s0.left - cw - 8 : Math.min(w - cw - 8, s0.right + 8);
+        }
         card.style.left = left + "px";
         card.style.top = top + "px";
+      }
+
+      // the rectangles of the stops of the floating panels on screen (the Jog marks them data-jog-stop; any other panel data-workshop-stop)
+      function workshopHelpStops() {
+        if (typeof document === "undefined" || typeof document.querySelectorAll !== "function") return [];
+        return Array.prototype.map.call(document.querySelectorAll("[data-jog-stop], [data-workshop-stop]"), function (b) { return b.getBoundingClientRect(); })
+          .filter(function (r) { return r && r.width > 0 && r.height > 0; });
       }
 
       // The rows as a definition list (the card and the fold share it)
@@ -97,6 +121,9 @@
           workshopHelpClose();
           if (same) return;
           var card = workshopHelpCard(btn, spec, label);
+          // above everything: a "?" inside the Jog, the camera viewer or their settings dialog (z-index 2147483646/7) opened its card BEHIND them with
+          // the 9999 of .wf-popover (owner, 2026-11-23); appended last to <body>, the same top value paints it over them
+          card.style.zIndex = "2147483647";
           document.body.appendChild(card);
           workshopHelpPlace(btn, card);
           btn.setAttribute("aria-expanded", "true");
@@ -163,16 +190,54 @@
         return box;
       }
 
-      // The "How it works" fold of a section: closed by default, the rows given. rows = [[label, text], ...]
-      function workshopGuideEl(title, rows) {
+      // Help 1 of 2: the fold "What it is and how to use it" (twin of vue/_shared36/HelpFold.vue, project decision 2026-11-21). A link with a "?" icon that opens in place and stays
+      // open; Esc closes it and the focus goes back to the summary. spec = { title, rows: [[label, text], ...] } or the four texts { what, why, ifMissing, how } (already translated).
+      function workshopHelpFoldEl(spec) {
         workshopHelpCss();
+        spec = spec || {};
         var d = document.createElement("details");
-        d.className = "wf-guide";
+        d.className = "wf-help-fold";
         var s = document.createElement("summary");
-        s.textContent = title;
+        var ic = document.createElement("span");
+        ic.className = "wf-help-fold-icon mdi mdi-help-circle-outline";
+        ic.setAttribute("aria-hidden", "true");
+        s.appendChild(ic);
+        var tx = document.createElement("span");
+        tx.textContent = i18nT("core.help_fold_title");
+        s.appendChild(tx);
         d.appendChild(s);
-        d.appendChild(workshopHelpList(rows));
+        var body = document.createElement("div");
+        body.className = "wf-help-fold-body";
+        if (spec.title) {
+          var tt = document.createElement("div");
+          tt.className = "help-tip-title";
+          tt.textContent = spec.title;
+          body.appendChild(tt);
+        }
+        var rows = spec.rows || workshopHelpRows(spec, i18nT);
+        if (rows.length) body.appendChild(workshopHelpList(rows));
+        d.appendChild(body);
+        d.addEventListener("keydown", function (e) {
+          if (e.key !== "Escape" || !d.open) return;
+          e.stopPropagation();
+          d.open = false;
+          s.focus();
+        });
         return d;
+      }
+
+      // Help 2 of 2: the SHORT help, one or two sentences in line (twin of HelpLine.vue); a longer one is the fold
+      function workshopHelpLineEl(text) {
+        workshopHelpCss();
+        var p = document.createElement("p");
+        p.className = "wf-help wf-help-line";
+        p.textContent = text;
+        return p;
+      }
+
+      // The old "How it works" fold of a section: now the one fold (workshopHelpFoldEl); the title is kept as the heading inside it. rows = [[label, text], ...]
+      function workshopGuideEl(title, rows) {
+        return workshopHelpFoldEl({ title: title, rows: rows });
       }
 
       // A note that is true NOW or limits what is seen: always visible, never collapsible. kind: "info" or "warn"

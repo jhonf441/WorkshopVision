@@ -203,11 +203,19 @@
         box.appendChild(tvEl("div", "tv-muted", i18nT('vision.only_on_this_screen')));
       }
 
-      function tvDockWraps(tv) {
-        var hijos = Array.prototype.filter.call(tv.dock.children, function (c) { return !c.classList.contains("gap"); });
-        return hijos.length > 1 && hijos[hijos.length - 1].offsetTop > hijos[0].offsetTop + 4;
+      // how many rows the bar takes now (the tops of its groups, 4 px of tolerance)
+      function tvDockRows(tv) {
+        var tops = [];
+        Array.prototype.forEach.call(tv.dock.children, function (c) {
+          if (c.classList.contains("gap")) return;
+          var t = c.offsetTop;
+          if (!tops.some(function (x) { return Math.abs(x - t) <= 4; })) tops.push(t);
+        });
+        return tops.length;
       }
 
+      // automatic: the names beside the icons only when they add no row to the bar (FAMILIA-REDISENO 5: tools of 32; with the name beside the
+      // icon a named bar is much wider than the old one with the name under it, so "it wraps anyway" no longer means "names")
       function tvDockNames(tv, force) {
         var w = tv.dock.clientWidth;
         if (!w) return; // escondida (Ajustes): se calcula al volver a verse
@@ -219,9 +227,10 @@
           return;
         }
         tv.dock.classList.remove("without-names");
-        if (!tvDockWraps(tv)) return;
+        var named = tvDockRows(tv);
+        if (named <= 1) return;
         tv.dock.classList.add("without-names");
-        if (tvDockWraps(tv)) tv.dock.classList.remove("without-names");
+        if (named <= tvDockRows(tv)) tv.dock.classList.remove("without-names");
       }
 
       // zoom (- / + / fit with the %) and the view (View menu, grid, ruler)

@@ -26,6 +26,20 @@
           });
       }
 
+      // The same read that says whether it could be made: {ok, list}. A file that is not there (404) is an empty list (ok); any other failure is
+      // not "no positions": ok is false (callers keep what they had, and workshopPosUpdate does not write over the file).
+      function workshopPosReadChecked() {
+        return fetch("/machine/file/" + encodeURI(WORKSHOP_POS_FILE) + "?_=" + Date.now(), { cache: "no-store" })
+          .then(function (r) {
+            if (r.status === 404) return { ok: true, list: [] };
+            if (!r.ok) return { ok: false, list: [] };
+            return r.json().then(function (j) { return { ok: true, list: workshopPosClean(j) }; });
+          })
+          .catch(function () {
+            return { ok: false, list: [] };
+          });
+      }
+
       function workshopPosNotify(list) {
         workshopPosListeners.forEach(function (fn) {
           try {
@@ -38,7 +52,9 @@
 
       // fn(list) -> new list (it may change the list in place and return it).
       function workshopPosUpdate(fn) {
-        return workshopPosRead().then(function (list) {
+        return workshopPosReadChecked().then(function (read) {
+          if (!read.ok) throw new Error(i18nT('positions.could_not_read_positions')); // writing over a list that could not be read would erase it
+          var list = read.list;
           var nl = fn(list) || list;
           return fetch("/machine/file/" + encodeURI(WORKSHOP_POS_FILE), {
             method: "PUT",

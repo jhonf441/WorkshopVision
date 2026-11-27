@@ -11,7 +11,7 @@
       var WORKSHOP_MODES = ["FFF", "Laser", "CNC"];
       var WORKSHOP_MODES_LOCAL_KEY = "workshopMachineModes";
 
-      // ONE rule for "may this person switch the machine mode?" (owner 2026-11-06), twin of vue/_shared36/mode-switch.js: the mode buttons of the
+      // ONE rule for "may this person switch the machine mode?" (2026-11-06), twin of vue/_shared36/mode-switch.js: the mode buttons of the
       // bar switched without a word while the Printing page asked for a session. Switching the mode is the technician's (WorkshopService
       // dsf/permissions.py: "technician ... changes mode / head"); the macro runs through DWC, so the technician rank is asked through the
       // operation that marks that role (RANK_OPS.technician of vue/_shared36/role-view.js), as roleAtLeast('technician') does everywhere else.

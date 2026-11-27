@@ -1,0 +1,10 @@
+{
+ "version": 1,
+ "plugin": "WorkshopVision",
+ "macros": [
+  {
+   "file": "probe/visionpose.g",
+   "audience": "internal"
+  }
+ ]
+}

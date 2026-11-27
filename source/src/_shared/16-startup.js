@@ -27,18 +27,22 @@
       // The pure decisions are in 16-startup-wizard.js.
       //
       // A row has a file (state from examples.list) or a check (state given by estado / comprobar), never both.
-      // "Do not use" hides the row on this screen (localStorage); "Show again" brings them back. Nothing here
+      // "Do not use" puts the row in "not in use" (neutral; never pending; the guide skips it; kept in localStorage and in the service, settings
+      // "startup"); "Use this again" takes it back. A row with optional: true that is still off is "not in use" from the start. Nothing here
       // writes over a file of the person: "Create" asks the service, which refuses to overwrite.
 
-      var WORKSHOP_STARTUP_STATES = ["configured", "example", "missing", "session", "na"];
+      // "skipped" is decided here, not by the service (see vue/_shared36/startup.js): the person chose "Do not use", or the row is optional (def.optional)
+      // and still off / only the example. A skipped row is never pending; an optional row that works is an extra, not one of the M of "N of M ready".
+      // unchecked: could not be read now (machine off, no connection)
+      var WORKSHOP_STARTUP_STATES = ["configured", "example", "missing", "session", "unchecked", "skipped", "na"];
 
       // defs: rows as above. archivos: [{archivo, estado}] from examples.list, or null when the service did not answer.
-      // ocultos: ids of rows the person hid. Returns [{id, def, archivo, estado, existe, oculta, sinDatos}].
+      // ocultos: ids of rows the person chose not to use. Returns [{id, def, file, state, exists, hidden, optional, skipReason, withoutData}].
       function workshopStartupRows(defs, files, ocultos) {
         var items = Array.isArray(files) ? files : null;
         var hid = Array.isArray(ocultos) ? ocultos : [];
         return (defs || []).map(function (def) {
-          var f = { id: def.id, def: def, file: def.file || null, state: "na", exists: false, hidden: hid.indexOf(def.id) >= 0, withoutData: false };
+          var f = { id: def.id, def: def, file: def.file || null, state: "na", exists: false, hidden: hid.indexOf(def.id) >= 0, optional: def.optional === true, skipReason: null, withoutData: false };
           if (def.applies === false) return f;
           if (def.state !== undefined && def.state !== null) {
             f.state = WORKSHOP_STARTUP_STATES.indexOf(def.state) >= 0 ? def.state : "na";
@@ -53,27 +57,48 @@
               f.state = hit && (hit.state === "configured" || hit.state === "example") ? hit.state : "missing";
             }
           }
+          f.rawState = f.state; // what the machine says, before the decision: the service gets it and applies the same decisions itself
+          if (!f.withoutData && (f.state === "example" || f.state === "missing" || f.state === "session")) {
+            if (f.hidden) {
+              f.state = "skipped";
+              f.skipReason = "chosen";
+            } else if (f.optional && f.state === "example") {
+              f.state = "skipped";
+              f.skipReason = "default";
+            }
+          }
           return f;
         });
       }
 
-      // {total, pending, session, ready} over the rows that are shown and apply (hidden, grey and without-data rows do not count).
-      // pending = what the person can set up (missing or only the example); session = rows nobody could check because nobody is signed in: they
-      // are not "steps to do" (the header chip used to say "1 step pending" to a visitor), but nothing is ready while they are there.
+      // {total, pending, session, unchecked, ready, skipped, extra} over the rows that apply (grey and without-data rows do not count).
+      // total = the steps of the person: skipped rows and optional rows that already work are not in it.
+      // pending = what the person can set up (missing or only the example); session = rows nobody could check because nobody is signed in;
+      // unchecked = rows that could not be read now (machine off, no connection). Neither is a "step to do" (the chip never says "1 pending"
+      // for them), but nothing is ready while they are there: "ready" is only said about what was really checked.
       function workshopStartupSummary(rows) {
         var count = (rows || []).filter(function (f) {
-          return !f.hidden && !f.withoutData && f.state !== "na";
+          return !f.withoutData && f.state !== "na";
         });
-        var pending = count.filter(function (f) {
-          return f.state === "example" || f.state === "missing";
+        var skipped = count.filter(function (f) {
+          return f.state === "skipped";
         }).length;
-        var session = count.filter(function (f) {
-          return f.state === "session";
+        var extra = count.filter(function (f) {
+          return f.optional && f.state === "configured";
         }).length;
-        return { total: count.length, pending: pending, session: session, ready: pending === 0 && session === 0 };
+        var steps = count.filter(function (f) {
+          return f.state !== "skipped" && !(f.optional && f.state === "configured");
+        });
+        var n = function (states) {
+          return steps.filter(function (f) {
+            return states.indexOf(f.state) >= 0;
+          }).length;
+        };
+        var pending = n(["example", "missing"]), session = n(["session"]), unchecked = n(["unchecked"]);
+        return { total: steps.length, pending: pending, session: session, unchecked: unchecked, ready: pending === 0 && session === 0 && unchecked === 0, skipped: skipped, extra: extra };
       }
 
-      var WORKSHOP_STARTUP_POINT = { configured: "#2e7d32", example: "#e65100", missing: "#c62828", session: "#1e88e5", na: "#455a64" };
+      var WORKSHOP_STARTUP_POINT = { configured: "#2e7d32", example: "#e65100", missing: "#c62828", session: "#1e88e5", unchecked: "#78909c", skipped: "#78909c", na: "#455a64" };
 
       function workshopStartupHiddenRead(key) {
         try {
@@ -113,11 +138,11 @@
         b.textContent = text;
         b.title = help || "";
         // 40 px high at least: the card is used with a finger
-        var css = "flex:0 0 auto;border:none;border-radius:4px;padding:6px 12px;min-height:40px;cursor:pointer;font:inherit;font-size:12px;background:#455a64;color:#fff;touch-action:manipulation;";
-        if (kind === "primary") css = "flex:0 0 auto;border:none;border-radius:10px;padding:8px 18px;min-height:44px;cursor:pointer;font:inherit;font-size:14px;font-weight:600;background:#1976d2;color:#fff;touch-action:manipulation;";
-        else if (kind === "soft") css = "flex:0 0 auto;border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:6px 14px;min-height:40px;cursor:pointer;font:inherit;font-size:13px;background:rgba(255,255,255,0.07);color:inherit;touch-action:manipulation;";
-        else if (kind === "text") css = "flex:0 0 auto;border:none;border-radius:8px;padding:6px 10px;min-height:40px;cursor:pointer;font:inherit;font-size:13px;background:transparent;color:var(--wf-info, #90caf9);touch-action:manipulation;";
-        b.style.cssText = css;
+        var css = "flex:0 0 auto;border:none;border-radius:4px;padding:4px 12px;min-height:var(--wf-size-s, 32px);cursor:pointer;font:inherit;font-size:12px;background:#455a64;color:#fff;touch-action:manipulation;";
+        if (kind === "primary") css = "flex:0 0 auto;border:none;border-radius:10px;padding:6px 18px;min-height:var(--wf-size-m, 36px);cursor:pointer;font:inherit;font-size:14px;font-weight:600;background:#1976d2;color:#fff;touch-action:manipulation;";
+        else if (kind === "soft") css = "flex:0 0 auto;border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:4px 14px;min-height:var(--wf-size-s, 32px);cursor:pointer;font:inherit;font-size:13px;background:rgba(255,255,255,0.07);color:inherit;touch-action:manipulation;";
+        else if (kind === "text") css = "flex:0 0 auto;border:none;border-radius:8px;padding:4px 10px;min-height:var(--wf-size-s, 32px);cursor:pointer;font:inherit;font-size:13px;background:transparent;color:var(--wf-info, #90caf9);touch-action:manipulation;";
+        b.style.cssText = css; b.className = (b.className ? b.className + " " : "") + "wf-hit"; // touched 40 (the scale)
         b.addEventListener("pointerdown", function (ev) {
           ev.stopPropagation();
           ev.preventDefault();
@@ -176,6 +201,8 @@
       function workshopStartupInRun(opts) {
         var plugin = opts.plugin;
         var claveOcultas = opts.keyOcultas || "workshop" + plugin + "StartupHidden";
+        var omitted = { key: claveOcultas, plugin: plugin, server: [] }; // what this browser and the service remember as not used (16-startup-omitted.js)
+        var showSkipped = false; // the "not in use" section is folded away until asked
         var M = opts.view === "modal"; // big cards by function (inside workshopStartupModalOpen) instead of the compact rows
         var abierto = null; // null = open while something is pending
         var abiertas = {}; // rows whose explanation is shown
@@ -185,7 +212,7 @@
         el.setAttribute("data-workshop-startup", plugin);
         el.style.cssText = M
           ? "display:flex;flex-direction:column;gap:14px;width:100%;box-sizing:border-box;font-size:14px;line-height:1.45;"
-          : "display:flex;flex-direction:column;gap:3px;width:100%;box-sizing:border-box;font-size:11px;line-height:1.3;";
+          : "display:flex;flex-direction:column;gap:3px;width:100%;box-sizing:border-box;font-size:12px;line-height:1.3;";
         var creado = false;
 
         // The DWC editor opens above the page. In the dialog (the highest layer) it would stay hidden behind it: the dialog
@@ -211,7 +238,7 @@
 
         // rows with their state now (the service row first)
         function compute() {
-          var ocultos = workshopStartupHiddenRead(claveOcultas);
+          var ocultos = workshopStartupOmittedAll(omitted);
           var defs = [];
           if (opts.serviceRow !== false) {
             defs.push({
@@ -234,137 +261,68 @@
           var res = c.res;
           el.textContent = "";
           var visibles = rows.filter(function (f) {
-            return !f.hidden && !f.withoutData;
+            return !f.withoutData && f.state !== "skipped";
           });
-          var nOcultas = rows.filter(function (f) {
-            return f.hidden;
-          }).length;
+          var omitidas = rows.filter(function (f) {
+            return !f.withoutData && f.state === "skipped";
+          });
+          var nOcultas = omitidas.length;
           var opens = abierto === null ? !res.ready : abierto;
 
           if (M) {
-            workshopStartupReport(plugin, res, last.list !== null && (typeof opts.canReport !== "function" || !!opts.canReport()), opts.onChange);
+            workshopStartupReport(plugin, res, last.list !== null && (typeof opts.canReport !== "function" || !!opts.canReport()), opts.onChange, workshopStartupDetail(rows, workshopStartupOmittedAll(omitted)));
             if (asis) pintarAsistente(rows);
             else paintModal(rows, visibles, res, nOcultas);
             return;
           }
 
-          var cab = document.createElement("div");
-          cab.style.cssText = "display:flex;align-items:center;gap:6px;cursor:pointer;color:inherit;min-height:40px;";
-          cab.setAttribute("role", "button");
-          var head = workshopStartupStripHead(res); // the dot and the sentence (16-startup-view.js)
-          var point = workshopStartupEl("span", "flex:none;width:8px;height:8px;border-radius:50%;background:" + head.color + ";");
-          var tit = workshopStartupEl("span", "flex:1 1 auto;min-width:0;font-weight:500;", head.text);
-          var fl = document.createElement("span");
-          fl.style.cssText = "flex:none;opacity:.7;";
-          fl.textContent = opens ? "▴" : "▾";
-          cab.appendChild(point);
-          cab.appendChild(tit);
-          cab.appendChild(fl);
-          cab.addEventListener("pointerdown", function (ev) {
-            ev.stopPropagation();
+          workshopStartupPaintCompact({
+            el: el,
+            plugin: plugin,
+            rows: rows,
+            res: res,
+            visibles: visibles,
+            omitidas: omitidas,
+            nOcultas: nOcultas,
+            opens: opens,
+            report: function () {
+              workshopStartupReport(plugin, res, last.list !== null && (typeof opts.canReport !== "function" || !!opts.canReport()), opts.onChange, workshopStartupDetail(rows, workshopStartupOmittedAll(omitted)));
+            },
+            inAssistant: function () {
+              return !!asis;
+            },
+            paintAssistant: function () {
+              pintarAsistente(rows);
+            },
+            toggleOpen: function (wasOpen) {
+              abierto = !wasOpen;
+              paint();
+            },
+            openWizard: function (est) {
+              asis = { est: est, view: "question", resp: null };
+              paint();
+            },
+            explained: function (id) {
+              return !!abiertas[id];
+            },
+            toggleExplained: function (id) {
+              abiertas[id] = !abiertas[id];
+              paint();
+            },
+            showSkipped: function () {
+              return showSkipped;
+            },
+            toggleSkipped: function () {
+              showSkipped = !showSkipped;
+              paint();
+            },
+            explain: pintarExplicacion,
+            stateText: textState,
+            editFile: editFile,
+            refresh: refrescar,
+            omitted: omitted,
+            repaint: paint,
           });
-          cab.addEventListener("click", function (ev) {
-            ev.stopPropagation();
-            abierto = !opens;
-            paint();
-          });
-          el.appendChild(cab);
-          workshopStartupReport(plugin, res, last.list !== null && (typeof opts.canReport !== "function" || !!opts.canReport()), opts.onChange);
-          if (!opens) return;
-          var lockedNote = workshopStartupLockedNote();
-          if (lockedNote) el.appendChild(lockedNote);
-
-          if (asis) {
-            pintarAsistente(rows);
-            return;
-          }
-
-          // the assistant is offered only when something is red or orange
-          if (workshopStartupSteps(rows).length) {
-            el.appendChild(
-              workshopStartupButton(i18nT("startup.assist"), i18nT("startup.assist_tip"), function () {
-                asis = { est: workshopStartupWizardStart(rows), view: "question", resp: null };
-                paint();
-              })
-            );
-          }
-
-          visibles.forEach(function (f) {
-            var row = document.createElement("div");
-            row.style.cssText = "display:flex;align-items:center;flex-wrap:wrap;gap:4px;";
-            var p = document.createElement("span");
-            p.style.cssText = "flex:none;width:8px;height:8px;border-radius:50%;background:" + WORKSHOP_STARTUP_POINT[f.state] + ";";
-            var n = document.createElement("span");
-            n.style.cssText = "flex:1 1 120px;min-width:0;overflow-wrap:anywhere;";
-            n.textContent = i18nT(f.def.label) + " - " + textState(f);
-            if (f.def.help) n.title = i18nT(f.def.help);
-            row.appendChild(p);
-            row.appendChild(n);
-            if (workshopStartupExplanation(f.def)) {
-              row.appendChild(
-                workshopStartupButton(abiertas[f.id] ? i18nT("startup.what_is_hide") : i18nT("startup.what_is"), "", function () {
-                  abiertas[f.id] = !abiertas[f.id];
-                  paint();
-                })
-              );
-            }
-            if (f.file && f.state !== "missing" && f.state !== "na") {
-              row.appendChild(
-                workshopStartupButton(i18nT("startup.edit"), i18nT("startup.edit_tip"), function () {
-                  editFile("0:/" + f.file);
-                })
-              );
-            } else if (f.def.wizard && f.state === "missing") {
-              row.appendChild(
-                workshopStartupButton(i18nT("startup.create_help"), i18nT("startup.create_help_tip"), function () {
-                  asis = { est: { ids: [f.id], i: 0, end: false, done: [], skipped: [] }, view: "question", resp: null };
-                  paint();
-                })
-              );
-            } else if (f.file && f.state === "missing" && f.exists) {
-              row.appendChild(
-                workshopStartupButton(i18nT("startup.make"), i18nT("startup.make_tip"), function () {
-                  workshopApi("examples.create", { plugin: plugin, file: f.file })
-                    .then(refrescar)
-                    .catch(function () {
-                      /* the service is not running: the service row says so */
-                    });
-                })
-              );
-            }
-            if (f.def.wizard && f.state === "example") {
-              row.appendChild(
-                workshopStartupButton(i18nT("startup.create_help"), i18nT("startup.create_help_tip"), function () {
-                  asis = { est: { ids: [f.id], i: 0, end: false, done: [], skipped: [] }, view: "question", resp: null };
-                  paint();
-                })
-              );
-            }
-            row.appendChild(
-              workshopStartupButton(i18nT("startup.hide"), i18nT("startup.hide_tip"), function () {
-                var o = workshopStartupHiddenRead(claveOcultas);
-                if (o.indexOf(f.id) < 0) o.push(f.id);
-                workshopStartupHiddenSave(claveOcultas, o);
-                paint();
-              })
-            );
-            el.appendChild(row);
-            if (abiertas[f.id]) el.appendChild(pintarExplicacion(f.def));
-          });
-          if (nOcultas) {
-            var pie = document.createElement("div");
-            pie.style.cssText = "display:flex;align-items:center;gap:6px;opacity:.85;";
-            var t = document.createElement("span");
-            t.textContent = i18nT("startup.hidden_n", { n: nOcultas });
-            pie.appendChild(t);
-            pie.appendChild(
-              workshopStartupButton(i18nT("startup.show_again"), "", function () {
-                workshopStartupHiddenSave(claveOcultas, []);
-                paint();
-              })
-            );
-            el.appendChild(pie);
-          }
         }
 
         // ---- modal view: progress, one card per function, the hidden ones at the foot ----
@@ -374,11 +332,11 @@
         }
 
         function hideGroup(g) {
-          var o = workshopStartupHiddenRead(claveOcultas);
-          g.rows.forEach(function (f) {
-            if (o.indexOf(f.id) < 0) o.push(f.id);
-          });
-          workshopStartupHiddenSave(claveOcultas, o);
+          workshopStartupOmit(omitted,
+            g.rows.map(function (f) {
+              return f.id;
+            })
+          );
           paint();
         }
 
@@ -397,22 +355,33 @@
             el.appendChild(todo);
           }
 
-          workshopStartupGroups(rows.filter(function (f) {
-            return !f.hidden && !f.withoutData;
-          })).forEach(function (g) {
+          var groups = workshopStartupGroups(rows.filter(function (f) {
+            return !f.withoutData;
+          }));
+          var toDo = groups.filter(function (g) {
+            return g.state !== "skipped";
+          });
+          var away = groups.filter(function (g) {
+            return g.state === "skipped";
+          });
+          toDo.forEach(function (g) {
             el.appendChild(paintGroup(g));
           });
 
-          if (nOcultas) {
+          // the functions the person does not use (or optional ones that are off): their own section, folded away until asked
+          if (away.length) {
             var pie = workshopStartupEl("div", "display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;color:#b0bec5;");
-            pie.appendChild(workshopStartupEl("span", "", i18nT("startup.hidden_n", { n: nOcultas })));
+            pie.appendChild(workshopStartupEl("span", "", i18nT("startup.skipped_n", { n: away.length })));
             pie.appendChild(
-              workshopStartupButton(i18nT("startup.show_again"), "", function () {
-                workshopStartupHiddenSave(claveOcultas, []);
+              workshopStartupButton(showSkipped ? i18nT("startup.skipped_hide") : i18nT("startup.skipped_show"), "", function () {
+                showSkipped = !showSkipped;
                 paint();
               }, "text")
             );
             el.appendChild(pie);
+            if (showSkipped) away.forEach(function (g) {
+              el.appendChild(paintGroup(g));
+            });
           }
         }
 
@@ -439,13 +408,14 @@
             var t = WORKSHOP_STARTUP_TONE[f.state] || WORKSHOP_STARTUP_TONE.na;
             var conBoton = (f.file && f.state !== "missing" && f.state !== "na") || (f.file && f.state === "missing" && f.exists && !f.def.wizard);
             if (g.rows.length === 1 && !conBoton && f.state === "configured") return; // the chip of the card already says "ready"
-            var row = workshopStartupEl("div", "display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:4px 10px;border-radius:8px;background:rgba(128,128,128,0.07);min-height:44px;");
+            var row = workshopStartupEl("div", "display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:4px 10px;border-radius:8px;background:rgba(128,128,128,0.07);min-height:var(--wf-hit, 40px);");
             row.appendChild(workshopStartupEl("span", "flex:none;width:9px;height:9px;border-radius:50%;background:" + t.text + ";"));
             var n = workshopStartupEl("span", "flex:1 1 150px;min-width:0;overflow-wrap:anywhere;font-size:13px;");
             n.appendChild(document.createTextNode(i18nT(f.def.label)));
             n.appendChild(workshopStartupEl("span", "color:" + t.text + ";font-size:12px;", " - " + textState(f)));
             if (f.def.help && g.rows.length === 1) n.title = i18nT(f.def.help);
             row.appendChild(n);
+            if (f.state === "unchecked") row.appendChild(workshopStartupRecheckButton(refrescar));
             if (f.file && f.state !== "missing" && f.state !== "na") {
               row.appendChild(
                 workshopStartupButton(i18nT("startup.edit"), i18nT("startup.edit_tip"), function () {
@@ -496,22 +466,39 @@
             );
           }
           acc.appendChild(workshopStartupEl("span", "flex:1 1 auto;"));
-          acc.appendChild(
-            workshopStartupButton(i18nT("startup.hide"), i18nT("startup.hide_tip"), function () {
-              hideGroup(g);
-            }, "text")
-          );
+          if (g.state !== "skipped" && g.state !== "configured" && g.state !== "na") {
+            acc.appendChild(
+              workshopStartupButton(i18nT("startup.omit"), i18nT("startup.omit_tip"), function () {
+                hideGroup(g);
+              }, "text")
+            );
+          } else if (
+            g.rows.some(function (f) {
+              return f.skipReason === "chosen";
+            })
+          ) {
+            acc.appendChild(
+              workshopStartupButton(i18nT("startup.use_again"), i18nT("startup.use_again_tip"), function () {
+                workshopStartupUseAgain(omitted,
+                  g.rows.map(function (f) {
+                    return f.id;
+                  })
+                );
+                paint();
+              }, "text")
+            );
+          }
           card.appendChild(acc);
-          if (first && abiertas[g.id]) card.appendChild(pintarExplicacion(first.def));
+          if (first && abiertas[g.id]) card.appendChild(pintarExplicacion(first.def, first.state));
           return card;
         }
 
         // the three short paragraphs of a row: what it is, what the plugin does with it, what happens if it is missing
-        function pintarExplicacion(def) {
+        function pintarExplicacion(def, state) {
           var ex = workshopStartupExplanation(def);
           var box = workshopStartupEl("div", "margin:0 0 4px 12px;padding:4px 8px;border-left:2px solid #455a64;opacity:.95;");
           if (!ex) return box;
-          [["what_label", ex.what], ["for_label", ex.why], ["missing_label", ex.ifMissing]].forEach(function (par) {
+          [["what_label", ex.what], ["for_label", ex.why], state === "unchecked" ? ["unchecked_label", "startup.unchecked_how"] : ["missing_label", ex.ifMissing]].forEach(function (par) {
             if (!par[1]) return;
             var p = workshopStartupEl("div", "margin:2px 0;overflow-wrap:anywhere;");
             p.appendChild(workshopStartupEl("b", "", i18nT("startup." + par[0]) + ": "));
@@ -586,7 +573,7 @@
           cab.appendChild(workshopStartupEl("span", "flex:1 1 auto;min-width:0;font-weight:600;" + (M ? "font-size:16px;" : "") + "overflow-wrap:anywhere;", i18nT(f.def.label) + " - " + textState(f)));
           if (!M) cab.appendChild(workshopStartupEl("span", "flex:none;opacity:.75;", i18nT("startup.assist_step", { i: est.i + 1, n: est.ids.length })));
           box.appendChild(cab);
-          if (workshopStartupExplanation(f.def)) box.appendChild(pintarExplicacion(f.def));
+          if (workshopStartupExplanation(f.def)) box.appendChild(pintarExplicacion(f.def, f.state));
 
           var as = f.def.wizard;
           if (asis.view === "preview" && as) paintPreview(box, f);
@@ -759,7 +746,7 @@
           });
           if (asis.writing) g.disabled = true;
           g.style.background = "#2e7d32";
-          if (M) g.style.cssText += ";border-radius:10px;min-height:44px;font-size:14px;font-weight:600;padding:8px 18px;";
+          if (M) g.style.cssText += ";border-radius:10px;min-height:var(--wf-size-m, 36px);font-size:14px;font-weight:600;padding:6px 18px;";
           bs.appendChild(g);
           box.appendChild(bs);
         }
@@ -835,13 +822,8 @@
               });
               return Promise.resolve()
                 .then(def.check)
-                .catch(function () {
-                  return "na"; // a check that fails never turns into an error: it does not apply
-                })
-                .then(function (e) {
-                  copy.state = e;
-                  return copy;
-                });
+                .catch(function () { return "na"; }) // a check that fails never turns into an error: it does not apply
+                .then(function (e) { workshopStartupApplyCheck(copy, e); return copy; }); // e: a state, or {state, text} when the row says why (unchecked: the cause)
             })
           );
         }
@@ -865,6 +847,22 @@
             })
             .then(function (items) {
               last.list = items;
+              if (typeof workshopApi !== "function") return null;
+              return workshopApi("settings.get", { name: "startup" }, { quiet: true, noLogin: true, byPerson: false }).then(
+                function (r) {
+                  var v = r && r.value && r.value[plugin];
+                  omitted.server = Array.isArray(v)
+                    ? v.filter(function (id) {
+                        return typeof id === "string";
+                      })
+                    : [];
+                },
+                function () {
+                  /* keep what this browser has */
+                }
+              );
+            })
+            .then(function () {
               return readChecks();
             })
             .then(function (defs) {
@@ -891,9 +889,9 @@
       // A row may carry grupo (id), grupoEtiqueta / grupoDescripcion (i18n keys) and grupoIcono (a key of WORKSHOP_STARTUP_ICONS, 16-startup-view.js):
       // the rows of one group (e.g. "on" and "off" of the light) are one card. Rows without grupo are a card of their own.
 
-      // the worst state of a group (what the card shows): missing > example > configured > na
+      // the worst state of a group (what the card shows): missing > example > configured > skipped > na
       function workshopStartupWorstState(rows) {
-        var order = ["missing", "session", "example", "configured", "na"];
+        var order = ["missing", "session", "unchecked", "example", "configured", "skipped", "na"];
         var best = "na";
         (rows || []).forEach(function (f) {
           if (order.indexOf(f.state) < order.indexOf(best)) best = f.state;
@@ -940,7 +938,7 @@
         background.id = idBackground;
         background.setAttribute("data-tp-panel", "1");
         background.style.cssText =
-          "position:fixed;left:0;top:0;right:0;bottom:0;z-index:2147483647;background:rgba(8,14,18,0.66);display:flex;align-items:" + (chico ? "stretch" : "center") + ";justify-content:center;padding:" + (chico ? "0" : "16px") + ";box-sizing:border-box;";
+          "position:fixed;left:0;top:0;right:0;bottom:0;z-index:2147483647;background:rgba(8,14,18,0.66);display:flex;align-items:" + (chico ? "stretch" : "center") + ";justify-content:center;padding:" + (chico ? "0" : "16px") + ";box-sizing:border-box;"; if (typeof workshopVeilClear === "function") workshopVeilClear(background); // never over an emergency stop
         var box = document.createElement("div");
         box.setAttribute("role", "dialog");
         box.setAttribute("aria-modal", "true");
@@ -967,7 +965,7 @@
         x.type = "button";
         x.title = opts.close || i18nT("startup.close");
         x.setAttribute("aria-label", opts.close || i18nT("startup.close"));
-        x.style.cssText = "flex:none;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:none;border-radius:50%;background:transparent;color:#b0bec5;cursor:pointer;touch-action:manipulation;";
+        x.style.cssText = "flex:none;display:inline-flex;align-items:center;justify-content:center;width:var(--wf-size-s, 32px);height:var(--wf-size-s, 32px);border:none;border-radius:50%;background:transparent;color:#b0bec5;cursor:pointer;touch-action:manipulation;";
         x.appendChild(workshopStartupIcon("close", 22, "currentColor"));
         cab.appendChild(ic);
         cab.appendChild(tt);

@@ -52,6 +52,7 @@
         tvRenderPhoto(tv);
         tvRenderResults(tv);
         if (tvIsTech()) tvRenderParams(tv); // the 17 detection parameters are the technician's, under "Advanced"
+        tv.side.appendChild(tvHelpDetect(tv)); // the one help of the section, at its foot (18-vision-results.js)
       }
 
       // The look-only view says why with ONE reason (N3, no button: the chip of the bar has the sign-in): no session, or the role that is needed.
@@ -62,11 +63,18 @@
 
       // Without the Vision service (2026-10-10, test "what if a
       // plugin is missing": before it said "Could not analyze: Failed to fetch")
+      // FAMILIA-REDISENO 5 (Vision): the state card says what it means NOW in one text of 13 px of three lines at most; why and what to check is
+      // folded under "See details" (it was a paragraph of six lines on the kiosk before the content)
       function tvNoticeService(tv) {
         var c = tvCard(i18nT('vision.the_vision_service_doesn_t_respond'), "lan-disconnect");
         c.classList.add("tv-notice");
-        c.appendChild(tvEl("div", null, i18nT('vision.page_cannot_reach_the_service', { port: WORKSHOP_VISION_PORT })));
-        c.appendChild(tvEl("div", "tv-muted", i18nT(tvHasWorkbench(tv) ? 'vision.meanwhile_you_can_t_detect_or' : 'vision.meanwhile_you_can_t_detect_or_no_map')));
+        c.appendChild(tvEl("div", "tv-line3", i18nT(tvHasWorkbench(tv) ? 'vision.meanwhile_you_can_t_detect_or' : 'vision.meanwhile_you_can_t_detect_or_no_map')));
+        var more = tvEl("details", "tv-more");
+        more.appendChild(tvEl("summary", null, i18nT('vision.see_detail')));
+        var body = tvEl("div");
+        body.appendChild(tvEl("div", null, i18nT('vision.page_cannot_reach_the_service', { port: WORKSHOP_VISION_PORT })));
+        more.appendChild(body);
+        c.appendChild(more);
         return c;
       }
 

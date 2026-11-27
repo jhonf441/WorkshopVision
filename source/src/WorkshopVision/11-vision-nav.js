@@ -39,6 +39,8 @@
         tv.chipSumMore.textContent = s.more ? i18nT('vision.states_more', { n: s.more }) : "";
         tv.chipSumMore.style.display = s.more ? "" : "none";
         tv.chipSum.title = s.more ? i18nT('vision.states_open_home') : "";
+        // a named button: the state it shows, how many more there are, and where it goes (the tap always opens Home)
+        tv.chipSum.setAttribute("aria-label", s.text + (s.more ? " " + i18nT('vision.states_more', { n: s.more }) : "") + ". " + i18nT('vision.states_open_home'));
       }
 
       function tvPaintZones(tv) {

@@ -1,5 +1,9 @@
 # WorkshopVision -- historial de versiones
 
+## 2.11.1 -- 2026-11-27
+
+- the summary chip of the states is a named button that says where it goes
+
 ## 2.11.0 -- 2026-11-24
 
 - Redesign on the family scale: compact page bar, group colour, card heads, rows instead of grey sub-cards, one help per section, tools 32 / fields 36 / touch area 40, 8 px gaps
